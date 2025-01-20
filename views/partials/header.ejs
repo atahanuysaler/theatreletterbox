@@ -1,0 +1,17 @@
+<header>
+    <nav>
+        <div class="logo">
+            <a href="/">Theatre Tracker</a>
+        </div>
+        <div class="nav-links">
+            <a href="/plays">All Plays</a>
+            <% if (locals.user) { %>
+                <span>Welcome, <%= user.username %></span>
+                <a href="/logout">Logout</a>
+            <% } else { %>
+                <a href="/login">Login</a>
+                <a href="/register">Register</a>
+            <% } %>
+        </div>
+    </nav>
+</header>

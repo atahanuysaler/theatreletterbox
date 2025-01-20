@@ -1,0 +1,295 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --smeg-black: #1B1B1B;
+    --smeg-red: #FF3B30;
+    --smeg-white: #FFFFFF;
+    --smeg-gray: #2C2C2C;
+    --smeg-light-gray: #E5E5E5;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    line-height: 1.6;
+    color: var(--smeg-white);
+    background-color: var(--smeg-black);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header styles */
+header {
+    background-color: var(--smeg-black);
+    border-bottom: 1px solid var(--smeg-gray);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo a {
+    color: var(--smeg-red);
+    text-decoration: none;
+    font-size: 1.8rem;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+}
+
+.nav-links a {
+    color: var(--smeg-white);
+    text-decoration: none;
+    margin-left: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.nav-links a:hover {
+    color: var(--smeg-red);
+}
+
+.nav-links span {
+    margin-left: 20px;
+    color: var(--smeg-light-gray);
+    font-size: 0.9rem;
+}
+
+/* Play cards grid */
+.plays-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.play-card {
+    position: relative;
+    background: var(--smeg-gray);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+.play-card:hover {
+    transform: translateY(-5px);
+}
+
+.play-poster {
+    position: relative;
+    padding-bottom: 150%;
+    background-color: var(--smeg-gray);
+    overflow: hidden;
+}
+
+.play-poster img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.play-info {
+    padding: 15px;
+}
+
+.play-card h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--smeg-white);
+}
+
+.play-meta {
+    font-size: 0.8rem;
+    color: var(--smeg-light-gray);
+    margin-bottom: 5px;
+}
+
+.play-rating {
+    display: flex;
+    align-items: center;
+    color: var(--smeg-red);
+    font-size: 0.9rem;
+    margin-top: 8px;
+}
+
+.play-rating .stars {
+    margin-right: 5px;
+}
+
+/* Forms */
+.auth-form {
+    max-width: 400px;
+    margin: 60px auto;
+    background: var(--smeg-gray);
+    padding: 40px;
+    border-radius: 8px;
+}
+
+.auth-form h1 {
+    color: var(--smeg-white);
+    margin-bottom: 30px;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--smeg-light-gray);
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    background: var(--smeg-black);
+    border: 1px solid var(--smeg-gray);
+    border-radius: 4px;
+    color: var(--smeg-white);
+    font-size: 1rem;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--smeg-red);
+}
+
+.btn {
+    background: var(--smeg-red);
+    color: var(--smeg-white);
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+}
+
+.btn:hover {
+    background: #ff1f1f;
+}
+
+/* Reviews */
+.reviews-section {
+    margin-top: 60px;
+}
+
+.reviews-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+    color: var(--smeg-white);
+}
+
+.review {
+    background: var(--smeg-gray);
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+}
+
+.review-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.review-header .username {
+    color: var(--smeg-red);
+    font-weight: 600;
+    margin-right: 15px;
+}
+
+.review-header .rating {
+    color: var(--smeg-light-gray);
+}
+
+.review-header .date {
+    color: var(--smeg-light-gray);
+    font-size: 0.9rem;
+    margin-left: auto;
+}
+
+.review-text {
+    line-height: 1.8;
+    color: var(--smeg-white);
+}
+
+/* Play details page */
+.play-details {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 40px;
+    margin-top: 40px;
+}
+
+.play-poster-large {
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.play-info-details h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: var(--smeg-white);
+}
+
+.play-meta-details {
+    color: var(--smeg-light-gray);
+    margin-bottom: 30px;
+}
+
+.play-description {
+    color: var(--smeg-white);
+    line-height: 1.8;
+}
+
+/* Error messages */
+.error {
+    color: var(--smeg-red);
+    background: rgba(255, 59, 48, 0.1);
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border: 1px solid var(--smeg-red);
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--smeg-black);
+    color: var(--smeg-light-gray);
+    margin-top: 80px;
+    border-top: 1px solid var(--smeg-gray);
+}
