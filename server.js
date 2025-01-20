@@ -36,11 +36,16 @@ db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS plays (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
+    author TEXT NOT NULL,
+    genre TEXT NOT NULL,
+    year_written INTEGER NOT NULL,
+    duration_minutes INTEGER NOT NULL,
     theatre TEXT NOT NULL,
     city TEXT NOT NULL,
     description TEXT,
     start_date TEXT,
-    end_date TEXT
+    end_date TEXT,
+    poster_url TEXT
   )`);
 
   // Reviews table
