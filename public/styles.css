@@ -11,13 +11,15 @@
     --smeg-white: #FFFFFF;
     --smeg-gray: #2C2C2C;
     --smeg-light-gray: #E5E5E5;
+    --gradient-dark: linear-gradient(to right, #1a1a1a, #2c2c2c);
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     line-height: 1.6;
     color: var(--smeg-white);
-    background-color: var(--smeg-black);
+    background: var(--gradient-dark);
+    min-height: 100vh;
 }
 
 .container {
@@ -28,12 +30,14 @@ body {
 
 /* Header styles */
 header {
-    background-color: var(--smeg-black);
-    border-bottom: 1px solid var(--smeg-gray);
+    background-color: rgba(27, 27, 27, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding: 1rem 0;
     position: sticky;
     top: 0;
     z-index: 1000;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
 }
 
 nav {
@@ -51,23 +55,55 @@ nav {
     font-size: 1.8rem;
     font-weight: 900;
     letter-spacing: -0.5px;
+    text-shadow: 0 2px 4px rgba(255, 59, 48, 0.3);
+    transition: all 0.3s ease;
+}
+
+.logo a:hover {
+    text-shadow: 0 4px 8px rgba(255, 59, 48, 0.5);
+    transform: translateY(-1px);
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
 .nav-links a {
     color: var(--smeg-white);
     text-decoration: none;
-    margin-left: 20px;
     font-size: 0.9rem;
     font-weight: 500;
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
+    padding: 8px 16px;
+    border-radius: 6px;
 }
 
-.nav-links a:hover {
+.nav-links a:not(.btn):hover {
     color: var(--smeg-red);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-links .btn {
+    background: var(--smeg-red);
+    color: var(--smeg-white);
+    padding: 10px 20px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3);
+}
+
+.nav-links .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 59, 48, 0.4);
+    background: #ff1f1f;
 }
 
 .nav-links span {
-    margin-left: 20px;
     color: var(--smeg-light-gray);
     font-size: 0.9rem;
 }
@@ -75,21 +111,23 @@ nav {
 /* Play cards grid */
 .plays-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 30px;
     margin-top: 40px;
 }
 
 .play-card {
     position: relative;
-    background: var(--smeg-gray);
-    border-radius: 4px;
+    background: rgba(44, 44, 44, 0.5);
+    border-radius: 12px;
     overflow: hidden;
-    transition: transform 0.2s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .play-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-8px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 }
 
 .play-poster {
@@ -106,51 +144,76 @@ nav {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.play-card:hover .play-poster img {
+    transform: scale(1.05);
 }
 
 .play-info {
-    padding: 15px;
+    padding: 20px;
 }
 
 .play-card h2 {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 600;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     color: var(--smeg-white);
 }
 
 .play-meta {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     color: var(--smeg-light-gray);
-    margin-bottom: 5px;
+    margin-bottom: 8px;
 }
 
 .play-rating {
     display: flex;
     align-items: center;
+    gap: 8px;
     color: var(--smeg-red);
     font-size: 0.9rem;
-    margin-top: 8px;
 }
 
 .play-rating .stars {
-    margin-right: 5px;
+    display: flex;
+    gap: 2px;
+}
+
+/* Rating input styles */
+.rating-input {
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 4px;
+    justify-content: flex-end;
+}
+
+.rating-input label {
+    cursor: pointer;
+    font-size: 1.5rem;
+    padding: 0 2px;
+}
+
+.rating-input label i {
+    transition: all 0.2s ease;
+}
+
+.rating-input label:hover i,
+.rating-input label:hover ~ label i {
+    color: var(--smeg-red) !important;
+    transform: scale(1.2);
 }
 
 /* Forms */
 .auth-form {
     max-width: 400px;
     margin: 60px auto;
-    background: var(--smeg-gray);
+    background: rgba(44, 44, 44, 0.5);
     padding: 40px;
-    border-radius: 8px;
-}
-
-.auth-form h1 {
-    color: var(--smeg-white);
-    margin-bottom: 30px;
-    font-size: 2rem;
-    font-weight: 700;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
 }
 
 .form-group {
@@ -168,17 +231,19 @@ nav {
 .form-group textarea {
     width: 100%;
     padding: 12px;
-    background: var(--smeg-black);
-    border: 1px solid var(--smeg-gray);
-    border-radius: 4px;
+    background: rgba(27, 27, 27, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
     color: var(--smeg-white);
     font-size: 1rem;
+    transition: all 0.2s ease;
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
     border-color: var(--smeg-red);
+    box-shadow: 0 0 0 2px rgba(255, 59, 48, 0.2);
 }
 
 .btn {
@@ -186,17 +251,22 @@ nav {
     color: var(--smeg-white);
     padding: 12px 24px;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     text-decoration: none;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-weight: 600;
     font-size: 0.9rem;
-    transition: background-color 0.2s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3);
 }
 
 .btn:hover {
     background: #ff1f1f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 59, 48, 0.4);
 }
 
 /* Reviews */
@@ -211,32 +281,35 @@ nav {
 }
 
 .review {
-    background: var(--smeg-gray);
+    background: rgba(44, 44, 44, 0.5);
     padding: 25px;
-    border-radius: 8px;
+    border-radius: 12px;
     margin-bottom: 25px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
 }
 
 .review-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 15px;
 }
 
 .review-header .username {
     color: var(--smeg-red);
     font-weight: 600;
-    margin-right: 15px;
 }
 
 .review-header .rating {
+    display: flex;
+    gap: 2px;
     color: var(--smeg-light-gray);
 }
 
 .review-header .date {
     color: var(--smeg-light-gray);
     font-size: 0.9rem;
-    margin-left: auto;
 }
 
 .review-text {
@@ -244,52 +317,13 @@ nav {
     color: var(--smeg-white);
 }
 
-/* Play details page */
-.play-details {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 40px;
-    margin-top: 40px;
-}
-
-.play-poster-large {
-    width: 100%;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.play-info-details h1 {
-    font-size: 2.5rem;
-    margin-bottom: 20px;
-    color: var(--smeg-white);
-}
-
-.play-meta-details {
-    color: var(--smeg-light-gray);
-    margin-bottom: 30px;
-}
-
-.play-description {
-    color: var(--smeg-white);
-    line-height: 1.8;
-}
-
-/* Error messages */
-.error {
-    color: var(--smeg-red);
-    background: rgba(255, 59, 48, 0.1);
-    padding: 15px;
-    border-radius: 4px;
-    margin-bottom: 20px;
-    border: 1px solid var(--smeg-red);
-}
-
 /* Footer */
 footer {
     text-align: center;
     padding: 40px 20px;
-    background: var(--smeg-black);
+    background: rgba(27, 27, 27, 0.95);
     color: var(--smeg-light-gray);
     margin-top: 80px;
-    border-top: 1px solid var(--smeg-gray);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
 }

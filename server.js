@@ -1,8 +1,10 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const session = require('express-session');
-const bcrypt = require('bcryptjs');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const path = require('path');
+require('dotenv').config();
 
 const app = express();
 const port = 3001;
@@ -10,26 +12,15 @@ const port = 3001;
 // Database setup
 const db = new sqlite3.Database('theatre.db');
 
-// Middleware
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
-app.use(session({
-  secret: 'theatre-secret-key',
-  resave: false,
-  saveUninitialized: false
-}));
-
-// Set view engine
-app.set('view engine', 'ejs');
-
 // Database initialization
 db.serialize(() => {
-  // Users table
-  db.run(`CREATE TABLE IF NOT EXISTS users (
+  // Drop and recreate users table with Google auth fields
+  db.run(`CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL
+    google_id TEXT UNIQUE NOT NULL,
+    display_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    profile_picture TEXT
   )`);
 
   // Plays table
@@ -61,6 +52,85 @@ db.serialize(() => {
   )`);
 });
 
+// Session configuration
+app.use(session({
+  secret: 'theatre-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false,
+    maxAge: 24 * 60 * 60 * 1000
+  }
+}));
+
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public'));
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Set view engine
+app.set('view engine', 'ejs');
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+  db.get('SELECT * FROM users WHERE id = ?', [id], (err, user) => {
+    done(err, user);
+  });
+});
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "http://localhost:3001/auth/google/callback"
+  },
+  function(accessToken, refreshToken, profile, cb) {
+    db.get('SELECT * FROM users WHERE google_id = ?', [profile.id], (err, user) => {
+      if (err) return cb(err);
+      
+      if (!user) {
+        // Create new user if doesn't exist
+        db.run('INSERT INTO users (google_id, display_name, email, profile_picture) VALUES (?, ?, ?, ?)',
+          [profile.id, profile.displayName, profile.emails[0].value, profile.photos[0].value],
+          function(err) {
+            if (err) return cb(err);
+            
+            db.get('SELECT * FROM users WHERE id = ?', [this.lastID], (err, newUser) => {
+              return cb(err, newUser);
+            });
+          });
+      } else {
+        return cb(null, user);
+      }
+    });
+  }
+));
+
+// Auth routes
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+app.get('/auth/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/' }),
+  function(req, res) {
+    res.redirect('/');
+  }
+);
+
+app.get('/logout', (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      console.error('Logout error:', err);
+      return res.redirect('/');
+    }
+    res.redirect('/');
+  });
+});
+
 // Routes
 app.get('/', (req, res) => {
   const query = `
@@ -78,44 +148,9 @@ app.get('/', (req, res) => {
   db.all(query, [], (err, plays) => {
     res.render('index', { 
       plays,
-      user: req.session.user 
+      user: req.user 
     });
   });
-});
-
-app.get('/login', (req, res) => {
-  res.render('login');
-});
-
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  db.get('SELECT * FROM users WHERE username = ?', [username], (err, user) => {
-    if (user && bcrypt.compareSync(password, user.password)) {
-      req.session.user = { id: user.id, username: user.username };
-      res.redirect('/');
-    } else {
-      res.render('login', { error: 'Invalid credentials' });
-    }
-  });
-});
-
-app.get('/register', (req, res) => {
-  res.render('register');
-});
-
-app.post('/register', (req, res) => {
-  const { username, email, password } = req.body;
-  const hashedPassword = bcrypt.hashSync(password, 10);
-  
-  db.run('INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
-    [username, email, hashedPassword],
-    (err) => {
-      if (err) {
-        res.render('register', { error: 'Username or email already exists' });
-      } else {
-        res.redirect('/login');
-      }
-    });
 });
 
 app.get('/plays', (req, res) => {
@@ -133,7 +168,7 @@ app.get('/plays', (req, res) => {
   db.all(query, [], (err, plays) => {
     res.render('plays', { 
       plays,
-      user: req.session.user 
+      user: req.user 
     });
   });
 });
@@ -153,10 +188,10 @@ app.get('/play/:id', (req, res) => {
   
   db.get(playQuery, [playId], (err, play) => {
     if (play) {
-      db.all('SELECT reviews.*, users.username FROM reviews JOIN users ON reviews.user_id = users.id WHERE play_id = ? ORDER BY date_posted DESC',
+      db.all('SELECT reviews.*, users.display_name, users.profile_picture FROM reviews JOIN users ON reviews.user_id = users.id WHERE play_id = ? ORDER BY date_posted DESC',
         [playId],
         (err, reviews) => {
-          res.render('play', { play, reviews, user: req.session.user });
+          res.render('play', { play, reviews, user: req.user });
         });
     } else {
       res.redirect('/plays');
@@ -165,13 +200,13 @@ app.get('/play/:id', (req, res) => {
 });
 
 app.post('/review/:playId', (req, res) => {
-  if (!req.session.user) {
-    return res.redirect('/login');
+  if (!req.user) {
+    return res.redirect('/auth/google');
   }
 
   const { rating, review_text } = req.body;
   const playId = req.params.playId;
-  const userId = req.session.user.id;
+  const userId = req.user.id;
   const date = new Date().toISOString();
 
   db.run('INSERT INTO reviews (user_id, play_id, rating, review_text, date_posted) VALUES (?, ?, ?, ?, ?)',
@@ -179,11 +214,6 @@ app.post('/review/:playId', (req, res) => {
     (err) => {
       res.redirect('/play/' + playId);
     });
-});
-
-app.get('/logout', (req, res) => {
-  req.session.destroy();
-  res.redirect('/');
 });
 
 app.listen(port, () => {

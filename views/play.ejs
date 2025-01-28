@@ -66,14 +66,22 @@
                     <button type="submit" class="btn">Post Review</button>
                 </form>
             <% } else { %>
-                <p style="margin-bottom: 40px;"><a href="/login" style="color: var(--smeg-red);">Login to write a review</a></p>
+                <p style="margin-bottom: 40px;">
+                    <a href="/auth/google" class="btn" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <img src="https://www.google.com/favicon.ico" alt="Google" style="width: 18px; height: 18px;">
+                        Sign in with Google to write a review
+                    </a>
+                </p>
             <% } %>
 
             <div class="reviews-list">
                 <% reviews.forEach(review => { %>
                     <div class="review">
                         <div class="review-header">
-                            <span class="username"><%= review.username %></span>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <img src="<%= review.profile_picture %>" alt="Profile" style="width: 24px; height: 24px; border-radius: 50%;">
+                                <span class="username"><%= review.display_name %></span>
+                            </div>
                             <span class="rating">
                                 <% for(let i = 0; i < 5; i++) { %>
                                     <i class="fas fa-star" style="color: <%= i < review.rating ? 'var(--smeg-red)' : 'var(--smeg-gray)' %>"></i>
