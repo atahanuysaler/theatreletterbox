@@ -15,7 +15,7 @@ const db = new sqlite3.Database('theatre.db');
 // Database initialization
 db.serialize(() => {
   // Drop and recreate users table with Google auth fields
-  db.run(`CREATE TABLE users (
+  db.run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     google_id TEXT UNIQUE NOT NULL,
     display_name TEXT NOT NULL,
