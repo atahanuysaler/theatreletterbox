@@ -9,6 +9,9 @@ require('dotenv').config();
 const app = express();
 const port = 3001;
 
+// Add this near the top of your Express configuration
+app.enable('trust proxy');
+
 // Database setup
 const db = new sqlite3.Database('theatre.db');
 
@@ -85,7 +88,8 @@ passport.deserializeUser((id, done) => {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:3001/auth/google/callback"
+    callbackURL: "/auth/google/callback",
+    proxy: true
   },
   function(accessToken, refreshToken, profile, cb) {
     db.get('SELECT * FROM users WHERE google_id = ?', [profile.id], (err, user) => {
