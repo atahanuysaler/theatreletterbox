@@ -23,7 +23,8 @@ db.serialize(() => {
     google_id TEXT UNIQUE NOT NULL,
     display_name TEXT NOT NULL,
     email TEXT NOT NULL,
-    profile_picture TEXT
+    profile_picture TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
   // Plays table
@@ -132,6 +133,41 @@ app.get('/logout', (req, res) => {
       return res.redirect('/');
     }
     res.redirect('/');
+  });
+});
+
+// Profile route
+app.get('/profile/:userId', (req, res) => {
+  const userId = req.params.userId;
+  const isOwnProfile = req.user && req.user.id === parseInt(userId);
+  
+  // Get user info
+  db.get('SELECT * FROM users WHERE id = ?', [userId], (err, profileUser) => {
+    if (err || !profileUser) {
+      return res.redirect('/');
+    }
+
+    // Get user's reviews with play titles
+    const query = `
+      SELECT reviews.*, plays.title as play_title
+      FROM reviews 
+      JOIN plays ON reviews.play_id = plays.id
+      WHERE reviews.user_id = ?
+      ORDER BY reviews.date_posted DESC
+    `;
+    
+    db.all(query, [userId], (err, reviews) => {
+      if (err) {
+        return res.redirect('/');
+      }
+      
+      res.render('profile', {
+        user: req.user,
+        profileUser,
+        reviews,
+        isOwnProfile
+      });
+    });
   });
 });
 

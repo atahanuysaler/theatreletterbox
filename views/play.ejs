@@ -80,7 +80,7 @@
                         <div class="review-header">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <img src="<%= review.profile_picture %>" alt="Profile" style="width: 24px; height: 24px; border-radius: 50%;">
-                                <span class="username"><%= review.display_name %></span>
+                                <a href="/profile/<%= review.user_id %>" class="username" style="text-decoration: none;"><%= review.display_name %></a>
                             </div>
                             <span class="rating">
                                 <% for(let i = 0; i < 5; i++) { %>

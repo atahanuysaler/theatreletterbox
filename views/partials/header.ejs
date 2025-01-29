@@ -3,12 +3,23 @@
         <div class="logo">
             <a href="/">Theatre Tracker</a>
         </div>
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search plays and users..." autocomplete="off">
+                <button type="button" class="search-button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div id="searchResults" class="search-results"></div>
+        </div>
         <div class="nav-links">
             <a href="/plays">All Plays</a>
             <% if (locals.user) { %>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <img src="<%= user.profile_picture %>" alt="Profile" style="width: 24px; height: 24px; border-radius: 50%;">
-                    <span><%= user.display_name %></span>
+                    <a href="/profile/<%= user.id %>" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--smeg-white);">
+                        <img src="<%= user.profile_picture %>" alt="Profile" style="width: 24px; height: 24px; border-radius: 50%;">
+                        <span><%= user.display_name %></span>
+                    </a>
                     <a href="/logout">Logout</a>
                 </div>
             <% } else { %>
@@ -20,3 +31,73 @@
         </div>
     </nav>
 </header>
+
+<script>
+let searchTimeout;
+
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    clearTimeout(searchTimeout);
+    const query = e.target.value.trim();
+    
+    if (query.length < 2) {
+        document.getElementById('searchResults').innerHTML = '';
+        document.getElementById('searchResults').style.display = 'none';
+        return;
+    }
+
+    searchTimeout = setTimeout(() => {
+        fetch(`/search?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                const resultsDiv = document.getElementById('searchResults');
+                if (data.plays.length === 0 && data.users.length === 0) {
+                    resultsDiv.innerHTML = '<div class="no-results">No results found</div>';
+                } else {
+                    let html = '';
+                    
+                    if (data.plays.length > 0) {
+                        html += '<div class="search-section"><h3>Plays</h3>';
+                        data.plays.forEach(play => {
+                            html += `
+                                <a href="/play/${play.id}" class="search-item">
+                                    <div class="search-item-content">
+                                        <div class="search-item-title">${play.title}</div>
+                                        <div class="search-item-subtitle">${play.theatre}, ${play.city}</div>
+                                    </div>
+                                </a>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    if (data.users.length > 0) {
+                        html += '<div class="search-section"><h3>Users</h3>';
+                        data.users.forEach(user => {
+                            html += `
+                                <a href="/profile/${user.id}" class="search-item">
+                                    <img src="${user.profile_picture}" alt="${user.display_name}" class="search-item-avatar">
+                                    <div class="search-item-content">
+                                        <div class="search-item-title">${user.display_name}</div>
+                                    </div>
+                                </a>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    resultsDiv.innerHTML = html;
+                }
+                resultsDiv.style.display = 'block';
+            });
+    }, 300);
+});
+
+document.addEventListener('click', function(e) {
+    const searchResults = document.getElementById('searchResults');
+    const searchInput = document.getElementById('searchInput');
+    
+    if (!searchResults.contains(e.target) && e.target !== searchInput) {
+        searchResults.style.display = 'none';
+    }
+});
+</script>
