@@ -56,6 +56,40 @@ a:hover {
     color: var(--color-secondary);
 }
 
+/* Buttons (General - moved up for better organization) */
+.btn {
+    background: var(--color-primary);
+    color: var(--color-background); /* High contrast text on button */
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius-medium);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center; /* Center text/icon */
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: background-color var(--transition-speed) ease, transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+    box-shadow: var(--shadow-small);
+    text-align: center;
+}
+
+.btn:hover {
+    background-color: var(--color-secondary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+    color: var(--color-background); /* Ensure text color remains contrasted */
+}
+
+/* Full width button variant */
+.btn-block {
+    display: block;
+    width: 100%;
+}
+
+
 /* Headings */
 h1, h2, h3, h4, h5, h6 {
     color: var(--color-on-surface);
@@ -68,8 +102,8 @@ h1, h2, h3, h4, h5, h6 {
    Header & Navigation
    ========================================================================== */
 header {
-    background-color: rgba(30, 30, 30, 0.85); /* Slightly lighter, semi-transparent */
-    backdrop-filter: blur(10px);
+    background-color: rgba(30, 30, 30, 0.9); /* Slightly more opaque */
+    backdrop-filter: blur(12px); /* Slightly more blur */
     border-bottom: 1px solid var(--color-border);
     padding: 1rem 0;
     position: sticky;
@@ -86,7 +120,7 @@ nav {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap; /* Allow wrapping on smaller screens */
-    gap: 1rem; /* Space between items if they wrap */
+    gap: 1.5rem; /* Increased gap between logo, search, links */
 }
 
 .logo a {
@@ -101,6 +135,64 @@ nav {
     opacity: 0.85;
 }
 
+
+/* Search Bar Styles */
+.search-container {
+    flex-grow: 1; /* Allow search to take available space */
+    max-width: 500px; /* Limit maximum width */
+    margin: 0 1rem; /* Add some margin */
+}
+
+.search-form {
+    display: flex;
+    align-items: center;
+    background-color: var(--color-surface);
+    border-radius: var(--border-radius-medium);
+    border: 1px solid var(--color-border);
+    overflow: hidden; /* Clip button corners */
+    transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+
+.search-form:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(255, 82, 82, 0.2);
+}
+
+.search-form input[name="query"] {
+    flex-grow: 1;
+    padding: 0.7rem 1rem;
+    border: none;
+    background: transparent; /* Inherit from search-form */
+    color: var(--color-on-surface);
+    font-size: 0.95rem;
+    outline: none;
+    font-family: inherit;
+}
+
+.search-form input[name="query"]::placeholder {
+    color: var(--color-on-background);
+    opacity: 0.7;
+}
+
+.search-form button[type="submit"] {
+    background: var(--color-primary);
+    border: none;
+    color: var(--color-background); /* High contrast */
+    padding: 0.7rem 1.2rem; /* Match input vertical padding */
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: background-color var(--transition-speed) ease;
+    height: 100%; /* Ensure button fills height */
+    flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+.search-form button[type="submit"]:hover {
+    background-color: var(--color-secondary);
+}
+
+
+/* Navigation Links */
 .nav-links {
     display: flex;
     align-items: center;
@@ -158,10 +250,56 @@ nav {
     color: var(--color-background); /* Ensure text color remains contrasted */
 }
 
-.nav-links span { /* e.g., "Welcome, User" */
+/* Adjustments for user display in nav */
+.nav-links .user-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* Consistent gap */
+    color: var(--color-on-background); /* Default color */
+    text-decoration: none;
+    padding: 0.5rem 0; /* Match other nav links vertical padding */
+    transition: color var(--transition-speed) ease;
+}
+
+.nav-links .user-nav-item:hover {
+    color: var(--color-on-surface); /* Brighten on hover */
+}
+
+.nav-links .user-nav-item img {
+    width: 28px; /* Slightly larger avatar */
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border); /* Subtle border */
+}
+
+.nav-links .user-nav-item span {
+    font-size: 0.95rem; /* Match other nav links */
+    font-weight: 500;
+}
+
+/* Logout link styling (make it look less like a primary button) */
+.nav-links a[href="/logout"] {
     color: var(--color-on-background);
-    font-size: 0.9rem;
-    margin-right: 1rem; /* Add some spacing if next to buttons */
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 0.5rem 0;
+    position: relative;
+}
+.nav-links a[href="/logout"]::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--color-primary);
+    transition: width var(--transition-speed) ease;
+}
+.nav-links a[href="/logout"]:hover {
+    color: var(--color-on-surface);
+}
+.nav-links a[href="/logout"]:hover::after {
+    width: 100%;
 }
 
 /* ==========================================================================
@@ -244,14 +382,37 @@ nav {
 }
 
 .play-rating .stars {
-    display: flex;
-    gap: 2px;
+    display: inline-flex; /* Use inline-flex for better alignment */
+    gap: 3px; /* Slightly more space */
     font-size: 1rem; /* Slightly larger stars */
+    line-height: 1; /* Prevent extra vertical space */
 }
 
-/* Assuming Font Awesome or similar for stars */
-.play-rating .stars i {
-    color: var(--color-secondary);
+/* Star Rating Display (General) */
+.stars {
+    --star-size: 1em; /* Control star size */
+    --star-color: #555; /* Default empty star color */
+    --star-background: var(--color-secondary); /* Filled star color */
+    display: inline-flex;
+    font-size: var(--star-size);
+    line-height: 1;
+    gap: 0.1em; /* Small gap between stars */
+}
+
+.stars i { /* Assuming Font Awesome: fa-star, fa-star-half-alt, fa-star (empty) */
+    color: var(--star-color); /* Default color for empty */
+    -webkit-text-stroke: 1px var(--star-background); /* Outline effect */
+}
+
+.stars i.fas, /* Solid star */
+.stars i.fa-star-half-alt { /* Half star */
+    color: var(--star-background); /* Filled color */
+    -webkit-text-stroke: 0; /* No outline for filled */
+}
+
+/* Adjust star size specifically in play cards if needed */
+.play-rating .stars {
+    --star-size: 1rem;
 }
 
 
@@ -329,59 +490,43 @@ nav {
     display: none; /* Hide actual radio buttons */
 }
 
-.rating-input label {
+.rating-input label { /* Style the star labels */
     cursor: pointer;
-    font-size: 1.75rem; /* Larger stars */
-    color: #555; /* Dim unselected stars */
-    transition: color var(--transition-speed) ease, transform var(--transition-speed) ease;
+    font-size: 2rem; /* Larger, more clickable stars */
+    color: #444; /* Darker gray for unselected */
+    transition: color 0.15s ease-in-out, transform 0.15s ease-in-out;
+    padding: 0 0.1em; /* Add slight horizontal padding */
+    display: inline-block; /* Ensure transform works correctly */
 }
 
-.rating-input label i { /* Assuming Font Awesome */
+.rating-input label i {
     display: block; /* Prevents extra space */
+    transition: inherit; /* Inherit transition */
 }
 
+/* Hover effect: Light up the star being hovered and all stars to its right */
 .rating-input label:hover,
-.rating-input label:hover ~ label,
+.rating-input label:hover ~ label {
+    color: var(--color-secondary);
+    transform: scale(1.1);
+}
+
+/* Checked state: Keep the selected star and stars to its right lit */
 .rating-input input[type="radio"]:checked ~ label {
-    color: var(--color-secondary); /* Use secondary color for selected/hover */
+    color: var(--color-secondary);
+    transform: scale(1.05); /* Slightly smaller scale than hover */
 }
 
-.rating-input label:hover {
-    transform: scale(1.15); /* Slightly larger scale on hover */
+/* Remove hover effect from already checked stars */
+.rating-input input[type="radio"]:checked ~ label:hover,
+.rating-input input[type="radio"]:checked ~ label:hover ~ label {
+    color: var(--color-secondary); /* Keep color */
+    transform: scale(1.05); /* Keep checked scale */
 }
 
-
-/* General Button Style (can be reused) */
-.btn {
-    background: var(--color-primary);
-    color: var(--color-background);
-    padding: 0.8rem 1.5rem;
-    border: none;
-    border-radius: var(--border-radius-medium);
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center; /* Center text/icon */
-    gap: 0.5rem;
-    font-weight: 600;
-    font-size: 1rem;
-    transition: background-color var(--transition-speed) ease, transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-    box-shadow: var(--shadow-small);
-    text-align: center;
-}
-
-.btn:hover {
-    background-color: var(--color-secondary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
-    color: var(--color-background);
-}
-
-/* Full width button variant */
-.btn-block {
-    display: block;
-    width: 100%;
+/* Specific hover for the actual star under the cursor when it's part of a checked group */
+.rating-input input[type="radio"]:checked ~ label:hover {
+     transform: scale(1.1); /* Allow hover scale even if checked */
 }
 
 /* ==========================================================================
@@ -453,6 +598,7 @@ nav {
     margin-left: auto; /* Push date to the right */
     padding-left: 1rem; /* Ensure space from rating */
     white-space: nowrap; /* Prevent date wrapping */
+    align-self: flex-start; /* Align date to the top with user info */
 }
 
 .review-text {
@@ -525,6 +671,10 @@ nav {
      color: var(--color-secondary);
      font-size: 1.2rem;
 }
+/* Use the general .stars class for display */
+.play-detail-rating .stars {
+    --star-size: 1.1rem; /* Slightly larger stars on detail page */
+}
 
 
 .play-detail-description {
@@ -576,16 +726,34 @@ nav {
     padding-bottom: 0.75rem;
 }
 
-/* Use .review styles for profile reviews, maybe add specific overrides if needed */
-.profile-reviews .review .play-title-link { /* Style link to play */
-    display: block;
-    font-size: 0.9rem;
-    color: var(--color-secondary);
-    margin-top: 1rem;
-    font-weight: 500;
+/* Use .review styles for profile reviews */
+.profile-reviews .review {
+    /* Add specific overrides if needed, e.g., slightly different padding */
+    padding: 1.5rem;
+}
+
+.profile-reviews .review .play-title-link { /* Style link to play within the review */
+    display: block; /* Takes its own line */
+    font-size: 1rem; /* Slightly larger */
+    color: var(--color-primary); /* Use primary color for the link */
+    margin-top: 1.25rem; /* More space above */
+    font-weight: 600;
+    text-decoration: none;
+    transition: color var(--transition-speed) ease;
 }
 .profile-reviews .review .play-title-link:hover {
+    color: var(--color-secondary);
     text-decoration: underline;
+}
+
+/* Ensure rating display in profile reviews uses the .stars class */
+.profile-reviews .review .rating-display {
+    /* Inherits from .review-header .rating-display */
+    /* Override if needed, e.g., size */
+    font-size: 0.9rem;
+}
+.profile-reviews .review .rating-display .stars {
+     --star-size: 0.9rem; /* Match font size */
 }
 
 
@@ -601,6 +769,23 @@ footer {
     border-top: 1px solid var(--color-border);
     font-size: 0.9rem;
 }
+
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+.visually-hidden { /* Hide element visually but keep accessible */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 
 /* ==========================================================================
    Responsive Adjustments
@@ -618,13 +803,27 @@ footer {
     }
 
     nav {
-        justify-content: center; /* Center items when they wrap */
+        /* Keep space-between for logo/links, allow search to wrap below */
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .search-container {
+        order: 3; /* Move search below logo and links on wrap */
+        width: 100%; /* Take full width when wrapped */
+        max-width: none; /* Remove max-width */
+        margin: 0.75rem 0 0 0; /* Add top margin when wrapped */
     }
 
     .nav-links {
-        justify-content: center;
+        order: 2; /* Keep links after logo */
         gap: 1rem; /* Smaller gap on mobile nav */
+        /* Allow wrapping within nav-links */
+        flex-wrap: wrap;
+        justify-content: flex-end; /* Align links to the right */
     }
+     .logo { order: 1; }
+
 
     .play-detail-container {
         gap: 2rem;
@@ -709,5 +908,34 @@ footer {
         margin-left: 0;
         padding-left: 0;
         margin-top: 0.5rem;
+        width: 100%; /* Take full width */
+        text-align: left; /* Align left */
     }
+
+    .search-container {
+        margin: 0.5rem 0 0 0; /* Adjust margin */
+    }
+    #searchInput {
+        padding: 0.6rem 0.8rem;
+    }
+    .search-button {
+        padding: 0 0.7rem;
+    }
+    .nav-links {
+        gap: 0.5rem 1rem; /* Row and column gap */
+        justify-content: center; /* Center links */
+    }
+    .nav-links a, .nav-links .user-nav-item, .nav-links a[href="/logout"] {
+        font-size: 0.9rem;
+        padding: 0.4rem 0;
+    }
+    .nav-links .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    .nav-links .user-nav-item img {
+        width: 24px;
+        height: 24px;
+    }
+
 }

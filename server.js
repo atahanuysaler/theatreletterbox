@@ -168,8 +168,46 @@ app.get('/profile/:userId', (req, res) => {
         isOwnProfile
       });
     });
+    });
+});
+
+// Search route
+app.get('/search', (req, res) => {
+  const searchQuery = req.query.query; // Get search term from query parameter
+  if (!searchQuery) {
+    // Redirect to plays page if no query is provided
+    return res.redirect('/plays');
+  }
+
+  const query = `
+    SELECT 
+      plays.*,
+      COUNT(reviews.id) as review_count,
+      AVG(reviews.rating) as average_rating
+    FROM plays
+    LEFT JOIN reviews ON plays.id = reviews.play_id
+    WHERE plays.title LIKE ? OR plays.author LIKE ? OR plays.description LIKE ? OR plays.genre LIKE ? OR plays.theatre LIKE ? OR plays.city LIKE ?
+    GROUP BY plays.id
+    ORDER BY start_date DESC
+  `;
+  
+  const searchTerm = `%${searchQuery}%`; // Add wildcards for partial matching
+
+  db.all(query, [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm], (err, plays) => {
+    if (err) {
+      console.error("Search error:", err);
+      // Handle error appropriately, maybe render an error page or redirect
+      return res.redirect('/'); 
+    }
+    
+    res.render('plays', { // Reuse the plays view for search results
+      plays,
+      user: req.user,
+      searchQuery // Pass the search query to the view to display it
+    });
   });
 });
+
 
 // Routes
 app.get('/', (req, res) => {
@@ -208,7 +246,8 @@ app.get('/plays', (req, res) => {
   db.all(query, [], (err, plays) => {
     res.render('plays', { 
       plays,
-      user: req.user 
+      user: req.user,
+      searchQuery: null // Indicate no search is active
     });
   });
 });

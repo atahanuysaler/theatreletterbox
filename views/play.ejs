@@ -11,31 +11,34 @@
     <%- include('partials/header') %>
     
     <main class="container">
-        <div class="play-details">
-            <div class="play-poster-large">
+        <div class="play-detail-container"> <%# Updated class %>
+            <div class="play-detail-poster"> <%# Updated class %>
                 <img src="<%= play.poster_url || 'https://placehold.co/600x900/2C2C2C/FFFFFF/png?text=' + encodeURIComponent(play.title) %>" 
-                     alt="<%= play.title %>"
-                     style="width: 100%; height: auto;">
+                     alt="<%= play.title %>"> <%# Removed inline style %>
             </div>
             
-            <div class="play-info-details">
+            <div class="play-detail-info"> <%# Updated class %>
                 <h1><%= play.title %></h1>
-                <div class="play-meta-details">
-                    <p><strong>Theatre:</strong> <%= play.theatre %></p>
-                    <p><strong>City:</strong> <%= play.city %></p>
-                    <p><strong>Dates:</strong> <%= play.start_date %> - <%= play.end_date %></p>
-                    <div class="play-rating" style="margin-top: 15px; font-size: 1.2rem;">
-                        <% for(let i = 0; i < 5; i++) { %>
-                            <i class="fas fa-star" style="color: <%= i < Math.round(play.average_rating || 0) ? 'var(--smeg-red)' : 'var(--smeg-gray)' %>"></i>
-                        <% } %>
-                        <span style="margin-left: 10px; color: var(--smeg-light-gray);">
-                            <%= play.average_rating ? play.average_rating.toFixed(1) : '0' %> 
+                <div class="play-detail-meta"> <%# Updated class %>
+                    <span><strong>Theatre:</strong> <%= play.theatre %></span> <%# Changed p to span %>
+                    <span><strong>City:</strong> <%= play.city %></span> <%# Changed p to span %>
+                    <span><strong>Dates:</strong> <%= play.start_date %> - <%= play.end_date %></span> <%# Changed p to span %>
+                    
+                    <div class="play-detail-rating"> <%# Updated class, removed inline style %>
+                        <span class="stars">
+                            <% const avgRating = Math.round(play.average_rating || 0); %>
+                            <% for(let i = 1; i <= 5; i++) { %>
+                                <i class="<%= i <= avgRating ? 'fas' : 'far' %> fa-star"></i>
+                            <% } %>
+                        </span>
+                        <span style="margin-left: 0.5rem;"> <%# Kept simple inline style for spacing %>
+                            <%= play.average_rating ? play.average_rating.toFixed(1) : 'N/A' %> 
                             (<%= play.review_count || 0 %> reviews)
                         </span>
                     </div>
                 </div>
-                <div class="play-description">
-                    <h2 style="font-size: 1.5rem; margin-bottom: 15px;">About the Play</h2>
+                <div class="play-detail-description"> <%# Updated class %>
+                    <h2>About the Play</h2> <%# Removed inline style %>
                     <p><%= play.description %></p>
                 </div>
             </div>
@@ -45,14 +48,16 @@
             <h2>Reviews</h2>
             
             <% if (user) { %>
-                <form action="/review/<%= play.id %>" method="POST" class="review-form" style="margin-bottom: 40px;">
+                <form action="/review/<%= play.id %>" method="POST" class="review-form"> <%# Removed inline style %>
+                    <h3>Write Your Review</h3> <%# Added heading for clarity %>
                     <div class="form-group">
-                        <label for="rating">Rating</label>
-                        <div class="rating-input" style="font-size: 1.5rem;">
-                            <% for(let i = 1; i <= 5; i++) { %>
-                                <input type="radio" id="star<%= i %>" name="rating" value="<%= i %>" style="display: none;">
-                                <label for="star<%= i %>">
-                                    <i class="fas fa-star" style="color: var(--smeg-gray); cursor: pointer;"></i>
+                        <label for="rating" class="visually-hidden">Rating</label> <%# Hide label visually %>
+                        <div class="rating-input"> <%# Removed inline style %>
+                            <%# The rating stars are reversed in the flex container, so loop backwards for correct IDs/values %>
+                            <% for(let i = 5; i >= 1; i--) { %>
+                                <input type="radio" id="star<%= i %>" name="rating" value="<%= i %>" required> <%# Added required %>
+                                <label for="star<%= i %>" title="<%= i %> stars">
+                                    <i class="fas fa-star"></i> <%# Removed inline style, CSS handles color %>
                                 </label>
                             <% } %>
                         </div>
@@ -60,69 +65,49 @@
                     
                     <div class="form-group">
                         <label for="review_text">Your Review</label>
+                        <label for="review_text">Your Review</label>
                         <textarea id="review_text" name="review_text" required rows="4"></textarea>
                     </div>
 
-                    <button type="submit" class="btn">Post Review</button>
+                    <button type="submit" class="btn btn-block">Post Review</button> <%# Added btn-block %>
                 </form>
             <% } else { %>
-                <p style="margin-bottom: 40px;">
-                    <a href="/auth/google" class="btn" style="display: inline-flex; align-items: center; gap: 8px;">
-                        <img src="https://www.google.com/favicon.ico" alt="Google" style="width: 18px; height: 18px;">
+                <p> <%# Removed inline style %>
+                    <a href="/auth/google" class="btn" style="display: inline-flex; align-items: center; gap: 8px;"> <%# Keep inline styles for icon alignment %>
+                        <img src="https://www.google.com/favicon.ico" alt="Google" style="width: 18px; height: 18px;"> <%# Keep inline styles for icon size %>
                         Sign in with Google to write a review
                     </a>
                 </p>
             <% } %>
 
             <div class="reviews-list">
-                <% reviews.forEach(review => { %>
-                    <div class="review">
-                        <div class="review-header">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <img src="<%= review.profile_picture %>" alt="Profile" style="width: 24px; height: 24px; border-radius: 50%;">
-                                <a href="/profile/<%= review.user_id %>" class="username" style="text-decoration: none;"><%= review.display_name %></a>
+                <% if (reviews.length === 0) { %>
+                    <p>No reviews yet. Be the first to write one!</p>
+                <% } else { %>
+                    <% reviews.forEach(review => { %>
+                        <div class="review">
+                            <div class="review-header">
+                                <div class="user-info"> <%# Added class %>
+                                    <img src="<%= review.profile_picture %>" alt="<%= review.display_name %> Profile Picture" class="profile-picture"> <%# Added class, removed inline style %>
+                                    <a href="/profile/<%= review.user_id %>" class="username"><%= review.display_name %></a> <%# Removed inline style %>
+                                </div>
+                                <span class="rating-display stars"> <%# Updated class %>
+                                    <% for(let i = 1; i <= 5; i++) { %>
+                                        <i class="<%= i <= review.rating ? 'fas' : 'far' %> fa-star"></i> <%# Removed inline style %>
+                                    <% } %>
+                                </span>
+                                <span class="date"><%= new Date(review.date_posted).toLocaleDateString() %></span>
                             </div>
-                            <span class="rating">
-                                <% for(let i = 0; i < 5; i++) { %>
-                                    <i class="fas fa-star" style="color: <%= i < review.rating ? 'var(--smeg-red)' : 'var(--smeg-gray)' %>"></i>
-                                <% } %>
-                            </span>
-                            <span class="date"><%= new Date(review.date_posted).toLocaleDateString() %></span>
+                            <p class="review-text"><%= review.review_text %></p>
                         </div>
-                        <p class="review-text"><%= review.review_text %></p>
-                    </div>
-                <% }); %>
-            </div>
+                    <% }); %>
+                <% } %>
+            </div> <%# Removed extra closing div and EJS tag %>
         </div>
     </main>
 
     <%- include('partials/footer') %>
     
-    <script>
-        // Star rating interaction
-        const stars = document.querySelectorAll('.rating-input label');
-        stars.forEach((star, index) => {
-            star.addEventListener('mouseover', () => {
-                for (let i = 0; i <= index; i++) {
-                    stars[i].querySelector('i').style.color = 'var(--smeg-red)';
-                }
-            });
-            
-            star.addEventListener('mouseout', () => {
-                stars.forEach(s => {
-                    if (!s.previousElementSibling.checked) {
-                        s.querySelector('i').style.color = 'var(--smeg-gray)';
-                    }
-                });
-            });
-            
-            star.addEventListener('click', () => {
-                star.previousElementSibling.checked = true;
-                stars.forEach((s, i) => {
-                    s.querySelector('i').style.color = i <= index ? 'var(--smeg-red)' : 'var(--smeg-gray)';
-                });
-            });
-        });
-    </script>
+    <%# Removed JavaScript for star rating interaction as it's handled by CSS now %>
 </body>
 </html>

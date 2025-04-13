@@ -29,11 +29,12 @@
                             </div>
                             <div class="play-rating">
                                 <span class="stars">
-                                    <% for(let i = 0; i < 5; i++) { %>
-                                        <i class="fas fa-star" style="color: <%= i < Math.round(play.average_rating || 0) ? 'var(--smeg-red)' : 'var(--smeg-gray)' %>"></i>
+                                    <% const rating = Math.round(play.average_rating || 0); %>
+                                    <% for(let i = 1; i <= 5; i++) { %>
+                                        <i class="<%= i <= rating ? 'fas' : 'far' %> fa-star"></i>
                                     <% } %>
                                 </span>
-                                <span><%= play.review_count || 0 %> reviews</span>
+                                <span style="margin-left: 0.5rem; font-size: 0.85rem; color: var(--color-on-background);"><%= play.review_count || 0 %> reviews</span>
                             </div>
                         </div>
                     </a>
