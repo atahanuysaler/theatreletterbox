@@ -1,0 +1,339 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import confetti from 'canvas-confetti';
+import { 
+  ArrowLeft, 
+  Star, 
+  Plus, 
+  Share2, 
+  Clock, 
+  MapPin, 
+  Check, 
+  Layers, 
+  MessageSquare,
+  Theater
+} from 'lucide-react';
+import { ReviewEntry } from '../types';
+import PlayKunye, { PlayWithDetails } from '../components/catalog/PlayKunye';
+import { storageService } from '../services/storage';
+import { useAuthSafe } from '../context/AuthContext';
+import seedData from '../../seed-data.json';
+
+interface PlayDetailPageProps {
+  onOpenLogModal?: () => void;
+}
+
+export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }) => {
+  const { id } = useParams<{ id: string }>();
+  const authContext = useAuthSafe();
+  const activeUserId = authContext?.user?.uid || 'demo-user-emir';
+
+  // Find play from seedData as default fallback
+  const initialPlay = (seedData.plays as PlayWithDetails[]).find((p) => p.id === id);
+  const [play, setPlay] = useState<PlayWithDetails | null>(initialPlay || null);
+  const [isSeen, setIsSeen] = useState<boolean>(false);
+  const [reviews, setReviews] = useState<ReviewEntry[]>([]);
+  const [imageError, setImageError] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Load play, reviews, and user seen status dynamically
+  useEffect(() => {
+    let isMounted = true;
+    const loadPlayData = async () => {
+      if (!id) return;
+      try {
+        const livePlay = await storageService.getPlayById(id);
+        if (livePlay && isMounted) {
+          setPlay(livePlay as PlayWithDetails);
+        }
+        const user = await storageService.getUserProfile(activeUserId);
+        if (user && user.seenPlayIds && isMounted) {
+          setIsSeen(user.seenPlayIds.includes(id));
+        }
+        const playReviews = await storageService.getReviews(id);
+        if (playReviews && isMounted) {
+          setReviews(playReviews);
+        }
+      } catch (err) {
+        console.warn('[PlayDetailPage] Storage error, using fallback:', err);
+      }
+    };
+
+    loadPlayData();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return () => {
+      isMounted = false;
+    };
+  }, [id, activeUserId]);
+
+  if (!play) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 py-16 text-center space-y-4">
+        <Theater className="w-12 h-12 mx-auto text-theatre-curtain" />
+        <h2 className="font-serif font-bold text-2xl text-text-primary">Oyun Bulunamadı</h2>
+        <p className="text-sm text-text-secondary">Aradığınız oyun tiyatro repertuarımızda kayıtlı değil.</p>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 bg-theatre-curtain text-white px-4 py-2 rounded-sm text-xs font-medium cursor-pointer"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Kataloğa Dön</span>
+        </Link>
+      </div>
+    );
+  }
+
+  // Handle Seen toggle with confetti and storage
+  const handleToggleSeen = async () => {
+    const nextState = !isSeen;
+    setIsSeen(nextState);
+
+    if (nextState) {
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.7 },
+        colors: ['#BA1B23', '#F1C21B', '#198038'],
+      });
+      setToastMessage(`+10 XP! "${play.title}" izlendi olarak işaretlendi.`);
+    } else {
+      setToastMessage(`"${play.title}" izlediklerim listesinden kaldırıldı.`);
+    }
+
+    setTimeout(() => setToastMessage(null), 3000);
+
+    try {
+      await storageService.toggleSeenPlay(activeUserId, play.id);
+      if (authContext?.refreshUser) {
+        await authContext.refreshUser();
+      }
+    } catch (e) {
+      console.warn('[PlayDetailPage] Could not persist seen toggle:', e);
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
+      {/* Toast Feedback */}
+      {toastMessage && (
+        <div className="fixed bottom-20 sm:bottom-6 right-6 z-50 bg-text-primary text-text-inverse text-xs px-4 py-2.5 rounded-sm shadow-modal flex items-center gap-2 border border-border-strong animate-fade-in font-mono">
+          <Check className="w-4 h-4 text-stage-spotlight" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Breadcrumb Navigation */}
+      <nav className="flex items-center gap-2 text-xs font-mono text-text-secondary">
+        <Link to="/" className="hover:text-theatre-curtain flex items-center gap-1 cursor-pointer">
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Katalog</span>
+        </Link>
+        <span>/</span>
+        <span className="text-text-tertiary truncate">{play.genre}</span>
+        <span>/</span>
+        <span className="text-text-primary font-semibold truncate">{play.title}</span>
+      </nav>
+
+      {/* Hero Overview Section */}
+      <div className="bg-canvas border border-border-subtle rounded-sm p-6 sm:p-8">
+        <div className="flex flex-col md:flex-row gap-6 sm:gap-8 items-start">
+          {/* 2:3 Vertical Poster with Crisp Border */}
+          <div className="w-full sm:w-60 md:w-64 aspect-[2/3] bg-layer-01 border border-[#E0E0E0] rounded-sm overflow-hidden flex-shrink-0 relative shadow-card">
+            {!imageError && play.posterUrl ? (
+              <img
+                src={play.posterUrl}
+                alt={play.title}
+                className="w-full h-full object-cover"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col justify-between p-4 bg-layer-01 text-center">
+                <span className="text-[10px] font-mono text-text-tertiary uppercase">{play.company}</span>
+                <Theater className="w-10 h-10 mx-auto text-theatre-curtain opacity-60 my-auto" />
+                <span className="font-serif font-bold text-sm text-text-primary">{play.title}</span>
+                <span className="text-[10px] font-mono text-text-tertiary">{play.year}</span>
+              </div>
+            )}
+
+            {/* Seen Badge on Poster */}
+            {isSeen && (
+              <div className="absolute top-2 left-2 flex items-center gap-1 bg-success-mint text-white px-2 py-0.5 rounded-sm font-mono text-[10px] font-semibold tracking-wide uppercase shadow-subtle">
+                <Check className="w-3 h-3 stroke-[2.5]" />
+                <span>Gördüm</span>
+              </div>
+            )}
+          </div>
+
+          {/* Core Info & Action Center */}
+          <div className="flex-1 space-y-5">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-mono uppercase tracking-wider text-theatre-curtain font-semibold">
+                  {play.genre}
+                </span>
+                <span className="text-text-tertiary">·</span>
+                <span className="text-xs font-mono text-text-secondary">{play.year}</span>
+              </div>
+
+              <h1 className="font-serif font-bold text-3xl sm:text-4xl text-text-primary tracking-tight">
+                {play.title}
+              </h1>
+
+              <div className="flex items-center gap-2 text-sm text-text-secondary font-sans flex-wrap">
+                <span className="font-medium text-text-primary">{play.playwright}</span>
+                <span>·</span>
+                <span>Yön: {play.director}</span>
+                <span>·</span>
+                <span className="text-theatre-curtain font-medium">{play.company}</span>
+              </div>
+            </div>
+
+            {/* Star Rating Display */}
+            <div className="flex items-center gap-3 py-2 border-y border-border-subtle">
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-5 h-5 ${
+                      star <= Math.round(play.rating)
+                        ? 'fill-stage-spotlight text-stage-spotlight'
+                        : 'text-border-subtle'
+                    }`}
+                  />
+                ))}
+              </div>
+              <div className="font-mono text-sm font-bold text-text-primary">
+                {play.rating.toFixed(1)} <span className="text-text-tertiary font-normal text-xs">/ 5.0</span>
+              </div>
+              <span className="text-text-tertiary">·</span>
+              <span className="text-xs font-mono text-text-secondary">
+                {play.reviewCount} Değerlendirme
+              </span>
+            </div>
+
+            {/* Quick Metrics Bar */}
+            <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-text-secondary">
+              <span className="inline-flex items-center gap-1.5 bg-layer-01 px-2.5 py-1 border border-border-subtle rounded-sm">
+                <Clock className="w-3.5 h-3.5 text-theatre-curtain" />
+                <span>{play.duration} Dakika</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 bg-layer-01 px-2.5 py-1 border border-border-subtle rounded-sm">
+                <Layers className="w-3.5 h-3.5 text-theatre-curtain" />
+                <span>{play.hasIntermission ? '2 Perde (Ara Var)' : 'Tek Perde (Ara Yok)'}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 bg-layer-01 px-2.5 py-1 border border-border-subtle rounded-sm">
+                <MapPin className="w-3.5 h-3.5 text-theatre-curtain" />
+                <span>{play.venue}</span>
+              </span>
+            </div>
+
+            {/* Action Buttons: "Not Al", "Gördüm", "Hikaye Paylaş" */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              {/* Primary CTA: Not Al */}
+              <button
+                type="button"
+                onClick={onOpenLogModal}
+                className="inline-flex items-center gap-2 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white px-5 py-2.5 text-xs font-medium rounded-sm shadow-sm transition-colors cursor-pointer"
+              >
+                <Plus className="w-4 h-4 stroke-[2.5]" />
+                <span>Tiyatronot Al</span>
+              </button>
+
+              {/* Fast "Gördüm" Toggle Button */}
+              <button
+                type="button"
+                onClick={handleToggleSeen}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-medium rounded-sm border transition-colors cursor-pointer ${
+                  isSeen
+                    ? 'bg-success-mint text-white border-success-mint hover:bg-success-mint/90'
+                    : 'bg-layer-01 hover:bg-layer-02 text-text-primary border-border-subtle'
+                }`}
+              >
+                <Check className="w-4 h-4 stroke-[2.5]" />
+                <span>{isSeen ? 'İzlendi Olarak İşaretli' : 'Gördüm Olarak İşaretle (+10 XP)'}</span>
+              </button>
+
+              {/* Share Story Card Button (Milestone 4 hook) */}
+              <button
+                type="button"
+                onClick={() => {
+                  console.log('[Tiyatronot] Social Story Modal Trigger (Milestone 4 hook)');
+                  alert(`"${play.title}" için 9:16 Instagram Hikaye Kartı oluşturucu Milestone 4 ile entegre edilecektir.`);
+                }}
+                className="inline-flex items-center gap-1.5 bg-layer-01 hover:bg-layer-02 border border-border-subtle text-text-primary px-3.5 py-2.5 text-xs font-medium rounded-sm transition-colors cursor-pointer"
+                title="9:16 Instagram Story veya Twitter kartı oluştur"
+              >
+                <Share2 className="w-4 h-4 text-text-secondary" />
+                <span>Hikaye Paylaş (9:16)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Complete Theatrical Künye Component */}
+      <PlayKunye play={play} />
+
+      {/* Community Reviews & Notes Section */}
+      <div className="bg-canvas border border-border-subtle rounded-sm p-6 sm:p-8 space-y-6">
+        <div className="flex items-center justify-between border-b border-border-subtle pb-4">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-theatre-curtain" />
+            <h3 className="font-serif font-bold text-lg text-text-primary">
+              Seyirci Notları & Eleştiriler
+            </h3>
+            <span className="font-mono text-xs text-text-secondary bg-layer-01 px-2 py-0.5 rounded-sm border border-border-subtle">
+              {reviews.length} Yorum
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={onOpenLogModal}
+            className="text-xs font-mono text-theatre-curtain hover:underline flex items-center gap-1 cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Not Yaz</span>
+          </button>
+        </div>
+
+        {reviews.length > 0 ? (
+          <div className="space-y-4">
+            {reviews.map((rev) => (
+              <div key={rev.id} className="p-4 bg-layer-01 border border-border-subtle rounded-sm space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-text-primary">{rev.userName}</span>
+                    <span className="text-text-tertiary">·</span>
+                    <div className="flex items-center text-stage-spotlight font-mono font-bold text-xs">
+                      ★ {rev.rating.toFixed(1)}
+                    </div>
+                  </div>
+                  <span className="font-mono text-text-tertiary text-[11px]">{rev.performanceDate}</span>
+                </div>
+                <p className="text-xs text-text-secondary leading-relaxed">{rev.reviewText}</p>
+                {rev.venue && (
+                  <div className="text-[10px] font-mono text-text-tertiary flex items-center gap-2 pt-1 border-t border-border-subtle/50">
+                    <span>{rev.venue}</span>
+                    {rev.sessionType && <span>· {rev.sessionType === 'matine' ? 'Matine' : 'Suare'}</span>}
+                    {rev.seatInfo && <span>· {rev.seatInfo}</span>}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-8 text-center bg-layer-01/50 border border-dashed border-border-subtle rounded-sm space-y-2">
+            <p className="font-serif italic text-sm text-text-secondary">
+              Bu yapım için henüz topluluk notu yazılmamış.
+            </p>
+            <p className="text-xs text-text-tertiary">
+              Oyunu izlediyseniz sahne deneyiminizi ve izlenimlerinizi ilk siz paylaşın.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default PlayDetailPage;
