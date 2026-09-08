@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { X, HelpCircle, CheckCircle2, XCircle, Share2, Flame } from 'lucide-react';
+import { X, HelpCircle, CheckCircle2, XCircle, Share2, Flame, Sparkles } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { storageService } from '../services/storage';
 import { useAuth } from '../context/AuthContext';
 import type { DailyQuote, Play } from '../types';
@@ -63,11 +64,17 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
       } catch { /* ignore */ }
     }
 
-    Promise.all([storageService.getTodayQuote(), storageService.getPlays()]).then(([q, p]) => {
+    Promise.all([
+      storageService.getTodayQuote(),
+      storageService.getPlays()
+    ]).then(([q, p]) => {
       setQuote(q);
       setPlays(p);
       setLoading(false);
-      setTimeout(() => inputRef.current?.focus(), 100);
+      setTimeout(() => inputRef.current?.focus(), 150);
+    }).catch(err => {
+      console.error('[DailyQuoteModal] Load error:', err);
+      setLoading(false);
     });
   }, [isOpen]);
 
@@ -76,18 +83,24 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
       attempts, completed, won, streak, revealedHints, xpEarned,
       ...state,
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+    } catch { /* ignore */ }
   }, [attempts, completed, won, streak, revealedHints, xpEarned]);
 
   const handleSubmit = useCallback(async () => {
-    if (!guess.trim() || !quote || !user || completed || submitting) return;
+    const trimmedGuess = guess.trim();
+    if (!trimmedGuess || !quote || completed || submitting) return;
     setSubmitting(true);
 
+    // Support both logged in and guest users
+    const effectiveUserId = user?.uid || 'guest-tiyatrosever';
     const attemptNumber = attempts.length + 1;
+
     try {
-      const result = await storageService.recordQuoteGuess(user.uid, guess.trim(), attemptNumber);
+      const result = await storageService.recordQuoteGuess(effectiveUserId, trimmedGuess, attemptNumber);
       const newAttempt: AttemptRecord = {
-        guess: guess.trim(),
+        guess: trimmedGuess,
         result: result.isCorrect ? 'correct' : 'wrong',
       };
       const newAttempts = [...attempts, newAttempt];
@@ -106,8 +119,21 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
         newXp = result.xpAwarded;
         newStreak = result.newStreak;
 
-        if (result.xpAwarded > 0) {
-          await updateProfile({ xp: (user.xp ?? 0) + result.xpAwarded });
+        if (result.isCorrect) {
+          confetti({
+            particleCount: 60,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#BA1B23', '#F1C21B', '#198038'],
+          });
+        }
+
+        if (result.xpAwarded > 0 && user && updateProfile) {
+          try {
+            await updateProfile({ xp: (user.xp ?? 0) + result.xpAwarded });
+          } catch (err) {
+            console.warn('[DailyQuoteModal] Profile XP update warning:', err);
+          }
         }
       }
 
@@ -152,7 +178,7 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
   }, [attempts, quote]);
 
   const filteredPlays = plays.filter(p =>
-    p.title.toLocaleLowerCase('tr').includes(guess.toLocaleLowerCase('tr'))
+    p.title.toLocaleLowerCase('tr').includes(guess.trim().toLocaleLowerCase('tr'))
   ).slice(0, 5);
 
   if (!isOpen) return null;
@@ -161,38 +187,43 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden
       />
 
-      {/* Panel */}
-      <div className="relative z-10 bg-canvas border border-border-subtle shadow-2xl w-full max-w-lg rounded-sm overflow-hidden">
+      {/* Modal Dialog */}
+      <div className="relative z-10 bg-canvas border border-border-subtle shadow-2xl w-full max-w-lg rounded-sm overflow-hidden animate-fade-in">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
           <div>
             <div className="flex items-center gap-2 text-theatre-curtain text-xs font-mono font-semibold uppercase tracking-wider">
               <HelpCircle className="w-4 h-4" />
-              Günün Repliği
+              <span>Günün Repliği</span>
             </div>
             <div className="text-[10px] font-mono text-text-tertiary mt-0.5">{TODAY}</div>
           </div>
           <div className="flex items-center gap-3">
             {streak > 0 && (
-              <div className="flex items-center gap-1 text-xs font-mono text-text-secondary">
-                <Flame className="w-4 h-4 text-theatre-curtain" />
-                {streak} gün seri
+              <div className="flex items-center gap-1 text-xs font-mono text-theatre-curtain bg-layer-01 px-2 py-0.5 rounded-sm border border-border-subtle font-bold">
+                <Flame className="w-3.5 h-3.5 fill-theatre-curtain" />
+                <span>{streak} gün seri</span>
               </div>
             )}
-            <button type="button" onClick={onClose} className="p-1.5 hover:bg-layer-01 rounded-sm transition-colors">
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 hover:bg-layer-01 rounded-sm transition-colors cursor-pointer"
+              aria-label="Kapat"
+            >
               <X className="w-4 h-4 text-text-secondary" />
             </button>
           </div>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center">
-            <div className="text-text-tertiary font-mono text-sm animate-pulse">Replik yükleniyor...</div>
+          <div className="p-12 text-center space-y-2">
+            <div className="text-text-tertiary font-mono text-sm animate-pulse">Replik hazırlanıyor...</div>
           </div>
         ) : !quote ? (
           <div className="p-8 text-center text-text-secondary font-mono text-sm">
@@ -200,21 +231,29 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
           </div>
         ) : (
           <div className="p-5 space-y-5">
-            {/* Quote */}
-            <div className="bg-layer-01 border-l-2 border-theatre-curtain p-4">
+            {/* Quote Card */}
+            <div className="bg-layer-01 border-l-3 border-theatre-curtain p-4 rounded-sm shadow-subtle">
+              <span className="text-[10px] font-mono text-text-tertiary uppercase block mb-1">
+                Sahneden Bir Replik:
+              </span>
               <p className="font-serif italic text-base sm:text-lg text-text-primary leading-relaxed">
                 "{quote.quote}"
               </p>
             </div>
 
-            {/* Hints revealed */}
-            {revealedHints.map((hint, i) => (
-              <div key={i} className="text-xs text-text-secondary bg-layer-01 border border-border-subtle p-3 rounded-sm font-mono">
-                💡 {hint}
+            {/* Revealed Hints */}
+            {revealedHints.length > 0 && (
+              <div className="space-y-2">
+                {revealedHints.map((hint, i) => (
+                  <div key={i} className="text-xs text-text-primary bg-layer-01 border border-border-subtle p-3 rounded-sm font-mono flex items-start gap-2">
+                    <span className="text-base flex-shrink-0">💡</span>
+                    <span className="mt-0.5">{hint}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
 
-            {/* Attempts */}
+            {/* Previous Attempts List */}
             {attempts.length > 0 && (
               <div className="space-y-2">
                 {attempts.map((a, i) => (
@@ -227,84 +266,114 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
                     }`}
                   >
                     {a.result === 'correct'
-                      ? <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      : <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                      ? <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                      : <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
                     }
-                    <span className="font-mono text-xs flex-1">{a.guess}</span>
-                    <span className="text-[10px] text-text-tertiary">Tahmin {i + 1}</span>
+                    <span className="font-mono text-xs flex-1 font-semibold">{a.guess}</span>
+                    <span className="text-[10px] text-text-tertiary font-mono">Tahmin {i + 1} / 3</span>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Completed state */}
+            {/* Game Result Screen (Won or Lost) */}
             {completed ? (
-              <div className={`p-4 rounded-sm border text-center space-y-2 ${
-                won ? 'border-green-400 bg-green-50' : 'border-red-200 bg-red-50'
+              <div className={`p-5 rounded-sm border text-center space-y-3 ${
+                won ? 'border-green-400 bg-green-50/60' : 'border-red-200 bg-red-50/60'
               }`}>
-                <div className="text-lg">{won ? '🎉' : '😔'}</div>
-                <div className={`font-serif font-bold text-base ${won ? 'text-green-800' : 'text-red-700'}`}>
-                  {won ? 'Doğru bildin!' : 'Yarın tekrar dene!'}
+                <div className="text-2xl">{won ? '🎉' : '🎭'}</div>
+                <div className={`font-serif font-bold text-lg ${won ? 'text-green-800' : 'text-red-800'}`}>
+                  {won ? 'Tebrikler, bildin!' : 'Tüm tahmin hakların bitti'}
                 </div>
-                <div className="text-xs text-text-secondary font-mono">
-                  Cevap: <span className="font-bold text-text-primary">{quote.playTitle}</span>
-                  {' '}({quote.playwright})
+                <div className="text-xs text-text-secondary font-mono bg-canvas/80 p-2.5 rounded-sm border border-border-subtle inline-block">
+                  Doğru Oyun: <strong className="text-text-primary font-bold">{quote.playTitle}</strong>
+                  <span className="text-text-tertiary ml-1.5">({quote.playwright})</span>
                 </div>
                 {xpEarned > 0 && (
-                  <div className="text-xs font-mono text-theatre-curtain font-bold">+{xpEarned} XP kazandın!</div>
+                  <div className="text-xs font-mono text-theatre-curtain font-bold flex items-center justify-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>+{xpEarned} XP kazandın!</span>
+                  </div>
                 )}
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  className="mt-2 w-full flex items-center justify-center gap-2 bg-theatre-curtain text-white py-2 text-xs font-semibold rounded-sm hover:opacity-90 transition-opacity"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                  {copied ? 'Kopyalandı!' : 'Sonucu Paylaş'}
-                </button>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="w-full flex items-center justify-center gap-2 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white py-2.5 text-xs font-semibold rounded-sm transition-colors cursor-pointer"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>{copied ? 'Panoya Kopyalandı!' : 'Skorunu Paylaş'}</span>
+                  </button>
+                </div>
               </div>
             ) : (
-              /* Input */
-              <div className="space-y-2">
-                <div className="text-xs text-text-tertiary font-mono">
-                  Tahmin {attempts.length + 1} / 3 — Oyunun adını yaz:
+              /* Active Guess Form */
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSubmit();
+                }}
+                className="space-y-3"
+              >
+                <div className="flex items-center justify-between text-xs text-text-secondary font-mono">
+                  <span>Tahmin {attempts.length + 1} / 3:</span>
+                  <span className="text-text-tertiary">Oyun adını yaz veya listeden seç</span>
                 </div>
+
                 <div className="relative">
                   <input
                     ref={inputRef}
                     type="text"
                     value={guess}
-                    onChange={e => { setGuess(e.target.value); setShowAutocomplete(true); }}
+                    onChange={(e) => {
+                      setGuess(e.target.value);
+                      setShowAutocomplete(true);
+                    }}
                     onFocus={() => setShowAutocomplete(true)}
-                    onKeyDown={e => { if (e.key === 'Enter') handleSubmit(); if (e.key === 'Escape') setShowAutocomplete(false); }}
-                    placeholder="Oyun adını yaz..."
-                    className="w-full border border-border-strong bg-canvas px-3 py-2.5 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setShowAutocomplete(false);
+                      }
+                    }}
+                    placeholder="Örn: Lüküs Hayat, Keşanlı Ali..."
+                    className="w-full border border-border-strong bg-canvas px-3.5 py-2.5 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors rounded-sm"
                   />
-                  {/* Autocomplete */}
-                  {showAutocomplete && guess.length > 0 && filteredPlays.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 z-10 bg-canvas border border-border-strong border-t-0 shadow-md">
-                      {filteredPlays.map(p => (
+
+                  {/* Autocomplete Dropdown */}
+                  {showAutocomplete && guess.trim().length > 0 && filteredPlays.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-canvas border border-border-strong shadow-xl rounded-sm overflow-hidden max-h-48 overflow-y-auto">
+                      {filteredPlays.map((p) => (
                         <button
                           key={p.id}
                           type="button"
-                          onClick={() => { setGuess(p.title); setShowAutocomplete(false); }}
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-layer-01 transition-colors font-mono text-text-primary border-b border-border-subtle last:border-b-0"
+                          onMouseDown={(e) => {
+                            e.preventDefault(); // Prevents input blur before click registers
+                            setGuess(p.title);
+                            setShowAutocomplete(false);
+                            setTimeout(() => inputRef.current?.focus(), 50);
+                          }}
+                          className="w-full text-left px-3 py-2 text-xs hover:bg-layer-01 transition-colors font-mono text-text-primary border-b border-border-subtle last:border-b-0 flex items-center justify-between cursor-pointer"
                         >
-                          {p.title}
-                          <span className="text-text-tertiary text-xs ml-2">({p.playwright})</span>
+                          <span className="font-semibold">{p.title}</span>
+                          <span className="text-text-tertiary text-[10px] ml-2">({p.playwright})</span>
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
+
                 <button
-                  type="button"
-                  onClick={handleSubmit}
+                  type="submit"
                   disabled={!guess.trim() || submitting}
-                  className="w-full bg-theatre-curtain text-white py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                  className="w-full bg-theatre-curtain hover:bg-theatre-curtain-hover text-white py-2.5 text-xs font-semibold rounded-sm shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
                 >
-                  {submitting ? 'Kontrol ediliyor...' : 'Tahminini Gönder'}
+                  {submitting ? (
+                    <span className="font-mono animate-pulse">Kontrol Ediliyor...</span>
+                  ) : (
+                    <span>Tahminini Gönder</span>
+                  )}
                 </button>
-              </div>
+              </form>
             )}
           </div>
         )}
