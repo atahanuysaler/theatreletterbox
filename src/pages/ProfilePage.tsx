@@ -15,9 +15,12 @@ import {
   Lock, 
   Calendar,
   MessageSquare,
-  ArrowRight
+  ArrowRight,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { storageService } from '../services/storage';
 import { getTierProgress, TIERS } from '../services/gamification';
 import type { Play, ReviewEntry, Badge } from '../types';
@@ -35,6 +38,7 @@ const BADGE_ICONS: Record<string, React.ReactNode> = {
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) => {
   const { user, role, loginWithGoogle, logout } = useAuth();
+  const { isDark, toggleTheme, setTheme } = useTheme();
   const [plays, setPlays] = useState<Play[]>([]);
   const [reviews, setReviews] = useState<ReviewEntry[]>([]);
   const [allBadges, setAllBadges] = useState<Badge[]>([]);
@@ -77,7 +81,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
 
   if (!user) {
     return (
-      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-5">
+      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-6">
         <Theater className="w-12 h-12 text-theatre-curtain mx-auto opacity-80" />
         <h1 className="font-serif font-bold text-2xl text-text-primary">
           Tiyatro Pasaportuna Giriş Yap
@@ -93,9 +97,32 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
           <LogIn className="w-4 h-4" />
           <span>Google ile Giriş Yap</span>
         </button>
+
+        {/* Theme Preference for Visitors */}
+        <div className="pt-6 border-t border-border-subtle flex items-center justify-between text-xs font-mono">
+          <span className="text-text-secondary">Görünüm Teması:</span>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-layer-01 hover:bg-layer-02 border border-border-subtle rounded-sm text-xs font-mono font-medium text-text-primary cursor-pointer transition-colors"
+          >
+            {isDark ? (
+              <>
+                <Sun className="w-3.5 h-3.5 text-theatre-gold" />
+                <span>Aydınlık Moda Geç</span>
+              </>
+            ) : (
+              <>
+                <Moon className="w-3.5 h-3.5 text-text-secondary" />
+                <span>Karanlık Moda Geç</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
     );
   }
+
 
   const initials = user.displayName
     ? user.displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
@@ -144,6 +171,27 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
 
           {/* Quick Action Buttons */}
           <div className="flex flex-wrap items-center gap-2">
+            {/* Dark Mode Quick Toggle */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-layer-01 hover:bg-layer-02 border border-border-subtle rounded-sm text-xs font-medium text-text-primary transition-colors cursor-pointer"
+              title={isDark ? 'Aydınlık moda geç' : 'Karanlık moda geç'}
+              aria-label="Karanlık / Aydınlık Mod"
+            >
+              {isDark ? (
+                <>
+                  <Sun className="w-3.5 h-3.5 text-theatre-gold" />
+                  <span>Aydınlık Mod</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-3.5 h-3.5 text-text-secondary" />
+                  <span>Karanlık Mod</span>
+                </>
+              )}
+            </button>
+
             {role === 'admin' && (
               <Link
                 to="/admin"
@@ -202,6 +250,53 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
           </div>
         </div>
       </div>
+
+      {/* Appearance & Theme Preference Card */}
+      <div className="bg-canvas border border-border-subtle rounded-sm p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            {isDark ? (
+              <Moon className="w-4 h-4 text-theatre-gold" />
+            ) : (
+              <Sun className="w-4 h-4 text-theatre-curtain" />
+            )}
+            <h2 className="font-serif font-bold text-base text-text-primary">Görünüm & Tema</h2>
+          </div>
+          <p className="text-xs text-text-secondary font-sans">
+            Tiyatro salonu atmosferi için karanlık mod veya klasik aydınlık mod seçin.
+          </p>
+        </div>
+
+        <div className="inline-flex p-1 bg-layer-01 border border-border-subtle rounded-sm gap-1 self-start sm:self-auto font-mono text-xs">
+          <button
+            type="button"
+            onClick={() => setTheme('light')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm transition-colors cursor-pointer ${
+              !isDark
+                ? 'bg-canvas text-theatre-curtain font-bold shadow-sm border border-border-subtle'
+                : 'text-text-secondary hover:text-text-primary'
+            }`}
+            aria-pressed={!isDark}
+          >
+            <Sun className="w-3.5 h-3.5" />
+            <span>Aydınlık</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setTheme('dark')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm transition-colors cursor-pointer ${
+              isDark
+                ? 'bg-layer-02 text-theatre-gold font-bold shadow-sm border border-border-strong'
+                : 'text-text-secondary hover:text-text-primary'
+            }`}
+            aria-pressed={isDark}
+          >
+            <Moon className="w-3.5 h-3.5" />
+            <span>Karanlık</span>
+          </button>
+        </div>
+      </div>
+
 
       {/* Tabs */}
       <div className="flex border-b border-border-subtle gap-2 text-xs font-mono">

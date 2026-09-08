@@ -51,9 +51,9 @@ export const Footer: React.FC = () => {
               Tasarım & Mimari
             </h4>
             <ul className="space-y-1 font-mono text-[11px] text-text-tertiary">
-              <li>IBM Carbon Light</li>
+              <li>IBM Carbon Tokens</li>
               <li>Newsreader & IBM Plex</li>
-              <li>Dual-Mode Firestore / LocalStorage</li>
+              <li>Remote Cloud Firestore</li>
               <li>CORS-Safe Story Canvas</li>
             </ul>
           </div>

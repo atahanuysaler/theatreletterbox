@@ -6,23 +6,24 @@
    IBM Carbon Light & Tiyatronot Editorial Design Tokens
    ========================================================================== */
 :root {
-  --color-canvas: #FFFFFF;
-  --color-layer-01: #F4F4F4;
-  --color-layer-02: #E0E0E0;
-  --color-overlay: rgba(22, 22, 22, 0.45);
-  --color-text-primary: #161616;
-  --color-text-secondary: #525252;
-  --color-text-tertiary: #8D8D8D;
-  --color-text-inverse: #FFFFFF;
-  --color-theatre-curtain: #BA1B23;
-  --color-theatre-curtain-hover: #A2191F;
-  --color-theatre-gold: #F1C21B;
-  --color-stage-spotlight: #F1C21B;
-  --color-interactive-primary: #0F62FE;
-  --color-interactive-hover: #0353E9;
-  --color-success-mint: #198038;
-  --color-border-subtle: #E0E0E0;
-  --color-border-strong: #8D8D8D;
+  --color-canvas: 255 255 255;
+  --color-layer-01: 244 244 244;
+  --color-layer-02: 224 224 224;
+  --color-overlay: 22 22 22;
+  --color-text-primary: 22 22 22;
+  --color-text-secondary: 82 82 82;
+  --color-text-tertiary: 141 141 141;
+  --color-text-inverse: 255 255 255;
+  --color-theatre-curtain: 186 27 35;
+  --color-theatre-curtain-hover: 162 25 31;
+  --color-theatre-gold: 241 194 27;
+  --color-stage-spotlight: 241 194 27;
+  --color-interactive-primary: 15 98 254;
+  --color-interactive-hover: 3 83 233;
+  --color-interactive-active: 0 45 156;
+  --color-success-mint: 25 128 56;
+  --color-border-subtle: 224 224 224;
+  --color-border-strong: 141 141 141;
 
   /* Font Stacks */
   --font-serif: 'Newsreader', 'Playfair Display', Georgia, serif;
@@ -31,12 +32,37 @@
 }
 
 /* ==========================================================================
+   IBM Carbon Dark & Tiyatronot Dark Mode Tokens
+   ========================================================================== */
+html.dark,
+.dark {
+  --color-canvas: 22 22 22;
+  --color-layer-01: 38 38 38;
+  --color-layer-02: 57 57 57;
+  --color-overlay: 0 0 0;
+  --color-text-primary: 244 244 244;
+  --color-text-secondary: 198 198 198;
+  --color-text-tertiary: 141 141 141;
+  --color-text-inverse: 22 22 22;
+  --color-theatre-curtain: 218 30 40;
+  --color-theatre-curtain-hover: 250 77 86;
+  --color-theatre-gold: 241 194 27;
+  --color-stage-spotlight: 241 194 27;
+  --color-interactive-primary: 69 137 255;
+  --color-interactive-hover: 120 169 255;
+  --color-interactive-active: 15 98 254;
+  --color-success-mint: 66 190 101;
+  --color-border-subtle: 57 57 57;
+  --color-border-strong: 111 111 111;
+}
+
+/* ==========================================================================
    Base Resets & Typography Hierarchy
    ========================================================================== */
 @layer base {
   html {
-    background-color: #FFFFFF;
-    color: #161616;
+    background-color: rgb(var(--color-canvas));
+    color: rgb(var(--color-text-primary));
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -47,15 +73,15 @@
   body {
     margin: 0;
     min-height: 100vh;
-    background-color: #FFFFFF;
-    color: #161616;
+    background-color: rgb(var(--color-canvas));
+    color: rgb(var(--color-text-primary));
     line-height: 1.5;
   }
 
   /* Editorial Headings: Classical Play Scripts & Theatre Playbills */
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-serif);
-    color: #161616;
+    color: rgb(var(--color-text-primary));
     font-weight: 600;
     letter-spacing: -0.015em;
     line-height: 1.25;
@@ -100,9 +126,11 @@
 
   /* 1px Architectural Borders Default */
   *, ::before, ::after {
-    border-color: #E0E0E0;
+    border-color: rgb(var(--color-border-subtle));
   }
 }
+
+
 
 /* ==========================================================================
    Editorial Selection Styling (Theatrical Crimson)
@@ -126,22 +154,23 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #F4F4F4;
+  background: var(--color-layer-01);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #C6C6C6;
+  background: var(--color-border-subtle);
   border-radius: 0px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #8D8D8D;
+  background: var(--color-border-strong);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #C6C6C6 #F4F4F4;
+  scrollbar-color: var(--color-border-subtle) var(--color-layer-01);
 }
+
 
 /* ==========================================================================
    Component Utilities & Micro-Interactions

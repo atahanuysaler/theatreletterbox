@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -7,42 +8,44 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Core Backgrounds & Surfaces (IBM Carbon Light)
-        canvas: '#FFFFFF',
-        'surface-canvas': '#FFFFFF',
-        'layer-01': '#F4F4F4',
-        'layer-1': '#F4F4F4',
-        'surface-layer-01': '#F4F4F4',
-        'layer-02': '#E0E0E0',
-        'layer-2': '#E0E0E0',
-        'surface-layer-02': '#E0E0E0',
-        overlay: 'rgba(22, 22, 22, 0.45)',
-        'surface-overlay': 'rgba(22, 22, 22, 0.45)',
+        // Core Backgrounds & Surfaces (Dynamic with Alpha Support)
+        canvas: 'rgb(var(--color-canvas) / <alpha-value>)',
+        'surface-canvas': 'rgb(var(--color-canvas) / <alpha-value>)',
+        'layer-01': 'rgb(var(--color-layer-01) / <alpha-value>)',
+        'layer-1': 'rgb(var(--color-layer-01) / <alpha-value>)',
+        'surface-layer-01': 'rgb(var(--color-layer-01) / <alpha-value>)',
+        'layer-02': 'rgb(var(--color-layer-02) / <alpha-value>)',
+        'layer-2': 'rgb(var(--color-layer-02) / <alpha-value>)',
+        'surface-layer-02': 'rgb(var(--color-layer-02) / <alpha-value>)',
+        overlay: 'rgb(var(--color-overlay) / <alpha-value>)',
+        'surface-overlay': 'rgb(var(--color-overlay) / <alpha-value>)',
 
         // Text & Contrast Hierarchy
-        primary: '#161616',
-        'text-primary': '#161616',
-        secondary: '#525252',
-        'text-secondary': '#525252',
-        tertiary: '#8D8D8D',
-        'text-tertiary': '#8D8D8D',
-        'text-inverse': '#FFFFFF',
+        primary: 'rgb(var(--color-text-primary) / <alpha-value>)',
+        'text-primary': 'rgb(var(--color-text-primary) / <alpha-value>)',
+        secondary: 'rgb(var(--color-text-secondary) / <alpha-value>)',
+        'text-secondary': 'rgb(var(--color-text-secondary) / <alpha-value>)',
+        tertiary: 'rgb(var(--color-text-tertiary) / <alpha-value>)',
+        'text-tertiary': 'rgb(var(--color-text-tertiary) / <alpha-value>)',
+        'text-inverse': 'rgb(var(--color-text-inverse) / <alpha-value>)',
 
         // Theatrical Accents & Carbon Interactive Tokens
-        'theatre-curtain': '#BA1B23',
-        'theatre-curtain-hover': '#A2191F',
-        'theatre-gold': '#F1C21B',
-        'stage-spotlight': '#F1C21B',
-        'interactive-primary': '#0F62FE',
-        'interactive-hover': '#0353E9',
-        'interactive-active': '#002D9C',
-        'success-mint': '#198038',
+        'theatre-curtain': 'rgb(var(--color-theatre-curtain) / <alpha-value>)',
+        'theatre-curtain-hover': 'rgb(var(--color-theatre-curtain-hover) / <alpha-value>)',
+        'theatre-gold': 'rgb(var(--color-theatre-gold) / <alpha-value>)',
+        'stage-spotlight': 'rgb(var(--color-stage-spotlight) / <alpha-value>)',
+        'interactive-primary': 'rgb(var(--color-interactive-primary) / <alpha-value>)',
+        'interactive-hover': 'rgb(var(--color-interactive-hover) / <alpha-value>)',
+        'interactive-active': 'rgb(var(--color-interactive-active) / <alpha-value>)',
+        'success-mint': 'rgb(var(--color-success-mint) / <alpha-value>)',
 
         // Architectural Borders
-        subtle: '#E0E0E0',
-        'border-subtle': '#E0E0E0',
-        strong: '#8D8D8D',
-        'border-strong': '#8D8D8D',
+        subtle: 'rgb(var(--color-border-subtle) / <alpha-value>)',
+        'border-subtle': 'rgb(var(--color-border-subtle) / <alpha-value>)',
+        strong: 'rgb(var(--color-border-strong) / <alpha-value>)',
+        'border-strong': 'rgb(var(--color-border-strong) / <alpha-value>)',
+
+
 
         // Leaderboard Top-3 Accents
         'rank-gold': '#F1C21B',

@@ -13,6 +13,7 @@ import NotFoundPage from './pages/NotFoundPage';
 import LogModal from './components/LogModal';
 import DailyQuoteModal from './components/DailyQuoteModal';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 export const App: React.FC = () => {
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
@@ -22,9 +23,11 @@ export const App: React.FC = () => {
   const handleOpenDailyQuote = () => setIsDailyQuoteOpen(true);
 
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <div className="min-h-screen flex flex-col bg-canvas text-text-primary antialiased font-sans selection:bg-theatre-curtain selection:text-white">
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <div className="min-h-screen flex flex-col bg-canvas text-text-primary antialiased font-sans selection:bg-theatre-curtain selection:text-white">
+
           {/* Editorial Header */}
           <Header onOpenLogModal={handleOpenLogModal} onOpenDailyQuote={handleOpenDailyQuote} />
 
@@ -52,8 +55,9 @@ export const App: React.FC = () => {
           <LogModal isOpen={isLogModalOpen} onClose={() => setIsLogModalOpen(false)} />
           <DailyQuoteModal isOpen={isDailyQuoteOpen} onClose={() => setIsDailyQuoteOpen(false)} />
         </div>
-      </AuthProvider>
-    </BrowserRouter>
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 };
 
