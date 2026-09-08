@@ -70,6 +70,7 @@ const options = {
   output: path.join(rootDir, 'scraped-plays.json'),
   dryRun: false,
   injectOnly: false,
+  force: false,
   serviceAccount: null,
   help: false,
 };
@@ -78,6 +79,7 @@ for (const arg of args) {
   if (arg === '--help' || arg === '-h') options.help = true;
   else if (arg === '--dry-run') options.dryRun = true;
   else if (arg === '--inject-only') options.injectOnly = true;
+  else if (arg === '--force') options.force = true;
   else if (arg.startsWith('--source=')) options.source = arg.split('=')[1].toLowerCase();
   else if (arg.startsWith('--limit=')) options.limit = parseInt(arg.split('=')[1], 10);
   else if (arg.startsWith('--delay=')) options.delay = parseInt(arg.split('=')[1], 10);
@@ -99,24 +101,25 @@ Usage:
   node scripts/scrape-plays.mjs [options]
 
 Examples:
-  # Scrape 10 active plays and save + inject into Firestore:
+  # Scrape 10 new active plays and inject without duplicates:
   node scripts/scrape-plays.mjs --limit=10
 
-  # Scrape specific plays by slug:
-  node scripts/scrape-plays.mjs --plays=kel-diva,amadeus,intihar-dukkani
+  # Force update/overwrite existing plays:
+  node scripts/scrape-plays.mjs --limit=10 --force
 
   # Scrape 50 plays from sitemap without writing to Firestore (dry-run):
   node scripts/scrape-plays.mjs --source=sitemap --limit=50 --dry-run
 
-  # Inject an already scraped JSON file into Firestore:
-  node scripts/scrape-plays.mjs --inject-only --output=scraped-plays.json
+  # Inject an already scraped JSON file (skips existing plays automatically):
+  node scripts/scrape-plays.mjs --inject-only
 
 Options:
   --source=sahnedekiler|sitemap   Discovery source (default: sahnedekiler)
   --plays=slug1,slug2             Scrape specific play slugs
-  --limit=N                       Max number of plays to process (default: 20)
+  --limit=N                       Number of NEW plays to scrape (default: 20)
   --delay=MS                      Polite delay between HTTP requests (default: 600ms)
   --output=FILE                   File path for output JSON (default: scraped-plays.json)
+  --force                         Force re-scrape/overwrite existing plays (default: skips duplicates)
   --dry-run                       Scrape only, do not write to Firestore
   --inject-only                   Only inject existing JSON file into Firestore
   --help                          Show this help message
@@ -320,14 +323,16 @@ export function parsePlayHtml(html, slug) {
 
 // ─── PLAY DISCOVERY ───────────────────────────────────────────────────────────
 
-async function discoverPlays(source, limit) {
-  console.log(`🔍 Discovering plays using source: '${source}' (limit: ${limit})...`);
+async function discoverPlays(source, limit, existingIds = new Set(), force = false) {
+  console.log(`🔍 Discovering plays using source: '${source}' (target: ${limit} new plays)...`);
 
   if (source === 'custom') {
-    return options.plays.slice(0, limit);
+    const customSlugs = options.plays.filter(slug => force || !existingIds.has(slug));
+    return customSlugs.slice(0, limit);
   }
 
   const slugs = [];
+  let skippedDuplicates = 0;
 
   if (source === 'sahnedekiler') {
     const html = await fetchWithRetry('https://tiyatrolar.com.tr/sahnedekiler');
@@ -335,7 +340,12 @@ async function discoverPlays(source, limit) {
       const matches = html.matchAll(/href="https:\/\/tiyatrolar\.com\.tr\/tiyatro\/([^"#?]+)"/g);
       for (const m of matches) {
         const slug = m[1].trim();
-        if (slug && !slugs.includes(slug)) {
+        if (!slug) continue;
+        if (!force && existingIds.has(slug)) {
+          skippedDuplicates++;
+          continue;
+        }
+        if (!slugs.includes(slug)) {
           slugs.push(slug);
           if (slugs.length >= limit) break;
         }
@@ -345,13 +355,18 @@ async function discoverPlays(source, limit) {
 
   if (source === 'sitemap' || slugs.length < limit) {
     if (source === 'sitemap') slugs.length = 0; // reset if explicitly asked
-    console.log(`  🌐 Fetching sitemap.xml...`);
+    console.log(`  🌐 Searching sitemap.xml for new plays...`);
     const sitemapXml = await fetchWithRetry('https://tiyatrolar.com.tr/sitemap.xml');
     if (sitemapXml) {
       const matches = sitemapXml.matchAll(/https:\/\/tiyatrolar\.com\.tr\/tiyatro\/([^<#?]+)/g);
       for (const m of matches) {
         const slug = m[1].trim();
-        if (slug && !slugs.includes(slug)) {
+        if (!slug) continue;
+        if (!force && existingIds.has(slug)) {
+          skippedDuplicates++;
+          continue;
+        }
+        if (!slugs.includes(slug)) {
           slugs.push(slug);
           if (slugs.length >= limit) break;
         }
@@ -359,7 +374,10 @@ async function discoverPlays(source, limit) {
     }
   }
 
-  console.log(`  ✨ Found ${slugs.length} play slugs to scrape.\n`);
+  if (skippedDuplicates > 0) {
+    console.log(`  ⏭️  Skipped ${skippedDuplicates} play(s) already in your database.`);
+  }
+  console.log(`  ✨ Found ${slugs.length} new play slug(s) to scrape.\n`);
   return slugs.slice(0, limit);
 }
 
@@ -476,65 +494,10 @@ async function main() {
   console.log(`=======================================================`);
   console.log(`📁 Project ID: ${PROJECT_ID || '(Not configured)'}`);
   console.log(`💾 Output file: ${path.relative(rootDir, options.output)}`);
-  console.log(`⚙️  Mode: ${options.dryRun ? 'Dry-Run (Scrape only)' : options.injectOnly ? 'Inject-Only' : 'Scrape & Inject'}\n`);
+  console.log(`⚙️  Mode: ${options.dryRun ? 'Dry-Run (Scrape only)' : options.injectOnly ? 'Inject-Only' : 'Scrape & Inject'}`);
+  console.log(`🛡️  Deduplication: ${options.force ? 'OFF (--force: overwrite existing)' : 'ON (skipping existing plays)'}\n`);
 
-  let plays = [];
-
-  // Phase 1: Scraping (unless --inject-only)
-  if (!options.injectOnly) {
-    const slugs = await discoverPlays(options.source, options.limit);
-    if (slugs.length === 0) {
-      console.error('❌ No plays discovered. Check network or source parameters.');
-      process.exit(1);
-    }
-
-    console.log(`📥 Scraping play details (${slugs.length} plays)...`);
-    let idx = 1;
-    for (const slug of slugs) {
-      const url = `https://tiyatrolar.com.tr/tiyatro/${slug}`;
-      process.stdout.write(`  [${idx}/${slugs.length}] Scraping ${slug}... `);
-      
-      try {
-        const html = await fetchWithRetry(url);
-        if (!html) {
-          console.log(`❌ Not found (404)`);
-          continue;
-        }
-
-        const play = parsePlayHtml(html, slug);
-        if (play && play.title) {
-          plays.push(play);
-          console.log(`✅ "${play.title}" (${play.genre || 'Tiyatro'}, ${play.cast.length} cast)`);
-        } else {
-          console.log(`⚠️ Incomplete data`);
-        }
-      } catch (err) {
-        console.log(`❌ Error: ${err.message}`);
-      }
-
-      idx++;
-      if (options.delay > 0) await sleep(options.delay);
-    }
-
-    // Save backup JSON
-    writeFileSync(options.output, JSON.stringify(plays, null, 2), 'utf-8');
-    console.log(`\n💾 Saved ${plays.length} plays to: ${path.relative(rootDir, options.output)}`);
-  } else {
-    // Read existing JSON
-    if (!existsSync(options.output)) {
-      console.error(`❌ Output file not found for --inject-only: ${options.output}`);
-      process.exit(1);
-    }
-    plays = JSON.parse(readFileSync(options.output, 'utf-8'));
-    console.log(`📖 Loaded ${plays.length} plays from ${path.relative(rootDir, options.output)}`);
-  }
-
-  // Phase 2: Firebase Firestore Injection (unless --dry-run)
-  if (options.dryRun) {
-    console.log(`\n🛑 Dry-run completed. No changes written to Firebase Firestore.`);
-    return;
-  }
-
+  // Step 0: Initialize Firebase Admin SDK if available
   const keyPath = findServiceAccountKey();
   let adminDb = null;
 
@@ -550,11 +513,93 @@ async function main() {
             credential: cert(serviceAccount),
           });
       adminDb = getFirestore(app);
-      console.log(`\n🛡️  Firebase Admin SDK activated using service account: ${path.basename(keyPath)}`);
-      console.log(`   (All security rules bypassed, direct administrative write enabled)`);
+      console.log(`🛡️  Firebase Admin SDK activated using service account: ${path.basename(keyPath)}`);
     } catch (err) {
-      console.warn(`\n⚠️ Failed to initialize Firebase Admin SDK from ${keyPath}: ${err.message}`);
+      console.warn(`⚠️ Failed to initialize Firebase Admin SDK from ${keyPath}: ${err.message}`);
     }
+  }
+
+  // Step 1: Pre-fetch existing play IDs from Firestore to prevent duplicate scraping & writes
+  const existingFirestoreIds = new Set();
+  if (adminDb) {
+    try {
+      const snap = await adminDb.collection('plays').select().get();
+      snap.docs.forEach(d => existingFirestoreIds.add(d.id));
+      console.log(`📊 Found ${existingFirestoreIds.size} existing play(s) in Firestore.`);
+    } catch (err) {
+      console.warn(`⚠️ Could not pre-fetch existing plays from Firestore: ${err.message}`);
+    }
+  }
+
+  // Also read existing local scraped-plays.json to preserve past scrapes
+  const existingLocalMap = new Map();
+  if (existsSync(options.output)) {
+    try {
+      const parsed = JSON.parse(readFileSync(options.output, 'utf-8'));
+      if (Array.isArray(parsed)) {
+        parsed.forEach(p => p.id && existingLocalMap.set(p.id, p));
+        console.log(`📁 Found ${existingLocalMap.size} play(s) in local ${path.basename(options.output)}.`);
+      }
+    } catch {}
+  }
+
+  const allKnownIds = new Set([...existingFirestoreIds, ...existingLocalMap.keys()]);
+  console.log(`🔍 Total unique known play IDs: ${allKnownIds.size}\n`);
+
+  let newPlaysScraped = [];
+
+  // Phase 1: Scraping (unless --inject-only)
+  if (!options.injectOnly) {
+    const slugs = await discoverPlays(options.source, options.limit, allKnownIds, options.force);
+    if (slugs.length === 0) {
+      console.log('🎉 No new plays to scrape! All discovered plays already exist in your database/file.');
+      console.log('   (Tip: Run with --source=sitemap to discover deeper catalog plays, or --force to re-scrape).\n');
+      if (!options.injectOnly) return;
+    }
+
+    if (slugs.length > 0) {
+      console.log(`📥 Scraping play details (${slugs.length} new plays)...`);
+      let idx = 1;
+      for (const slug of slugs) {
+        const url = `https://tiyatrolar.com.tr/tiyatro/${slug}`;
+        process.stdout.write(`  [${idx}/${slugs.length}] Scraping ${slug}... `);
+        
+        try {
+          const html = await fetchWithRetry(url);
+          if (!html) {
+            console.log(`❌ Not found (404)`);
+            continue;
+          }
+
+          const play = parsePlayHtml(html, slug);
+          if (play && play.title) {
+            newPlaysScraped.push(play);
+            console.log(`✅ "${play.title}" (${play.genre || 'Tiyatro'}, ${play.cast.length} cast)`);
+          } else {
+            console.log(`⚠️ Incomplete data`);
+          }
+        } catch (err) {
+          console.log(`❌ Error: ${err.message}`);
+        }
+
+        idx++;
+        if (options.delay > 0) await sleep(options.delay);
+      }
+
+      // Merge newly scraped plays with existing local plays (never overwrite existing collection, accumulative append)
+      for (const play of newPlaysScraped) {
+        existingLocalMap.set(play.id, play);
+      }
+      const mergedList = Array.from(existingLocalMap.values());
+      writeFileSync(options.output, JSON.stringify(mergedList, null, 2), 'utf-8');
+      console.log(`\n💾 Saved ${mergedList.length} total plays (added ${newPlaysScraped.length} new) to: ${path.relative(rootDir, options.output)}`);
+    }
+  }
+
+  // Phase 2: Firebase Firestore Injection (unless --dry-run)
+  if (options.dryRun) {
+    console.log(`\n🛑 Dry-run completed. No changes written to Firebase Firestore.`);
+    return;
   }
 
   if (!adminDb && (!PROJECT_ID || !API_KEY)) {
@@ -564,12 +609,25 @@ async function main() {
     return;
   }
 
-  console.log(`\n🚀 Injecting ${plays.length} plays into Firestore collection 'plays'...`);
+  // Filter plays to inject: only new plays unless --force
+  const playsToInject = options.injectOnly
+    ? (options.force
+        ? Array.from(existingLocalMap.values())
+        : Array.from(existingLocalMap.values()).filter(p => !existingFirestoreIds.has(p.id)))
+    : newPlaysScraped;
+
+  if (playsToInject.length === 0) {
+    console.log(`\n✨ All plays are already present in Firestore (${existingFirestoreIds.size} total). 0 duplicates injected!`);
+    console.log(`   (Pass --force if you intentionally want to re-upload and overwrite existing plays).\n`);
+    return;
+  }
+
+  console.log(`\n🚀 Injecting ${playsToInject.length} new play(s) into Firestore collection 'plays'...`);
   let successCount = 0;
   let failCount = 0;
 
   if (adminDb) {
-    for (const play of plays) {
+    for (const play of playsToInject) {
       process.stdout.write(`  Writing ${play.id} ("${play.title}")... `);
       try {
         await adminDb.collection('plays').doc(play.id).set(play, { merge: true });
@@ -583,7 +641,7 @@ async function main() {
   } else {
     console.log(`  ℹ️  No service account key found. Attempting REST API write...`);
     const authToken = await getAuthToken();
-    for (const play of plays) {
+    for (const play of playsToInject) {
       process.stdout.write(`  Writing ${play.id} ("${play.title}")... `);
       const ok = await upsertPlayToFirestore(play, authToken);
       if (ok) {
@@ -597,9 +655,10 @@ async function main() {
 
   console.log(`\n=======================================================`);
   console.log(`🎉 Injection Complete!`);
-  console.log(`   ✅ Succeeded: ${successCount}`);
-  console.log(`   ❌ Failed:    ${failCount}`);
-  console.log(`   📦 Firebase Console: https://console.firebase.google.com/project/${PROJECT_ID || 'your-project'}/firestore`);
+  console.log(`   ✅ Newly Injected: ${successCount}`);
+  if (failCount > 0) console.log(`   ❌ Failed:         ${failCount}`);
+  console.log(`   📦 Firestore Total: ${(existingFirestoreIds.size + successCount)} plays`);
+  console.log(`   🌐 Firebase Console: https://console.firebase.google.com/project/${PROJECT_ID || 'your-project'}/firestore`);
   console.log(`=======================================================\n`);
 }
 

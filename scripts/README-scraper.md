@@ -66,13 +66,22 @@ node scripts/scrape-plays.mjs --source=sitemap --limit=50
 
 | Flag | Default | Description |
 |---|---|---|
-| `--limit=N` | `20` | Maximum number of plays to discover and scrape |
+| `--limit=N` | `20` | Number of **NEW** plays to discover and scrape |
 | `--source=sahnedekiler` | `sahnedekiler` | `sahnedekiler` (currently playing) or `sitemap` (entire catalog) |
 | `--plays=slug1,slug2` | - | Comma-separated list of play slugs or URLs |
 | `--delay=MS` | `600` | Polite delay between HTTP requests in milliseconds |
 | `--output=FILE` | `scraped-plays.json` | Path where scraped data is saved as JSON |
+| `--force` | `false` | Disable deduplication and force overwrite existing plays |
 | `--dry-run` | `false` | Run scraping only, do not write to Firestore |
-| `--inject-only` | `false` | Skip scraping and upload an existing JSON file to Firestore |
+| `--inject-only` | `false` | Inject plays from JSON file (skips already injected plays) |
+
+---
+
+### 🛡️ Smart Deduplication (Enabled by Default)
+- **Zero Duplicate Requests**: Before scraping, the script queries your existing play IDs from Firestore and local backup. Any play already in your database is skipped during discovery, saving bandwidth and execution time.
+- **Cumulative Local Backup**: Newly scraped plays are merged with your existing `scraped-plays.json` by unique `id` so you never lose past scrapes.
+- **Zero Duplicate Writes**: Firestore writes only insert newly discovered documents. If all plays already exist, it reports 0 writes and stops safely.
+- **Force Overwrite (`--force`)**: If you ever want to re-scrape or update all plays, simply pass `--force`.
 
 ---
 
