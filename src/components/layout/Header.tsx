@@ -8,7 +8,8 @@ import {
   Trophy, 
   Shield, 
   X,
-  LogIn
+  LogIn,
+  LogOut
 } from 'lucide-react';
 import { useAuthSafe } from '../../context/AuthContext';
 
@@ -149,23 +150,35 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal, onOpenDailyQuote
               <span>Not Al</span>
             </button>
 
-            {/* Dynamic User Pill / Login Button */}
+            {/* Dynamic User Pill & Signout / Login Button */}
             {user ? (
-              <Link
-                to="/profil"
-                className="flex items-center gap-2 pl-2 pr-3 py-1 bg-layer-01 hover:bg-layer-02 border border-border-subtle rounded-sm transition-colors cursor-pointer"
-                title={`${user.displayName} - Tiyatro Pasaportu`}
-              >
-                <div className="w-6 h-6 rounded-sm bg-theatre-curtain text-white text-[10px] font-bold flex items-center justify-center font-mono">
-                  {userInitials}
-                </div>
-                <div className="hidden md:flex flex-col text-left leading-none">
-                  <span className="text-xs font-semibold text-text-primary">{user.displayName}</span>
-                  <span className="text-[10px] font-mono text-text-secondary">
-                    {user.xp} XP · {user.role === 'admin' ? 'Admin' : user.level}
-                  </span>
-                </div>
-              </Link>
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <Link
+                  to="/profil"
+                  className="flex items-center gap-2 pl-2 pr-2.5 sm:pr-3 py-1 bg-layer-01 hover:bg-layer-02 border border-border-subtle rounded-sm transition-colors cursor-pointer"
+                  title={`${user.displayName} - Tiyatro Pasaportu`}
+                >
+                  <div className="w-6 h-6 rounded-sm bg-theatre-curtain text-white text-[10px] font-bold flex items-center justify-center font-mono flex-shrink-0">
+                    {userInitials}
+                  </div>
+                  <div className="hidden md:flex flex-col text-left leading-none">
+                    <span className="text-xs font-semibold text-text-primary truncate max-w-[120px]">{user.displayName}</span>
+                    <span className="text-[10px] font-mono text-text-secondary">
+                      {user.xp} XP · {user.role === 'admin' ? 'Admin' : user.level}
+                    </span>
+                  </div>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => authContext?.logout()}
+                  className="touch-target sm:touch-auto flex items-center justify-center p-1.5 bg-layer-01 hover:bg-layer-02 hover:text-theatre-curtain border border-border-subtle rounded-sm text-text-secondary transition-colors cursor-pointer"
+                  title="Çıkış Yap"
+                  aria-label="Oturumu Kapat"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
             ) : (
               <button
                 type="button"
