@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, MapPin, Check, Plus, Theater, Eye } from 'lucide-react';
+import { Star, MapPin, Check, Plus, Theater, Eye, Award } from 'lucide-react';
 import { Play } from '../../types';
 
 export interface PlayCardProps {
@@ -31,6 +31,8 @@ export const PlayCard: React.FC<PlayCardProps> = ({
     e.stopPropagation();
     onOpenLogModal?.(play);
   };
+
+  const isStandingOvation = (play.rating || 0) >= 4.5;
 
   return (
     <Link
@@ -75,9 +77,20 @@ export const PlayCard: React.FC<PlayCardProps> = ({
           <span>{play.rating ? play.rating.toFixed(1) : '—'}</span>
         </div>
 
+        {/* Standing Ovation Laurels (Top-Right under Rating) */}
+        {isStandingOvation && (
+          <div
+            className="absolute top-8 right-2 flex items-center gap-1 bg-amber-500/90 text-white px-1.5 py-0.5 rounded-sm font-mono text-[9px] font-bold tracking-tight uppercase shadow-subtle z-10"
+            title="Başyapıt: Ayakta Alkış"
+          >
+            <Award className="w-2.5 h-2.5 text-white" />
+            <span>Alkış</span>
+          </div>
+        )}
+
         {/* Seen Indicator Badge (Top-Left) */}
         {isSeen && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 bg-success-mint text-white px-2 py-0.5 rounded-sm font-mono text-[10px] font-semibold tracking-wide uppercase shadow-subtle z-10">
+          <div className="absolute top-2 left-2 flex items-center gap-1 bg-success-mint text-white px-2 py-0.5 rounded-sm font-mono text-[10px] font-semibold tracking-wide uppercase shadow-subtle z-10 animate-fade-in">
             <Check className="w-3 h-3 stroke-[2.5]" />
             <span>Gördüm</span>
           </div>
@@ -89,10 +102,10 @@ export const PlayCard: React.FC<PlayCardProps> = ({
           <button
             type="button"
             onClick={handleSeenClick}
-            className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-sm border shadow-sm transition-colors cursor-pointer ${
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-sm border shadow-sm transition-all cursor-pointer ${
               isSeen
                 ? 'bg-success-mint text-white border-success-mint hover:bg-success-mint/90'
-                : 'bg-canvas text-text-primary border-border-subtle hover:bg-layer-01'
+                : 'bg-canvas text-text-primary border-border-subtle hover:bg-layer-01 hover:border-stage-spotlight'
             }`}
             title={isSeen ? 'İzlendi olarak işaretli (kaldırmak için tıkla)' : 'Gördüm olarak işaretle (+10 XP)'}
           >

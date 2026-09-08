@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { X, Star, Calendar, MapPin, Armchair, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { X, Star, Calendar, MapPin, Armchair, AlertTriangle, CheckCircle2, Award, Sparkles } from 'lucide-react';
 import { storageService } from '../services/storage';
 import { useAuth } from '../context/AuthContext';
 import type { Play } from '../types';
@@ -8,6 +8,17 @@ interface LogModalProps {
   isOpen: boolean;
   onClose: () => void;
   preselectedPlay?: Play | null;
+}
+
+function getTheatricalRatingLabel(v: number): string {
+  if (v === 5.0) return '🏆 Ayakta Alkış · Başyapıt';
+  if (v >= 4.5) return '👏 Muazzam Reji & Sahneleme';
+  if (v >= 4.0) return '✨ Etkileyici Performans';
+  if (v >= 3.5) return '🎭 Başarılı Prodüksiyon';
+  if (v >= 3.0) return '📖 İzlenmeye Değer';
+  if (v >= 2.0) return '⚖️ Karışık İzlenimler';
+  if (v > 0) return 'Eksik Kalan Prodüksiyon';
+  return 'Yıldız vererek değerlendirin';
 }
 
 function StarRatingInput({
@@ -22,39 +33,50 @@ function StarRatingInput({
   const display = hover ?? value;
 
   return (
-    <div className="flex items-center gap-1">
-      {[1, 2, 3, 4, 5].map(star => {
-        const full = display >= star;
-        const half = !full && display >= star - 0.5;
-        return (
-          <div key={star} className="relative w-7 h-7 cursor-pointer group" onMouseLeave={() => setHover(null)}>
-            {/* Full star zone */}
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-1.5 p-2 rounded-sm bg-layer-01 border border-border-subtle inline-flex">
+        {[1, 2, 3, 4, 5].map(star => {
+          const full = display >= star;
+          const half = !full && display >= star - 0.5;
+          return (
             <div
-              className="absolute right-0 top-0 w-1/2 h-full z-10"
-              onMouseEnter={() => setHover(star)}
-              onClick={() => onChange(star)}
-            />
-            {/* Half star zone */}
-            <div
-              className="absolute left-0 top-0 w-1/2 h-full z-10"
-              onMouseEnter={() => setHover(star - 0.5)}
-              onClick={() => onChange(star - 0.5)}
-            />
-            <Star
-              className={`w-7 h-7 transition-colors ${
-                full
-                  ? 'fill-stage-spotlight text-stage-spotlight'
-                  : half
-                    ? 'fill-stage-spotlight/50 text-stage-spotlight'
-                    : 'text-border-strong fill-transparent'
-              }`}
-            />
-          </div>
-        );
-      })}
-      <span className="ml-2 font-mono text-sm font-bold text-text-primary min-w-[2.5rem]">
-        {value > 0 ? value.toFixed(1) : '—'}
-      </span>
+              key={star}
+              className="relative w-8 h-8 cursor-pointer group transition-transform hover:scale-110"
+              onMouseLeave={() => setHover(null)}
+            >
+              {/* Full star zone */}
+              <div
+                className="absolute right-0 top-0 w-1/2 h-full z-10"
+                onMouseEnter={() => setHover(star)}
+                onClick={() => onChange(star)}
+              />
+              {/* Half star zone */}
+              <div
+                className="absolute left-0 top-0 w-1/2 h-full z-10"
+                onMouseEnter={() => setHover(star - 0.5)}
+                onClick={() => onChange(star - 0.5)}
+              />
+              <Star
+                className={`w-8 h-8 transition-all ${
+                  full
+                    ? 'fill-stage-spotlight text-stage-spotlight drop-shadow-sm'
+                    : half
+                      ? 'fill-stage-spotlight/50 text-stage-spotlight'
+                      : 'text-border-strong fill-transparent'
+                } ${display >= 4.5 ? 'scale-105' : ''}`}
+              />
+            </div>
+          );
+        })}
+        <span className="ml-3 font-mono text-sm font-bold text-text-primary min-w-[3rem]">
+          {value > 0 ? value.toFixed(1) : '—'} <span className="text-[10px] text-text-tertiary">/ 5.0</span>
+        </span>
+      </div>
+
+      <div className="text-xs font-mono text-theatre-curtain font-semibold flex items-center gap-1.5 pt-0.5">
+        <Sparkles className="w-3.5 h-3.5 text-stage-spotlight" />
+        <span>{getTheatricalRatingLabel(display)}</span>
+      </div>
     </div>
   );
 }
