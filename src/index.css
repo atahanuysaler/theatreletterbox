@@ -6,18 +6,18 @@
    IBM Carbon Light & Tiyatronot Editorial Design Tokens
    ========================================================================== */
 :root {
-  --color-canvas: 255 255 255;
-  --color-layer-01: 244 244 244;
-  --color-layer-02: 224 224 224;
+  --color-canvas: 252 252 251;
+  --color-layer-01: 245 245 243;
+  --color-layer-02: 236 236 232;
   --color-overlay: 22 22 22;
   --color-text-primary: 22 22 22;
   --color-text-secondary: 82 82 82;
   --color-text-tertiary: 141 141 141;
   --color-text-inverse: 255 255 255;
-  --color-theatre-curtain: 186 27 35;
-  --color-theatre-curtain-hover: 162 25 31;
-  --color-theatre-gold: 241 194 27;
-  --color-stage-spotlight: 241 194 27;
+  --color-theatre-curtain: 158 27 34;
+  --color-theatre-curtain-hover: 186 27 35;
+  --color-theatre-gold: 229 169 27;
+  --color-stage-spotlight: 229 169 27;
   --color-interactive-primary: 15 98 254;
   --color-interactive-hover: 3 83 233;
   --color-interactive-active: 0 45 156;
@@ -36,23 +36,23 @@
    ========================================================================== */
 html.dark,
 .dark {
-  --color-canvas: 22 22 22;
-  --color-layer-01: 38 38 38;
-  --color-layer-02: 57 57 57;
+  --color-canvas: 18 18 18;
+  --color-layer-01: 32 32 32;
+  --color-layer-02: 48 48 48;
   --color-overlay: 0 0 0;
   --color-text-primary: 244 244 244;
   --color-text-secondary: 198 198 198;
   --color-text-tertiary: 141 141 141;
   --color-text-inverse: 22 22 22;
-  --color-theatre-curtain: 218 30 40;
-  --color-theatre-curtain-hover: 250 77 86;
+  --color-theatre-curtain: 200 30 38;
+  --color-theatre-curtain-hover: 235 50 58;
   --color-theatre-gold: 241 194 27;
   --color-stage-spotlight: 241 194 27;
   --color-interactive-primary: 69 137 255;
   --color-interactive-hover: 120 169 255;
   --color-interactive-active: 15 98 254;
   --color-success-mint: 66 190 101;
-  --color-border-subtle: 57 57 57;
+  --color-border-subtle: 52 52 52;
   --color-border-strong: 111 111 111;
 }
 
@@ -207,6 +207,22 @@ html.dark,
     justify-content: center;
   }
 
+  /* Theatrical Stage Spotlight Glow */
+  .spotlight-glow {
+    box-shadow: 0 0 16px rgba(229, 169, 27, 0.45);
+  }
+
+  .spotlight-glow-lg {
+    box-shadow: 0 0 28px rgba(229, 169, 27, 0.65);
+  }
+
+  /* Ticket Stub Perforation Details */
+  .ticket-stub {
+    position: relative;
+    background-image: radial-gradient(circle at 0 50%, transparent 8px, rgb(var(--color-canvas)) 8.5px),
+                      radial-gradient(circle at 100% 50%, transparent 8px, rgb(var(--color-canvas)) 8.5px);
+  }
+
   /* Hide scrollbars for swipeable horizontal shelves while preserving smooth scroll */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
@@ -216,3 +232,23 @@ html.dark,
     scrollbar-width: none;
   }
 }
+
+@keyframes stageBeam {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 0.3;
+    transform: scale(0.96);
+  }
+}
+
+.animate-stage-beam {
+  animation: stageBeam 2.5s ease-in-out infinite;
+}
+

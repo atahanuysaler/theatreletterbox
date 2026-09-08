@@ -11,11 +11,13 @@ import {
   Check, 
   Layers, 
   MessageSquare,
-  Theater
+  Theater,
+  Award
 } from 'lucide-react';
 import { ReviewEntry } from '../types';
 import PlayKunye, { PlayWithDetails } from '../components/catalog/PlayKunye';
 import SocialShareModal from '../components/SocialShareModal';
+import TicketStub from '../components/TicketStub';
 import { storageService } from '../services/storage';
 import { useAuthSafe } from '../context/AuthContext';
 
@@ -218,6 +220,12 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
               <span className="text-xs font-mono text-text-secondary">
                 {play.reviewCount} Değerlendirme
               </span>
+              {play.rating >= 4.5 && (
+                <span className="inline-flex items-center gap-1 font-mono text-[11px] font-bold px-2 py-0.5 rounded-sm bg-theatre-gold/15 text-amber-700 dark:text-theatre-gold border border-theatre-gold/40 shadow-xs">
+                  <Award className="w-3.5 h-3.5 text-theatre-gold" />
+                  <span>Ayakta Alkış</span>
+                </span>
+              )}
             </div>
 
             {/* Quick Metrics Bar */}
@@ -252,10 +260,10 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
               <button
                 type="button"
                 onClick={handleToggleSeen}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-medium rounded-sm border transition-colors cursor-pointer ${
+                className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-medium rounded-sm border transition-all cursor-pointer ${
                   isSeen
-                    ? 'bg-success-mint text-white border-success-mint hover:bg-success-mint/90'
-                    : 'bg-layer-01 hover:bg-layer-02 text-text-primary border-border-subtle'
+                    ? 'bg-success-mint text-white border-success-mint hover:bg-success-mint/90 shadow-sm'
+                    : 'bg-layer-01 hover:bg-layer-02 text-text-primary border-border-subtle hover:border-border-strong'
                 }`}
               >
                 <Check className="w-4 h-4 stroke-[2.5]" />
@@ -289,10 +297,10 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
           <div className="flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-theatre-curtain" />
             <h3 className="font-serif font-bold text-lg text-text-primary">
-              Seyirci Notları & Eleştiriler
+              Seyirci Notları & Bilet Koçanları
             </h3>
             <span className="font-mono text-xs text-text-secondary bg-layer-01 px-2 py-0.5 rounded-sm border border-border-subtle">
-              {reviews.length} Yorum
+              {reviews.length} Temsil Notu
             </span>
           </div>
           <button
@@ -308,49 +316,24 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
         {reviews.length > 0 ? (
           <div className="space-y-4">
             {reviews.map((rev) => (
-              <div key={rev.id} className="p-4 bg-layer-01 border border-border-subtle rounded-sm space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-text-primary">{rev.userName}</span>
-                    <span className="text-text-tertiary">·</span>
-                    <div className="flex items-center text-stage-spotlight font-mono font-bold text-xs">
-                      ★ {rev.rating.toFixed(1)}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono text-text-tertiary text-[11px]">{rev.performanceDate}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShareReview(rev);
-                        setIsShareModalOpen(true);
-                      }}
-                      className="text-text-tertiary hover:text-theatre-curtain flex items-center gap-1 font-mono text-[11px] cursor-pointer"
-                      title="Bu notu görsel kart olarak paylaş"
-                    >
-                      <Share2 className="w-3 h-3" />
-                      <span className="hidden sm:inline">Paylaş</span>
-                    </button>
-                  </div>
-                </div>
-                <p className="text-xs text-text-secondary leading-relaxed">{rev.reviewText}</p>
-                {rev.venue && (
-                  <div className="text-[10px] font-mono text-text-tertiary flex items-center gap-2 pt-1 border-t border-border-subtle/50">
-                    <span>{rev.venue}</span>
-                    {rev.sessionType && <span>· {rev.sessionType === 'matine' ? 'Matine' : 'Suare'}</span>}
-                    {rev.seatInfo && <span>· {rev.seatInfo}</span>}
-                  </div>
-                )}
-              </div>
+              <TicketStub
+                key={rev.id}
+                review={rev}
+                showPlayTitle={false}
+                onShare={(r) => {
+                  setShareReview(r);
+                  setIsShareModalOpen(true);
+                }}
+              />
             ))}
           </div>
         ) : (
           <div className="p-8 text-center bg-layer-01/50 border border-dashed border-border-subtle rounded-sm space-y-2">
             <p className="font-serif italic text-sm text-text-secondary">
-              Bu yapım için henüz topluluk notu yazılmamış.
+              Bu yapım için henüz bir bilet koçanı veya seyirci notu kaydedilmemiş.
             </p>
-            <p className="text-xs text-text-tertiary">
-              Oyunu izlediyseniz sahne deneyiminizi ve izlenimlerinizi ilk siz paylaşın.
+            <p className="text-xs text-text-tertiary font-sans">
+              Oyunu izlediyseniz sahne deneyiminizi, koltuk görüşünüzü ve izlenimlerinizi ilk siz paylaşın.
             </p>
           </div>
         )}

@@ -162,6 +162,51 @@ export const PlayKunye: React.FC<PlayKunyeProps> = ({ play, className = '' }) =>
         </div>
       </div>
 
+      {/* KONDÜVİT DEFTERİ & SAHNE AMİRİ TEKNİK RAPORU (Prompt-Book Box) */}
+      <div className="bg-layer-01 border border-border-strong/40 rounded-sm p-4 sm:p-5 space-y-3 font-mono text-xs shadow-subtle">
+        <div className="flex items-center justify-between border-b border-border-subtle pb-2">
+          <div className="flex items-center gap-2 text-theatre-curtain font-bold text-[11px] uppercase tracking-wider">
+            <Layers className="w-3.5 h-3.5" />
+            <span>Kondüvit Defteri · Sahne Amiri Notları</span>
+          </div>
+          <span className="text-[10px] text-text-tertiary uppercase">REJİ KODU: TN-{play.year}</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px]">
+          {/* Perde ve Zamanlama */}
+          <div className="bg-canvas border border-border-subtle p-2.5 rounded-xs space-y-1">
+            <span className="text-text-tertiary uppercase text-[10px]">Perde Dağılımı</span>
+            <div className="font-semibold text-text-primary">
+              {play.hasIntermission ? (
+                <span>
+                  1. Perde: ~{Math.round(play.duration * 0.52)}' <span className="text-theatre-curtain">·</span> Ara: 15' <span className="text-theatre-curtain">·</span> 2. Perde: ~{Math.round(play.duration * 0.48)}'
+                </span>
+              ) : (
+                <span>Tek Perde (Kesintisiz {play.duration} Dakika)</span>
+              )}
+            </div>
+          </div>
+
+          {/* Sahne Formatı */}
+          <div className="bg-canvas border border-border-subtle p-2.5 rounded-xs space-y-1">
+            <span className="text-text-tertiary uppercase text-[10px]">Sahne Düzeni</span>
+            <div className="font-semibold text-text-primary truncate">
+              {play.venue.toLowerCase().includes('moda') || play.venue.toLowerCase().includes('craft')
+                ? 'Black Box (Yakın Plan)'
+                : 'İtalyan Çerçeve (Proscenium)'}
+            </div>
+          </div>
+
+          {/* Suflör & Giriş Ritüeli */}
+          <div className="bg-canvas border border-border-subtle p-2.5 rounded-xs space-y-1">
+            <span className="text-text-tertiary uppercase text-[10px]">Temsil Kuralları</span>
+            <div className="font-semibold text-text-primary">
+              Suflörsüz · 3. Zilde Başlar
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Oyuncu Kadrosu (Cast Tags) */}
       <div className="space-y-2.5 pt-2">
         <div className="flex items-center gap-1.5 text-xs font-mono uppercase font-semibold text-text-primary tracking-wider">
@@ -205,11 +250,11 @@ export const PlayKunye: React.FC<PlayKunyeProps> = ({ play, className = '' }) =>
       <div className="space-y-2.5 pt-2 border-t border-border-subtle">
         <div className="flex items-center gap-1.5 text-xs font-mono uppercase font-semibold text-theatre-curtain tracking-wider">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Oyun Özeti & Dramaturji</span>
+          <span>Oyun Özeti & Dramaturji Notu</span>
         </div>
-        <div className="border-l-2 border-theatre-curtain pl-4 py-1.5 bg-layer-01/40 rounded-r-sm">
-          <p className="font-sans text-sm text-text-primary leading-relaxed">
-            {play.synopsis}
+        <div className="border-l-2 border-theatre-curtain pl-4 py-2 bg-layer-01/60 rounded-r-sm">
+          <p className="font-serif italic text-sm text-text-primary leading-relaxed">
+            "{play.synopsis}"
           </p>
         </div>
       </div>

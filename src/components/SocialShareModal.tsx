@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useState } from 'react';
-import { X, Download, Share2, Check, Smartphone, Monitor } from 'lucide-react';
+import { X, Download, Share2, Check, Smartphone, Monitor, Ticket, Image as ImageIcon, Award } from 'lucide-react';
 import type { ReviewEntry, Play } from '../types';
 
 interface SocialShareModalProps {
@@ -10,6 +10,7 @@ interface SocialShareModalProps {
 }
 
 type AspectRatio = '9:16' | '16:9';
+type CardStyle = 'poster' | 'ticket';
 
 function renderStars(rating: number): string {
   const full = Math.floor(rating);
@@ -24,6 +25,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   play,
 }) => {
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('9:16');
+  const [cardStyle, setCardStyle] = useState<CardStyle>(review ? 'ticket' : 'poster');
   const [downloading, setDownloading] = useState(false);
   const [shared, setShared] = useState(false);
 
@@ -64,8 +66,306 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       });
     } catch { /* proceed without external image */ }
 
+    if (cardStyle === 'ticket') {
+      // ==========================================
+      // VINTAGE TICKET STUB FORMAT (BİLET KOÇANI)
+      // ==========================================
+      ctx.fillStyle = '#FAF8F5';
+      ctx.fillRect(0, 0, width, height);
+
+      const serialNo = `IST-TN-${(review?.performanceDate || '2024').slice(0, 4)}-${(review?.id || play.id).slice(-4).toUpperCase()}`;
+
+      if (isStory) {
+        // 9:16 Story Ticket (1080x1920)
+        // Architectural Borders
+        ctx.strokeStyle = '#161616';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(36, 36, 1080 - 72, 1920 - 72);
+
+        ctx.strokeStyle = '#9E1B22';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(48, 48, 1080 - 96, 1920 - 96);
+
+        // Top Header Banner
+        ctx.fillStyle = '#9E1B22';
+        ctx.fillRect(48, 48, 1080 - 96, 70);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 28px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('★ TIYATRO·NOT SEYİRCİ BİLETİ & OYUN GÜNLÜĞÜ ★', 540, 92);
+
+        // Serial & Date Bar
+        ctx.fillStyle = '#161616';
+        ctx.font = '24px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`BİLET NO: ${serialNo}`, 80, 160);
+        ctx.textAlign = 'right';
+        ctx.fillText(`TARİH: ${review?.performanceDate || play.year}`, 1000, 160);
+
+        // Stamped Matine/Suare Badge
+        const sessionLabel = (review?.sessionType === 'matine' ? 'GÜNDÜZ MATİNESİ' : 'AKŞAM SUARESİ');
+        ctx.save();
+        ctx.strokeStyle = '#9E1B22';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(80, 190, 360, 56);
+        ctx.fillStyle = 'rgba(158, 27, 34, 0.08)';
+        ctx.fillRect(80, 190, 360, 56);
+        ctx.fillStyle = '#9E1B22';
+        ctx.font = 'bold 22px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`★ ${sessionLabel} ★`, 260, 226);
+        ctx.restore();
+
+        // Horizontal Perforation Line
+        ctx.save();
+        ctx.strokeStyle = '#8D8D8D';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([16, 12]);
+        ctx.beginPath();
+        ctx.moveTo(48, 280);
+        ctx.lineTo(1080 - 48, 280);
+        ctx.stroke();
+        ctx.restore();
+
+        // Cutout bite notches
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.arc(48, 280, 20, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(1080 - 48, 280, 20, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Play Title
+        ctx.fillStyle = '#161616';
+        ctx.font = 'bold 64px serif';
+        ctx.textAlign = 'left';
+        const titleLines = wrapText(ctx, play.title, 920, 'bold 64px serif');
+        let ty = 370;
+        for (const line of titleLines.slice(0, 2)) {
+          ctx.font = 'bold 64px serif';
+          ctx.fillText(line, 80, ty);
+          ty += 76;
+        }
+
+        // Playwright & Stage
+        ctx.fillStyle = '#525252';
+        ctx.font = '32px monospace';
+        ctx.fillText(`${play.playwright} · ${play.company}`, 80, ty + 10);
+        ty += 60;
+
+        // Inset Poster Thumbnail
+        if (posterLoaded && img) {
+          const posterW = 320;
+          const posterH = 480;
+          ctx.save();
+          ctx.strokeStyle = '#E0E0E0';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(80, ty, posterW, posterH);
+          ctx.drawImage(img, 80, ty, posterW, posterH);
+          ctx.restore();
+
+          // Right of poster: Rating & Details
+          const rx = 440;
+          ctx.fillStyle = '#E5A91B';
+          ctx.font = 'bold 52px sans-serif';
+          ctx.fillText(renderStars(effectiveRating), rx, ty + 60);
+
+          ctx.fillStyle = '#161616';
+          ctx.font = 'bold 36px monospace';
+          ctx.fillText(`${effectiveRating.toFixed(1)} / 5.0`, rx, ty + 120);
+
+          if (effectiveRating >= 4.5) {
+            ctx.fillStyle = '#9E1B22';
+            ctx.font = 'bold 24px monospace';
+            ctx.fillText('★ AYAKTA ALKIŞ · BAŞYAPIT', rx, ty + 170);
+          }
+
+          ctx.fillStyle = '#525252';
+          ctx.font = '26px monospace';
+          ctx.fillText(`SALON: ${review?.venue || play.venue}`, rx, ty + 230);
+          if (review?.seatInfo) {
+            ctx.fillText(`KOLTUK: ${review.seatInfo}`, rx, ty + 275);
+          }
+          ctx.fillText(`PERDE: ${play.hasIntermission ? '2 Perde (Ara Var)' : 'Tek Perde'}`, rx, ty + 320);
+          ctx.fillText(`SÜRE: ${play.duration} Dakika`, rx, ty + 365);
+
+          ty += posterH + 50;
+        } else {
+          // No image fallback layout
+          ctx.fillStyle = '#E5A91B';
+          ctx.font = 'bold 54px sans-serif';
+          ctx.fillText(renderStars(effectiveRating), 80, ty + 50);
+          ctx.fillStyle = '#161616';
+          ctx.font = 'bold 36px monospace';
+          ctx.fillText(`${effectiveRating.toFixed(1)} / 5.0`, 420, ty + 46);
+          ty += 100;
+        }
+
+        // Review Quote
+        if (effectiveText.trim()) {
+          ctx.save();
+          ctx.fillStyle = 'rgba(158, 27, 34, 0.05)';
+          ctx.fillRect(80, ty, 920, 220);
+          ctx.strokeStyle = '#9E1B22';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(80, ty);
+          ctx.lineTo(80, ty + 220);
+          ctx.stroke();
+
+          ctx.fillStyle = '#161616';
+          ctx.font = 'italic 34px serif';
+          const excerpt = effectiveText.slice(0, 160) + (effectiveText.length > 160 ? '…' : '');
+          const reviewLines = wrapText(ctx, `"${excerpt}"`, 870, 'italic 34px serif');
+          let qy = ty + 60;
+          for (const line of reviewLines.slice(0, 3)) {
+            ctx.font = 'italic 34px serif';
+            ctx.fillText(line, 110, qy);
+            qy += 48;
+          }
+          ctx.restore();
+          ty += 260;
+        }
+
+        // Barcode & Footer
+        ctx.fillStyle = '#161616';
+        ctx.font = 'bold 36px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('||| | || |||| | ||| || |||| | ||| ||| | ||', 540, 1920 - 130);
+        ctx.font = '22px monospace';
+        ctx.fillStyle = '#525252';
+        ctx.fillText('TIYATRONOT TİYATRO PASAPORTU · RESMİ SEYİRCİ BELGESİ', 540, 1920 - 90);
+      } else {
+        // 16:9 Twitter Ticket (1200x675)
+        // Outer Borders
+        ctx.strokeStyle = '#161616';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(20, 20, 1200 - 40, 675 - 40);
+
+        // Left Stub (20 to 360)
+        ctx.fillStyle = '#F5F2EB';
+        ctx.fillRect(20, 20, 340, 635);
+
+        ctx.fillStyle = '#9E1B22';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('TIYATRO·NOT', 190, 60);
+
+        ctx.fillStyle = '#161616';
+        ctx.font = '16px monospace';
+        ctx.fillText(serialNo, 190, 95);
+
+        // Matine/Suare Stamp
+        ctx.strokeStyle = '#9E1B22';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(50, 120, 280, 44);
+        ctx.fillStyle = '#9E1B22';
+        ctx.font = 'bold 16px monospace';
+        ctx.fillText(review?.sessionType === 'matine' ? 'GÜNDÜZ MATİNESİ' : 'AKŞAM SUARESİ', 190, 148);
+
+        // Venue & Date on stub
+        ctx.fillStyle = '#525252';
+        ctx.font = '14px monospace';
+        ctx.fillText(review?.performanceDate || `${play.year}`, 190, 200);
+        const venueLines = wrapText(ctx, review?.venue || play.venue, 280, '14px monospace');
+        let sy = 230;
+        for (const vl of venueLines.slice(0, 2)) {
+          ctx.fillText(vl, 190, sy);
+          sy += 22;
+        }
+
+        // Barcode on stub
+        ctx.fillStyle = '#161616';
+        ctx.font = 'bold 24px monospace';
+        ctx.fillText('||| | || |||| | ||| |||', 190, 580);
+        ctx.font = '12px monospace';
+        ctx.fillStyle = '#8D8D8D';
+        ctx.fillText('GİRİŞ ONAYLI', 190, 610);
+
+        // Perforated dividing line
+        ctx.save();
+        ctx.strokeStyle = '#8D8D8D';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([10, 8]);
+        ctx.beginPath();
+        ctx.moveTo(360, 20);
+        ctx.lineTo(360, 655);
+        ctx.stroke();
+        ctx.restore();
+
+        // Right Content Area (380 to 1180)
+        const rx = 400;
+        const rMaxW = 1180 - rx - 40;
+
+        ctx.fillStyle = '#161616';
+        ctx.font = 'bold 40px serif';
+        ctx.textAlign = 'left';
+        const titleLines = wrapText(ctx, play.title, rMaxW, 'bold 40px serif');
+        let ty = 80;
+        for (const line of titleLines.slice(0, 2)) {
+          ctx.font = 'bold 40px serif';
+          ctx.fillText(line, rx, ty);
+          ty += 46;
+        }
+
+        ctx.fillStyle = '#525252';
+        ctx.font = '20px monospace';
+        ctx.fillText(`${play.playwright} · ${play.company}`, rx, ty + 6);
+        ty += 48;
+
+        // Rating
+        ctx.fillStyle = '#E5A91B';
+        ctx.font = 'bold 36px sans-serif';
+        ctx.fillText(renderStars(effectiveRating), rx, ty);
+        ctx.fillStyle = '#161616';
+        ctx.font = 'bold 26px monospace';
+        ctx.fillText(`${effectiveRating.toFixed(1)} / 5.0`, rx + 240, ty - 2);
+
+        if (effectiveRating >= 4.5) {
+          ctx.fillStyle = '#9E1B22';
+          ctx.font = 'bold 18px monospace';
+          ctx.fillText('★ AYAKTA ALKIŞ', rx + 380, ty - 2);
+        }
+        ty += 52;
+
+        // Excerpt
+        if (effectiveText.trim()) {
+          ctx.fillStyle = '#161616';
+          ctx.font = 'italic 24px serif';
+          const excerpt = effectiveText.slice(0, 130) + (effectiveText.length > 130 ? '…' : '');
+          const textLines = wrapText(ctx, `"${excerpt}"`, rMaxW, 'italic 24px serif');
+          for (const line of textLines.slice(0, 3)) {
+            ctx.font = 'italic 24px serif';
+            ctx.fillText(line, rx, ty);
+            ty += 34;
+          }
+          ty += 15;
+        }
+
+        // Venue badge & Footer
+        ctx.fillStyle = '#E0E0E0';
+        ctx.fillRect(rx, ty, rMaxW, 40);
+        ctx.fillStyle = '#161616';
+        ctx.font = '16px monospace';
+        const meta = review
+          ? `${review.venue} · ${review.seatInfo ? `Koltuk: ${review.seatInfo} · ` : ''}${review.performanceDate}`
+          : `${play.venue} · ${play.genre} · ${play.duration} dk`;
+        ctx.fillText(meta, rx + 16, ty + 25);
+
+        ctx.fillStyle = '#9E1B22';
+        ctx.font = 'bold 18px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText('TIYATRO·NOT | tiyatronot.com', 1140, 630);
+      }
+
+      return canvas;
+    }
+
     if (isStory) {
-      // 9:16 Instagram Story (1080x1920)
+      // 9:16 Instagram Story (1080x1920) - Standard Poster Style
       if (posterLoaded && img) {
         const targetH = 1120;
         const scale = Math.max(1080 / img.naturalWidth, targetH / img.naturalHeight);
@@ -116,7 +416,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ty += 60;
 
       // Stars
-      ctx.fillStyle = '#F1C21B';
+      ctx.fillStyle = '#E5A91B';
       ctx.font = 'bold 48px sans-serif';
       ctx.fillText(renderStars(effectiveRating), 60, ty + 45);
       ctx.fillStyle = '#161616';
@@ -149,7 +449,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.fillText(meta, 90, ty + 42);
 
       // Bottom crimson branding
-      ctx.fillStyle = '#BA1B23';
+      ctx.fillStyle = '#9E1B22';
       ctx.fillRect(0, 1920 - 75, 1080, 75);
 
       ctx.fillStyle = '#FFFFFF';
@@ -157,8 +457,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.textAlign = 'center';
       ctx.fillText('TIYATRO·NOT  |  tiyatronot.com', 540, 1920 - 26);
     } else {
-      // 16:9 Twitter / OG Card (1200x675)
-      // Left side: Poster
+      // 16:9 Twitter / OG Card (1200x675) - Standard Poster Style
       const posterWidth = 360;
       if (posterLoaded && img) {
         const scale = Math.max(posterWidth / img.naturalWidth, (675 - 10) / img.naturalHeight);
@@ -202,7 +501,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ty += 46;
 
       // Rating
-      ctx.fillStyle = '#F1C21B';
+      ctx.fillStyle = '#E5A91B';
       ctx.font = 'bold 36px sans-serif';
       ctx.fillText(renderStars(effectiveRating), rx, ty);
       ctx.fillStyle = '#161616';
@@ -235,7 +534,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.fillText(meta, rx + 20, ty + 30);
 
       // Bottom branding
-      ctx.fillStyle = '#BA1B23';
+      ctx.fillStyle = '#9E1B22';
       ctx.fillRect(posterWidth, 675 - 50, 1200 - posterWidth, 50);
 
       ctx.fillStyle = '#FFFFFF';
@@ -245,7 +544,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
     }
 
     return canvas;
-  }, [aspectRatio, effectiveRating, effectiveText, play, review]);
+  }, [aspectRatio, cardStyle, effectiveRating, effectiveText, play, review]);
 
   function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, font: string): string[] {
     ctx.font = font;
@@ -346,18 +645,86 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
             </button>
           </div>
 
+          {/* Template Style Toggle: Afiş vs Bilet Koçanı */}
+          <div className="flex rounded-sm bg-layer-01 p-1 border border-border-subtle text-xs">
+            <button
+              type="button"
+              onClick={() => setCardStyle('poster')}
+              className={`flex-1 py-1.5 flex items-center justify-center gap-1.5 font-mono font-medium rounded-sm transition-all ${
+                cardStyle === 'poster'
+                  ? 'bg-canvas text-text-primary font-bold shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              <ImageIcon className="w-3.5 h-3.5" />
+              <span>Afiş Şablonu</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setCardStyle('ticket')}
+              className={`flex-1 py-1.5 flex items-center justify-center gap-1.5 font-mono font-medium rounded-sm transition-all ${
+                cardStyle === 'ticket'
+                  ? 'bg-canvas text-text-primary font-bold shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              <Ticket className="w-3.5 h-3.5 text-theatre-curtain" />
+              <span>Bilet Koçanı Şablonu</span>
+            </button>
+          </div>
+
           {/* Live Preview Card */}
           <div
             className="relative w-full rounded-sm overflow-hidden border border-border-subtle shadow-inner flex flex-col justify-between"
             style={{
               aspectRatio: aspectRatio === '9:16' ? '9/16' : '16/9',
-              background: '#FFFFFF',
+              background: cardStyle === 'ticket' ? '#FAF8F5' : '#FFFFFF',
               maxHeight: aspectRatio === '9:16' ? '340px' : '200px',
             }}
           >
             <div className="h-1 bg-theatre-curtain" />
 
-            {aspectRatio === '9:16' ? (
+            {cardStyle === 'ticket' ? (
+              /* Ticket Stub Preview */
+              <div className="flex-1 p-3 flex flex-col justify-between overflow-hidden text-xs">
+                <div className="border border-dashed border-border-strong/50 p-2.5 rounded-xs space-y-1.5 bg-canvas">
+                  <div className="flex items-center justify-between text-[9px] font-mono text-text-tertiary">
+                    <span className="font-bold text-theatre-curtain">★ BİLET KOÇANI</span>
+                    <span>IST-TN-{review?.id ? review.id.slice(-4).toUpperCase() : play.id.slice(-4).toUpperCase()}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-1">
+                    <div className="font-serif font-bold text-xs text-text-primary truncate">
+                      {play.title}
+                    </div>
+                    <span className="text-[8px] font-mono uppercase bg-theatre-curtain/10 text-theatre-curtain px-1 rounded-xs font-bold">
+                      {review?.sessionType === 'matine' ? 'Matine' : 'Suare'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 text-stage-spotlight text-[11px] font-bold">
+                    {'★'.repeat(Math.floor(effectiveRating))}
+                    <span className="text-text-primary font-mono text-[9px] ml-1">{effectiveRating.toFixed(1)}/5.0</span>
+                    {effectiveRating >= 4.5 && (
+                      <span className="text-[8px] text-amber-700 bg-theatre-gold/20 px-1 rounded-xs font-mono ml-auto">
+                        Ayakta Alkış
+                      </span>
+                    )}
+                  </div>
+                  {effectiveText && (
+                    <p className="text-[9px] italic text-text-secondary line-clamp-2 font-serif">
+                      "{effectiveText.slice(0, 60)}…"
+                    </p>
+                  )}
+                  <div className="text-[8px] font-mono text-text-tertiary flex items-center justify-between pt-1 border-t border-border-subtle/50">
+                    <span className="truncate">{review?.venue || play.venue}</span>
+                    <span>{review?.performanceDate || play.year}</span>
+                  </div>
+                </div>
+                <div className="text-center font-mono text-[8px] tracking-widest text-text-tertiary pt-1">
+                  ||| | || |||| | ||| || |||| | |||
+                </div>
+              </div>
+            ) : aspectRatio === '9:16' ? (
+              /* Standard Poster 9:16 Preview */
               <div className="flex-1 flex flex-col justify-between overflow-hidden">
                 <div className="relative flex-1 min-h-[140px] overflow-hidden bg-layer-01">
                   <img
@@ -382,6 +749,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                 </div>
               </div>
             ) : (
+              /* Standard Poster 16:9 Preview */
               <div className="flex-1 flex overflow-hidden">
                 <div className="w-1/3 overflow-hidden bg-layer-01">
                   <img src={play.posterUrl} alt="" className="w-full h-full object-cover" />

@@ -686,15 +686,34 @@ async function main() {
   let failCount = 0;
 
   if (adminDb) {
-    for (const play of playsToInject) {
-      process.stdout.write(`  Writing ${play.id} ("${play.title}")... `);
+    const BATCH_SIZE = 400;
+    const totalBatches = Math.ceil(playsToInject.length / BATCH_SIZE);
+    for (let i = 0; i < playsToInject.length; i += BATCH_SIZE) {
+      const chunk = playsToInject.slice(i, i + BATCH_SIZE);
+      const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
+      process.stdout.write(`  Committing batch [${batchNumber}/${totalBatches}] (${chunk.length} plays)... `);
+      const batch = adminDb.batch();
+      for (const play of chunk) {
+        const ref = adminDb.collection('plays').doc(play.id);
+        batch.set(ref, play, { merge: true });
+      }
       try {
-        await adminDb.collection('plays').doc(play.id).set(play, { merge: true });
-        successCount++;
-        console.log(`✅`);
+        await batch.commit();
+        successCount += chunk.length;
+        console.log(`✅ (${successCount}/${playsToInject.length} committed)`);
       } catch (err) {
-        failCount++;
         console.log(`❌ Error: ${err.message}`);
+        // Fallback to individual writes if batch has issues
+        console.log(`  Falling back to individual writes for this batch...`);
+        for (const play of chunk) {
+          try {
+            await adminDb.collection('plays').doc(play.id).set(play, { merge: true });
+            successCount++;
+          } catch (itemErr) {
+            failCount++;
+            console.error(`  ❌ Failed '${play.id}': ${itemErr.message}`);
+          }
+        }
       }
     }
   } else {

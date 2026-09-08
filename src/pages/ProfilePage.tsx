@@ -24,6 +24,8 @@ import { useTheme } from '../context/ThemeContext';
 import { storageService } from '../services/storage';
 import { getTierProgress, TIERS } from '../services/gamification';
 import type { Play, ReviewEntry, Badge } from '../types';
+import TicketStub from '../components/TicketStub';
+import SocialShareModal from '../components/SocialShareModal';
 
 interface ProfilePageProps {
   onOpenDailyQuote?: () => void;
@@ -44,6 +46,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
   const [allBadges, setAllBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'pasaport' | 'izlenenler' | 'notlar'>('pasaport');
+  const [shareReview, setShareReview] = useState<ReviewEntry | null>(null);
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -506,43 +510,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
       {activeTab === 'notlar' && (
         <div className="space-y-4">
           {userReviews.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {userReviews.map((rev) => (
-                <div
+                <TicketStub
                   key={rev.id}
-                  className="bg-canvas border border-border-subtle p-4 rounded-sm space-y-2 hover:border-border-strong transition-colors"
-                >
-                  <div className="flex items-center justify-between text-xs">
-                    <Link
-                      to={`/oyun/${rev.playId}`}
-                      className="font-serif font-bold text-sm text-text-primary hover:text-theatre-curtain transition-colors"
-                    >
-                      {rev.playTitle}
-                    </Link>
-                    <div className="flex items-center gap-2">
-                      <div className="text-stage-spotlight font-mono font-bold">
-                        ★ {rev.rating.toFixed(1)}
-                      </div>
-                      <span className="font-mono text-text-tertiary text-[11px]">
-                        {rev.performanceDate}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-text-secondary leading-relaxed font-sans">
-                    {rev.reviewText}
-                  </p>
-                  <div className="flex items-center justify-between text-[10px] font-mono text-text-tertiary pt-1 border-t border-border-subtle">
-                    <span>
-                      {rev.venue} · {rev.sessionType.toUpperCase()} {rev.seatInfo ? `· ${rev.seatInfo}` : ''}
-                    </span>
-                    <Link
-                      to={`/oyun/${rev.playId}`}
-                      className="text-theatre-curtain hover:underline"
-                    >
-                      Oyunu Görüntüle →
-                    </Link>
-                  </div>
-                </div>
+                  review={rev}
+                  showPlayTitle={true}
+                  onShare={(r) => {
+                    setShareReview(r);
+                    setIsShareOpen(true);
+                  }}
+                />
               ))}
             </div>
           ) : (
@@ -557,6 +535,37 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
             </div>
           )}
         </div>
+      )}
+
+      {/* Social Story Modal for sharing tickets from profile */}
+      {isShareOpen && shareReview && (
+        <SocialShareModal
+          isOpen={isShareOpen}
+          onClose={() => {
+            setIsShareOpen(false);
+            setShareReview(null);
+          }}
+          review={shareReview}
+          play={plays.find(p => p.id === shareReview.playId) || {
+            id: shareReview.playId,
+            title: shareReview.playTitle,
+            originalTitle: shareReview.playTitle,
+            playwright: 'Türk Tiyatrosu',
+            director: '',
+            cast: [],
+            company: '',
+            duration: 100,
+            hasIntermission: true,
+            year: 2024,
+            genre: 'Tiyatro',
+            venue: shareReview.venue,
+            posterUrl: shareReview.playPosterUrl || '',
+            synopsis: shareReview.reviewText,
+            rating: shareReview.rating,
+            reviewCount: 1,
+            tags: []
+          }}
+        />
       )}
     </div>
   );

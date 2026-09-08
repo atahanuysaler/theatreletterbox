@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { CheckCircle2, Circle, Award, Sparkles, Star } from 'lucide-react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { CheckCircle2, Circle, Award, Sparkles, Star, Theater, LogIn, Compass } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { storageService } from '../services/storage';
 import { useAuth } from '../context/AuthContext';
@@ -13,8 +14,10 @@ interface XPPopup {
   y: number;
 }
 
+const PLAY_LIMIT = 40;
+
 export const IzlediklerimPage: React.FC = () => {
-  const { user, updateProfile } = useAuth();
+  const { user, loginWithGoogle, updateProfile } = useAuth();
   const [plays, setPlays] = useState<Play[]>([]);
   const [seenIds, setSeenIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -32,6 +35,8 @@ export const IzlediklerimPage: React.FC = () => {
   useEffect(() => {
     if (user?.seenPlayIds) {
       setSeenIds(new Set(user.seenPlayIds));
+    } else {
+      setSeenIds(new Set());
     }
   }, [user?.seenPlayIds]);
 
@@ -91,6 +96,35 @@ export const IzlediklerimPage: React.FC = () => {
     }
   }, [user, toggling, seenIds, updateProfile, spawnXpPopup]);
 
+  // Watched plays only: order by recent seen, then filter
+  const watchedPlays = useMemo(() => {
+    const playMap = new Map(plays.map(p => [p.id, p]));
+    const seenArray = user?.seenPlayIds ? [...user.seenPlayIds].reverse() : Array.from(seenIds);
+    const result: Play[] = [];
+    const added = new Set<string>();
+
+    for (const id of seenArray) {
+      if (seenIds.has(id) && playMap.has(id) && !added.has(id)) {
+        result.push(playMap.get(id)!);
+        added.add(id);
+      }
+    }
+
+    for (const id of seenIds) {
+      if (!added.has(id) && playMap.has(id)) {
+        result.push(playMap.get(id)!);
+        added.add(id);
+      }
+    }
+
+    return result;
+  }, [plays, seenIds, user?.seenPlayIds]);
+
+  // Limit to 40 plays
+  const displayedPlays = useMemo(() => {
+    return watchedPlays.slice(0, PLAY_LIMIT);
+  }, [watchedPlays]);
+
   const seenCount = seenIds.size;
   const totalCount = plays.length;
   const percentage = totalCount > 0 ? Math.round((seenCount / totalCount) * 100) : 0;
@@ -102,6 +136,28 @@ export const IzlediklerimPage: React.FC = () => {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 flex items-center justify-center">
         <div className="text-text-secondary font-mono text-sm animate-pulse">Oyunlar yükleniyor...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-6">
+        <Theater className="w-12 h-12 text-theatre-curtain mx-auto opacity-80" />
+        <h1 className="font-serif font-bold text-2xl text-text-primary">
+          İzlediklerini Görmek İçin Giriş Yap
+        </h1>
+        <p className="text-xs text-text-secondary leading-relaxed font-sans">
+          İzlediğin oyunları kaydetmek, hafızanı canlı tutmak ve Sahne Liderleri sıralamasına katılmak için Google hesabınla giriş yapabilirsin.
+        </p>
+        <button
+          type="button"
+          onClick={() => loginWithGoogle()}
+          className="w-full inline-flex items-center justify-center gap-2 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white py-3 text-xs font-semibold rounded-sm shadow-sm transition-colors cursor-pointer"
+        >
+          <LogIn className="w-4 h-4" />
+          <span>Google ile Giriş Yap</span>
+        </button>
       </div>
     );
   }
@@ -135,13 +191,13 @@ export const IzlediklerimPage: React.FC = () => {
       <div className="border-b border-border-subtle pb-4">
         <div className="flex items-center gap-2 text-theatre-curtain text-xs font-mono font-semibold uppercase tracking-wider mb-1">
           <CheckCircle2 className="w-4 h-4" />
-          İzlediklerimi İşaretle
+          İzlediklerim
         </div>
         <h1 className="font-serif font-bold text-2xl sm:text-3xl text-text-primary tracking-tight">
           Kişisel Tiyatro Hafızan
         </h1>
         <p className="text-sm text-text-secondary mt-1">
-          İzlediğin oyunları tek tıkla işaretle, her oyun için +10 XP kazan ve tiyatrosever seviyeni yükselt.
+          İzlediğin oyunları buradan takip edebilir, listeni güncel tutabilirsin.
         </p>
       </div>
 
@@ -183,86 +239,116 @@ export const IzlediklerimPage: React.FC = () => {
         )}
       </div>
 
-      {/* Play Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-        {plays.map(play => {
-          const seen = seenIds.has(play.id);
-          const isToggling = toggling === play.id;
-
-          return (
-            <div
-              key={play.id}
-              className={`group relative flex flex-col border transition-all duration-150 ${
-                seen
-                  ? 'border-theatre-curtain bg-canvas'
-                  : 'border-border-subtle bg-canvas hover:border-border-strong'
-              }`}
-            >
-              {/* Poster */}
-              <div className="relative aspect-[2/3] overflow-hidden bg-layer-01">
-                <img
-                  src={play.posterUrl}
-                  alt={play.title}
-                  className={`w-full h-full object-cover transition-all duration-200 ${
-                    seen ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'
-                  }`}
-                  loading="lazy"
-                />
-                {/* Seen overlay */}
-                {seen && (
-                  <div className="absolute inset-0 bg-theatre-curtain/20 flex items-center justify-center">
-                    <div className="w-8 h-8 rounded-full bg-theatre-curtain flex items-center justify-center shadow-md">
-                      <CheckCircle2 className="w-5 h-5 text-white" strokeWidth={2.5} />
-                    </div>
-                  </div>
-                )}
-                {/* Rating */}
-                <div className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 bg-canvas/90 backdrop-blur-sm px-1.5 py-0.5 rounded-sm">
-                  <Star className="w-2.5 h-2.5 text-stage-spotlight fill-stage-spotlight" />
-                  <span className="font-mono text-[10px] font-bold text-text-primary">{play.rating.toFixed(1)}</span>
-                </div>
-              </div>
-
-              {/* Info */}
-              <div className="p-2 flex-1 flex flex-col gap-1">
-                <div className="font-semibold text-xs text-text-primary leading-tight line-clamp-2">
-                  {play.title}
-                </div>
-                <div className="text-[10px] text-text-tertiary font-mono line-clamp-1">
-                  {play.playwright}
-                </div>
-              </div>
-
-              {/* Toggle Button */}
-              <button
-                type="button"
-                onClick={(e) => handleToggle(play, e)}
-                disabled={isToggling}
-                className={`w-full py-2 text-xs font-semibold font-mono flex items-center justify-center gap-1.5 border-t transition-all duration-150 ${
-                  seen
-                    ? 'border-theatre-curtain text-theatre-curtain hover:bg-theatre-curtain hover:text-white'
-                    : 'border-border-subtle text-text-secondary hover:border-theatre-curtain hover:text-theatre-curtain'
-                } disabled:opacity-50 disabled:cursor-wait`}
-                aria-label={seen ? 'İzledim olarak işaretli — kaldırmak için tıkla' : 'İzledim olarak işaretle'}
-              >
-                {isToggling ? (
-                  <span className="animate-pulse">...</span>
-                ) : seen ? (
-                  <>
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Gördüm
-                  </>
-                ) : (
-                  <>
-                    <Circle className="w-3.5 h-3.5" />
-                    Görmedim
-                  </>
-                )}
-              </button>
-            </div>
-          );
-        })}
+      {/* Section Title & Limit Indicator */}
+      <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center gap-2">
+          <h2 className="font-serif font-bold text-lg text-text-primary">
+            İzlediğim Oyunlar
+          </h2>
+          <span className="text-xs font-mono text-text-tertiary bg-layer-01 px-2 py-0.5 rounded-sm border border-border-subtle">
+            {watchedPlays.length > PLAY_LIMIT ? `${displayedPlays.length} / ${watchedPlays.length}` : watchedPlays.length}
+          </span>
+        </div>
+        {watchedPlays.length > PLAY_LIMIT && (
+          <span className="text-xs font-mono text-text-tertiary">
+            (İlk {PLAY_LIMIT} oyun gösteriliyor)
+          </span>
+        )}
       </div>
+
+      {/* Play Grid or Empty State */}
+      {watchedPlays.length === 0 ? (
+        <div className="bg-canvas border border-dashed border-border-subtle p-12 text-center rounded-sm space-y-4">
+          <Theater className="w-12 h-12 text-text-tertiary mx-auto opacity-50" />
+          <div className="space-y-1">
+            <h3 className="font-serif font-bold text-lg text-text-primary">
+              Henüz izlediğin bir oyun bulunmuyor
+            </h3>
+            <p className="text-xs text-text-secondary max-w-md mx-auto">
+              Oyunlar kataloğundan izlediğin oyunları tek tıkla işaretleyebilir veya yeni sahnelenen oyunları keşfedebilirsin.
+            </p>
+          </div>
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white px-4 py-2 text-xs font-semibold rounded-sm transition-colors cursor-pointer"
+          >
+            <Compass className="w-4 h-4" />
+            <span>Oyunları Keşfet</span>
+          </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+          {displayedPlays.map(play => {
+            const seen = seenIds.has(play.id);
+            const isToggling = toggling === play.id;
+
+            return (
+              <div
+                key={play.id}
+                className={`group relative flex flex-col border transition-all duration-150 rounded-sm overflow-hidden ${
+                  seen
+                    ? 'border-theatre-curtain/40 bg-canvas hover:border-theatre-curtain'
+                    : 'border-border-subtle bg-canvas hover:border-border-strong'
+                }`}
+              >
+                {/* Poster Link */}
+                <Link to={`/oyun/${play.id}`} className="relative aspect-[2/3] overflow-hidden bg-layer-01 block">
+                  <img
+                    src={play.posterUrl}
+                    alt={play.title}
+                    className="w-full h-full object-cover transition-all duration-200 opacity-90 group-hover:opacity-100 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  {/* Rating */}
+                  <div className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 bg-canvas/90 backdrop-blur-sm px-1.5 py-0.5 rounded-sm">
+                    <Star className="w-2.5 h-2.5 text-stage-spotlight fill-stage-spotlight" />
+                    <span className="font-mono text-[10px] font-bold text-text-primary">
+                      {play.rating ? play.rating.toFixed(1) : '—'}
+                    </span>
+                  </div>
+                </Link>
+
+                {/* Info */}
+                <Link to={`/oyun/${play.id}`} className="p-2 flex-1 flex flex-col gap-1 block">
+                  <div className="font-semibold text-xs text-text-primary leading-tight line-clamp-2 group-hover:text-theatre-curtain transition-colors">
+                    {play.title}
+                  </div>
+                  <div className="text-[10px] text-text-tertiary font-mono line-clamp-1">
+                    {play.playwright}
+                  </div>
+                </Link>
+
+                {/* Toggle Button */}
+                <button
+                  type="button"
+                  onClick={(e) => handleToggle(play, e)}
+                  disabled={isToggling}
+                  className={`w-full py-2 text-xs font-semibold font-mono flex items-center justify-center gap-1.5 border-t transition-all duration-150 ${
+                    seen
+                      ? 'border-theatre-curtain/30 text-theatre-curtain hover:bg-theatre-curtain hover:text-white'
+                      : 'border-border-subtle text-text-secondary hover:border-theatre-curtain hover:text-theatre-curtain'
+                  } disabled:opacity-50 disabled:cursor-wait cursor-pointer`}
+                  aria-label={seen ? 'İzledim olarak işaretli — kaldırmak için tıkla' : 'İzledim olarak işaretle'}
+                >
+                  {isToggling ? (
+                    <span className="animate-pulse">...</span>
+                  ) : seen ? (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Gördüm
+                    </>
+                  ) : (
+                    <>
+                      <Circle className="w-3.5 h-3.5" />
+                      Görmedim
+                    </>
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* XP Guide */}
       <div className="bg-layer-01 border border-border-subtle p-4 rounded-sm">
@@ -294,3 +380,4 @@ export const IzlediklerimPage: React.FC = () => {
 };
 
 export default IzlediklerimPage;
+
