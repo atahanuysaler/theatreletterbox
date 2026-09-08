@@ -18,7 +18,6 @@ import PlayKunye, { PlayWithDetails } from '../components/catalog/PlayKunye';
 import SocialShareModal from '../components/SocialShareModal';
 import { storageService } from '../services/storage';
 import { useAuthSafe } from '../context/AuthContext';
-import seedData from '../../seed-data.json';
 
 interface PlayDetailPageProps {
   onOpenLogModal?: () => void;
@@ -27,11 +26,9 @@ interface PlayDetailPageProps {
 export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }) => {
   const { id } = useParams<{ id: string }>();
   const authContext = useAuthSafe();
-  const activeUserId = authContext?.user?.uid || 'demo-user-emir';
+  const activeUserId = authContext?.user?.uid;
 
-  // Find play from seedData as default fallback
-  const initialPlay = (seedData.plays as PlayWithDetails[]).find((p) => p.id === id);
-  const [play, setPlay] = useState<PlayWithDetails | null>(initialPlay || null);
+  const [play, setPlay] = useState<PlayWithDetails | null>(null);
   const [isSeen, setIsSeen] = useState<boolean>(false);
   const [reviews, setReviews] = useState<ReviewEntry[]>([]);
   const [imageError, setImageError] = useState<boolean>(false);
@@ -39,28 +36,33 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
   const [shareReview, setShareReview] = useState<ReviewEntry | null>(null);
 
-  // Load play, reviews, and user seen status dynamically
+  // Load play, reviews, and user seen status dynamically from Firebase
   useEffect(() => {
     let isMounted = true;
     const loadPlayData = async () => {
       if (!id) return;
       try {
         const livePlay = await storageService.getPlayById(id);
-        if (livePlay && isMounted) {
+        if (isMounted) {
           setPlay(livePlay as PlayWithDetails);
         }
-        const user = await storageService.getUserProfile(activeUserId);
-        if (user && user.seenPlayIds && isMounted) {
-          setIsSeen(user.seenPlayIds.includes(id));
+        if (activeUserId) {
+          const user = await storageService.getUserProfile(activeUserId);
+          if (user && user.seenPlayIds && isMounted) {
+            setIsSeen(user.seenPlayIds.includes(id));
+          }
+        } else if (isMounted) {
+          setIsSeen(false);
         }
         const playReviews = await storageService.getReviews(id);
         if (playReviews && isMounted) {
           setReviews(playReviews);
         }
       } catch (err) {
-        console.warn('[PlayDetailPage] Storage error, using fallback:', err);
+        console.error('[PlayDetailPage] Firebase storage error:', err);
       }
     };
+
 
     loadPlayData();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -103,7 +105,11 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
       setToastMessage(`"${play.title}" izlediklerim listesinden kaldırıldı.`);
     }
 
-    setTimeout(() => setToastMessage(null), 3000);
+    if (!activeUserId) {
+      setToastMessage('Oyunları işaretlemek için lütfen giriş yapın.');
+      setTimeout(() => setToastMessage(null), 3000);
+      return;
+    }
 
     try {
       await storageService.toggleSeenPlay(activeUserId, play.id);

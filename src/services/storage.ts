@@ -6,8 +6,6 @@ import {
   UserProfile,
   LeaderboardUser
 } from '../types';
-import { isFirebaseConfigured } from '../config/firebase';
-import { localStorageService } from './localStorageService';
 import { firebaseStorageService } from './firebaseStorageService';
 
 export interface SeenPlayResult {
@@ -70,9 +68,8 @@ export interface IStorageService {
   resetAndSeedDatabase(): Promise<void>;
 }
 
-// Active singleton instance: defaults to localStorageService, or firebaseStorageService when configured
-export const storageService: IStorageService = isFirebaseConfigured
-  ? firebaseStorageService
-  : localStorageService;
+// Active singleton instance: strictly firebaseStorageService with no fallbacks
+export const storageService: IStorageService = firebaseStorageService;
 
-export { localStorageService, firebaseStorageService };
+export { firebaseStorageService };
+

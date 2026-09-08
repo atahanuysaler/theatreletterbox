@@ -17,7 +17,6 @@ import PlayCard from '../components/catalog/PlayCard';
 import FilterSidebar from '../components/catalog/FilterSidebar';
 import { storageService } from '../services/storage';
 import { useAuthSafe } from '../context/AuthContext';
-import seedData from '../../seed-data.json';
 
 interface CatalogPageProps {
   onOpenLogModal?: () => void;
@@ -30,16 +29,11 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
   const [searchParams, setSearchParams] = useSearchParams();
   const urlSearchQuery = searchParams.get('q') || '';
   const authContext = useAuthSafe();
-  const activeUserId = authContext?.user?.uid || 'demo-user-emir';
+  const activeUserId = authContext?.user?.uid;
 
   // Plays and User State
-  const [plays, setPlays] = useState<Play[]>(seedData.plays as Play[]);
-  const [seenPlayIds, setSeenPlayIds] = useState<string[]>([
-    'lukus-hayat',
-    'kesanli-ali-destani',
-    'bir-delinin-hatira-defteri',
-    'zengin-mutfagi',
-  ]);
+  const [plays, setPlays] = useState<Play[]>([]);
+  const [seenPlayIds, setSeenPlayIds] = useState<string[]>([]);
   const [feedbackToast, setFeedbackToast] = useState<string | null>(null);
 
   // Search & Filter State
@@ -58,21 +52,25 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
     }
   }, [urlSearchQuery]);
 
-  // Load live plays and seen plays from storage
+  // Load live plays and seen plays from Firebase storage
   useEffect(() => {
     let isMounted = true;
     const loadData = async () => {
       try {
         const loadedPlays = await storageService.getPlays();
-        if (loadedPlays && loadedPlays.length > 0 && isMounted) {
+        if (loadedPlays && isMounted) {
           setPlays(loadedPlays);
         }
-        const user = await storageService.getUserProfile(activeUserId);
-        if (user && user.seenPlayIds && isMounted) {
-          setSeenPlayIds(user.seenPlayIds);
+        if (activeUserId) {
+          const user = await storageService.getUserProfile(activeUserId);
+          if (user && user.seenPlayIds && isMounted) {
+            setSeenPlayIds(user.seenPlayIds);
+          }
+        } else if (isMounted) {
+          setSeenPlayIds([]);
         }
       } catch (err) {
-        console.warn('[CatalogPage] LocalStorage service loading fallback to seed data:', err);
+        console.error('[CatalogPage] Failed to load plays from Firebase:', err);
       }
     };
     loadData();
@@ -83,6 +81,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
 
   // Extract dynamic filter lists from catalog
   const genres = useMemo(() => {
+
     const set = new Set<string>();
     plays.forEach((p) => {
       if (p.genre) set.add(p.genre);
@@ -202,7 +201,11 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
       setFeedbackToast(`"${playTitle}" izlediklerim listesinden kaldırıldı.`);
     }
 
-    setTimeout(() => setFeedbackToast(null), 3000);
+    if (!activeUserId) {
+      setFeedbackToast('Oyunları işaretlemek için lütfen giriş yapın.');
+      setTimeout(() => setFeedbackToast(null), 3000);
+      return;
+    }
 
     try {
       await storageService.toggleSeenPlay(activeUserId, playId);

@@ -39,33 +39,19 @@ export function isFirebaseEnvValid(config: FirebaseConfig = firebaseEnvConfig): 
   return true;
 }
 
-let app: FirebaseApp | null = null;
-let auth: Auth | null = null;
-let db: Firestore | null = null;
-let googleProvider: GoogleAuthProvider | null = null;
-
-// Initialize Firebase only when valid keys are provided
-if (isFirebaseEnvValid()) {
-  try {
-    app = getApps().length > 0 ? getApp() : initializeApp(firebaseEnvConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    googleProvider = new GoogleAuthProvider();
-    googleProvider.setCustomParameters({ prompt: 'select_account' });
-  } catch (error) {
-    console.warn('[Firebase] Initialization error, gracefully falling back to LocalStorage demo mode:', error);
-    app = null;
-    auth = null;
-    db = null;
-    googleProvider = null;
-  }
+if (!isFirebaseEnvValid()) {
+  throw new Error(
+    '[Firebase] Missing or invalid Firebase configuration. Set VITE_FIREBASE_API_KEY and VITE_FIREBASE_PROJECT_ID in your environment (.env.local).'
+  );
 }
 
-/**
- * Flag indicating whether live Firebase services are actively initialized.
- */
-export const isFirebaseConfigured: boolean = Boolean(app && auth && db);
+const app: FirebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseEnvConfig);
+const auth: Auth = getAuth(app);
+const db: Firestore = getFirestore(app);
+const googleProvider: GoogleAuthProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
+export const isFirebaseConfigured: boolean = true;
 export { app, auth, db, googleProvider };
 
 export function getFirebaseServices() {
@@ -77,3 +63,4 @@ export function getFirebaseServices() {
     isConfigured: isFirebaseConfigured,
   };
 }
+

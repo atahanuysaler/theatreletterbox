@@ -11,7 +11,7 @@ import {
   orderBy,
   Firestore
 } from 'firebase/firestore';
-import { db, isFirebaseConfigured } from '../config/firebase';
+import { db, auth } from '../config/firebase';
 import {
   Play,
   ReviewEntry,
@@ -21,7 +21,6 @@ import {
   LeaderboardUser
 } from '../types';
 import { IStorageService, SeenPlayResult, QuoteGuessResult } from './storage';
-import { localStorageService, DEFAULT_DEMO_USER, SEED_COMMUNITY_USERS, SEED_REVIEWS } from './localStorageService';
 import { calculateLevel, evaluateBadges, evaluateQuoteGuess } from './gamification';
 import rawSeedData from '../../seed-data.json';
 
@@ -29,50 +28,26 @@ export class FirebaseStorageService implements IStorageService {
   readonly isDemoMode = false;
 
   private getDb(): Firestore {
-    if (!db || !isFirebaseConfigured) {
-      throw new Error('Firebase Firestore is not initialized or configured.');
+    if (!db) {
+      throw new Error('[FirebaseStorage] Firestore is not initialized or configured.');
     }
     return db;
   }
 
   // Plays CRUD
   async getPlays(): Promise<Play[]> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.getPlays();
-    }
-    try {
-      const snap = await getDocs(collection(db, 'plays'));
-      if (snap.empty) {
-        // Auto-seed if remote database is empty
-        await this.resetAndSeedDatabase();
-        return localStorageService.getPlays();
-      }
-      return snap.docs.map(d => ({ ...d.data(), id: d.id } as Play));
-    } catch (err) {
-      console.warn('[FirebaseStorage] getPlays fallback to localStorage:', err);
-      return localStorageService.getPlays();
-    }
+    const snap = await getDocs(collection(this.getDb(), 'plays'));
+    return snap.docs.map(d => ({ ...d.data(), id: d.id } as Play));
   }
 
   async getPlayById(id: string): Promise<Play | null> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.getPlayById(id);
-    }
-    try {
-      const docRef = doc(db, 'plays', id);
-      const snap = await getDoc(docRef);
-      if (!snap.exists()) return null;
-      return { ...snap.data(), id: snap.id } as Play;
-    } catch (err) {
-      console.warn(`[FirebaseStorage] getPlayById(${id}) fallback:`, err);
-      return localStorageService.getPlayById(id);
-    }
+    const docRef = doc(this.getDb(), 'plays', id);
+    const snap = await getDoc(docRef);
+    if (!snap.exists()) return null;
+    return { ...snap.data(), id: snap.id } as Play;
   }
 
   async createPlay(playData: Omit<Play, 'id' | 'rating' | 'reviewCount'>): Promise<Play> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.createPlay(playData);
-    }
     const slug = playData.title
       .toLocaleLowerCase('tr')
       .replace(/[^a-z0-9ğüşıöç]/g, '-')
@@ -86,64 +61,39 @@ export class FirebaseStorageService implements IStorageService {
       reviewCount: 0
     };
 
-    await setDoc(doc(db, 'plays', slug), newPlay);
+    await setDoc(doc(this.getDb(), 'plays', slug), newPlay);
     return newPlay;
   }
 
   async updatePlay(id: string, updates: Partial<Play>): Promise<Play> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.updatePlay(id, updates);
-    }
-    const docRef = doc(db, 'plays', id);
+    const docRef = doc(this.getDb(), 'plays', id);
     await updateDoc(docRef, updates as { [key: string]: any });
     const snap = await getDoc(docRef);
     return { ...snap.data(), id: snap.id } as Play;
   }
 
   async deletePlay(id: string): Promise<void> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.deletePlay(id);
-    }
-    await deleteDoc(doc(db, 'plays', id));
+    await deleteDoc(doc(this.getDb(), 'plays', id));
   }
 
   // Reviews CRUD
   async getReviews(playId?: string): Promise<ReviewEntry[]> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.getReviews(playId);
-    }
-    try {
-      const reviewsRef = collection(db, 'reviews');
-      const q = playId
-        ? query(reviewsRef, where('playId', '==', playId), orderBy('createdAt', 'desc'))
-        : query(reviewsRef, orderBy('createdAt', 'desc'));
+    const reviewsRef = collection(this.getDb(), 'reviews');
+    const q = playId
+      ? query(reviewsRef, where('playId', '==', playId), orderBy('createdAt', 'desc'))
+      : query(reviewsRef, orderBy('createdAt', 'desc'));
 
-      const snap = await getDocs(q);
-      return snap.docs.map(d => ({ ...d.data(), id: d.id } as ReviewEntry));
-    } catch (err) {
-      console.warn('[FirebaseStorage] getReviews fallback:', err);
-      return localStorageService.getReviews(playId);
-    }
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ ...d.data(), id: d.id } as ReviewEntry));
   }
 
   async getReviewById(id: string): Promise<ReviewEntry | null> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.getReviewById(id);
-    }
-    try {
-      const snap = await getDoc(doc(db, 'reviews', id));
-      if (!snap.exists()) return null;
-      return { ...snap.data(), id: snap.id } as ReviewEntry;
-    } catch {
-      return localStorageService.getReviewById(id);
-    }
+    const snap = await getDoc(doc(this.getDb(), 'reviews', id));
+    if (!snap.exists()) return null;
+    return { ...snap.data(), id: snap.id } as ReviewEntry;
   }
 
   async createReview(reviewData: Omit<ReviewEntry, 'id' | 'createdAt' | 'likes'>): Promise<ReviewEntry> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.createReview(reviewData);
-    }
-
     const rawRating = Number(reviewData.rating);
     const rating = Math.min(5.0, Math.max(0.5, isNaN(rawRating) ? 3.0 : rawRating));
     const id = `rev-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
@@ -157,7 +107,7 @@ export class FirebaseStorageService implements IStorageService {
       likes: 0
     };
 
-    await setDoc(doc(db, 'reviews', id), newReview);
+    await setDoc(doc(this.getDb(), 'reviews', id), newReview);
 
     // Recalculate average rating & review count for the play
     const reviews = await this.getReviews(newReview.playId);
@@ -173,9 +123,9 @@ export class FirebaseStorageService implements IStorageService {
       const userReviews = reviews.filter(r => r.userId === user.uid);
       const plays = await this.getPlays();
       const { allUnlocked, newlyUnlocked } = evaluateBadges({
-        seenPlayIds: user.seenPlayIds,
+        seenPlayIds: user.seenPlayIds || [],
         reviews: userReviews,
-        existingBadges: user.badges,
+        existingBadges: user.badges || [],
         allPlays: plays
       });
 
@@ -196,27 +146,18 @@ export class FirebaseStorageService implements IStorageService {
   }
 
   async updateReview(id: string, updates: Partial<ReviewEntry>): Promise<ReviewEntry> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.updateReview(id, updates);
-    }
-    const docRef = doc(db, 'reviews', id);
+    const docRef = doc(this.getDb(), 'reviews', id);
     await updateDoc(docRef, updates as { [key: string]: any });
     const snap = await getDoc(docRef);
     return { ...snap.data(), id: snap.id } as ReviewEntry;
   }
 
   async deleteReview(id: string): Promise<void> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.deleteReview(id);
-    }
-    await deleteDoc(doc(db, 'reviews', id));
+    await deleteDoc(doc(this.getDb(), 'reviews', id));
   }
 
   async toggleLikeReview(reviewId: string): Promise<number> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.toggleLikeReview(reviewId);
-    }
-    const docRef = doc(db, 'reviews', reviewId);
+    const docRef = doc(this.getDb(), 'reviews', reviewId);
     const snap = await getDoc(docRef);
     if (!snap.exists()) throw new Error(`Review with id "${reviewId}" not found`);
     const current = (snap.data()?.likes || 0) + 1;
@@ -226,48 +167,25 @@ export class FirebaseStorageService implements IStorageService {
 
   // User Profiles & Auth
   async getUserProfile(uid: string): Promise<UserProfile | null> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.getUserProfile(uid);
+    const snap = await getDoc(doc(this.getDb(), 'users', uid));
+    if (!snap.exists()) {
+      return null;
     }
-    try {
-      const snap = await getDoc(doc(db, 'users', uid));
-      if (!snap.exists()) {
-        return localStorageService.getUserProfile(uid);
-      }
-      return snap.data() as UserProfile;
-    } catch {
-      return localStorageService.getUserProfile(uid);
-    }
+    return snap.data() as UserProfile;
   }
 
   async getAllUsers(): Promise<UserProfile[]> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.getAllUsers();
-    }
-    try {
-      const snap = await getDocs(collection(db, 'users'));
-      if (snap.empty) {
-        return localStorageService.getAllUsers();
-      }
-      return snap.docs.map(d => d.data() as UserProfile);
-    } catch {
-      return localStorageService.getAllUsers();
-    }
+    const snap = await getDocs(collection(this.getDb(), 'users'));
+    return snap.docs.map(d => d.data() as UserProfile);
   }
 
   async createUserProfile(profile: UserProfile): Promise<UserProfile> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.createUserProfile(profile);
-    }
-    await setDoc(doc(db, 'users', profile.uid), profile);
+    await setDoc(doc(this.getDb(), 'users', profile.uid), profile);
     return profile;
   }
 
   async updateUserProfile(uid: string, updates: Partial<UserProfile>): Promise<UserProfile> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.updateUserProfile(uid, updates);
-    }
-    const docRef = doc(db, 'users', uid);
+    const docRef = doc(this.getDb(), 'users', uid);
     if (updates.xp !== undefined && !updates.level) {
       updates.level = calculateLevel(updates.xp);
     }
@@ -277,69 +195,57 @@ export class FirebaseStorageService implements IStorageService {
   }
 
   async getCurrentUser(): Promise<UserProfile> {
-    return localStorageService.getCurrentUser();
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new Error('[FirebaseStorage] No user is currently authenticated.');
+    }
+    const profile = await this.getUserProfile(currentUser.uid);
+    if (!profile) {
+      throw new Error(`[FirebaseStorage] User profile not found for uid: ${currentUser.uid}`);
+    }
+    return profile;
   }
 
   async setCurrentUser(user: UserProfile): Promise<void> {
-    await localStorageService.setCurrentUser(user);
-    if (isFirebaseConfigured && db) {
-      await this.createUserProfile(user);
-    }
+    await this.updateUserProfile(user.uid, user);
   }
 
   // Gamification & Badges
   async getBadges(): Promise<Badge[]> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.getBadges();
-    }
-    try {
-      const snap = await getDocs(collection(db, 'badges'));
-      if (snap.empty) {
-        return localStorageService.getBadges();
-      }
-      return snap.docs.map(d => d.data() as Badge);
-    } catch {
-      return localStorageService.getBadges();
-    }
+    const snap = await getDocs(collection(this.getDb(), 'badges'));
+    return snap.docs.map(d => d.data() as Badge);
   }
 
   async toggleSeenPlay(userId: string, playId: string): Promise<SeenPlayResult> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.toggleSeenPlay(userId, playId);
-    }
-
-    let user = await this.getUserProfile(userId);
+    const user = await this.getUserProfile(userId);
     if (!user) {
-      user = {
-        ...DEFAULT_DEMO_USER,
-        uid: userId
-      };
-      await this.createUserProfile(user);
+      throw new Error(`[FirebaseStorage] User with id "${userId}" not found.`);
     }
 
     const plays = await this.getPlays();
-    const isAlreadySeen = user.seenPlayIds.includes(playId);
+    const seenPlayIds = user.seenPlayIds || [];
+    const isAlreadySeen = seenPlayIds.includes(playId);
     let seen: boolean;
     let xpDelta: number;
     const newlyUnlockedBadgeIds: string[] = [];
 
     if (isAlreadySeen) {
-      user.seenPlayIds = user.seenPlayIds.filter(id => id !== playId);
+      user.seenPlayIds = seenPlayIds.filter(id => id !== playId);
       xpDelta = -10;
       user.xp = Math.max(0, user.xp + xpDelta);
       seen = false;
     } else {
-      user.seenPlayIds.push(playId);
+      user.seenPlayIds = [...seenPlayIds, playId];
       xpDelta = 10;
       user.xp += xpDelta;
       seen = true;
 
       const userReviews = await this.getReviews();
-      const thisUserReviews = userReviews.filter(r => r.userId === user?.uid);
+      const thisUserReviews = userReviews.filter(r => r.userId === user.uid);
       const { allUnlocked, newlyUnlocked } = evaluateBadges({
         seenPlayIds: user.seenPlayIds,
         reviews: thisUserReviews,
-        existingBadges: user.badges,
+        existingBadges: user.badges || [],
         allPlays: plays
       });
 
@@ -364,9 +270,6 @@ export class FirebaseStorageService implements IStorageService {
   }
 
   async getLeaderboard(tab: 'allTime' | 'season' = 'allTime'): Promise<LeaderboardUser[]> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.getLeaderboard(tab);
-    }
     const users = await this.getAllUsers();
     const reviews = await this.getReviews();
 
@@ -379,7 +282,7 @@ export class FirebaseStorageService implements IStorageService {
         photoURL: u.photoURL,
         xp: computedXp,
         level: calculateLevel(computedXp),
-        playsSeenCount: u.seenPlayIds.length,
+        playsSeenCount: (u.seenPlayIds || []).length,
         reviewsCount: userReviews.length
       };
     });
@@ -393,88 +296,78 @@ export class FirebaseStorageService implements IStorageService {
 
   // Quotes CRUD
   async getQuotes(): Promise<DailyQuote[]> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.getQuotes();
-    }
-    try {
-      const snap = await getDocs(collection(db, 'dailyQuotes'));
-      if (snap.empty) {
-        return localStorageService.getQuotes();
-      }
-      return snap.docs.map(d => ({ ...d.data(), id: d.id } as DailyQuote));
-    } catch {
-      return localStorageService.getQuotes();
-    }
+    const snap = await getDocs(collection(this.getDb(), 'dailyQuotes'));
+    return snap.docs.map(d => ({ ...d.data(), id: d.id } as DailyQuote));
   }
 
   async getQuoteById(id: string): Promise<DailyQuote | null> {
-    const quotes = await this.getQuotes();
-    return quotes.find(q => q.id === id) || null;
+    const snap = await getDoc(doc(this.getDb(), 'dailyQuotes', id));
+    if (!snap.exists()) return null;
+    return { ...snap.data(), id: snap.id } as DailyQuote;
   }
 
   async getTodayQuote(): Promise<DailyQuote> {
     const quotes = await this.getQuotes();
     if (quotes.length === 0) {
-      return localStorageService.getTodayQuote();
+      throw new Error('[FirebaseStorage] No daily quotes found in Firestore.');
     }
     return quotes[0];
   }
 
   async createQuote(quote: Omit<DailyQuote, 'id'>): Promise<DailyQuote> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.createQuote(quote);
-    }
     const id = `q-${Date.now()}`;
     const newQuote: DailyQuote = { ...quote, id };
-    await setDoc(doc(db, 'dailyQuotes', id), newQuote);
+    await setDoc(doc(this.getDb(), 'dailyQuotes', id), newQuote);
     return newQuote;
   }
 
   async updateQuote(id: string, updates: Partial<DailyQuote>): Promise<DailyQuote> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.updateQuote(id, updates);
-    }
-    const docRef = doc(db, 'dailyQuotes', id);
+    const docRef = doc(this.getDb(), 'dailyQuotes', id);
     await updateDoc(docRef, updates as { [key: string]: any });
     const snap = await getDoc(docRef);
     return { ...snap.data(), id: snap.id } as DailyQuote;
   }
 
   async deleteQuote(id: string): Promise<void> {
-    if (!isFirebaseConfigured || !db) {
-      return localStorageService.deleteQuote(id);
-    }
-    await deleteDoc(doc(db, 'dailyQuotes', id));
+    await deleteDoc(doc(this.getDb(), 'dailyQuotes', id));
   }
 
   async recordQuoteGuess(userId: string, guessTitle: string, attemptNumber: number): Promise<QuoteGuessResult> {
-    return localStorageService.recordQuoteGuess(userId, guessTitle, attemptNumber);
+    const todayQuote = await this.getTodayQuote();
+    const streakDocRef = doc(this.getDb(), 'streaks', userId);
+    const streakSnap = await getDoc(streakDocRef);
+    const currentStreak = streakSnap.exists() ? (streakSnap.data()?.streak || 0) : 0;
+
+    const result = evaluateQuoteGuess(todayQuote, guessTitle, attemptNumber, currentStreak);
+    await setDoc(streakDocRef, { streak: result.newStreak, updatedAt: new Date().toISOString() }, { merge: true });
+
+    if (result.xpAwarded > 0) {
+      const user = await this.getUserProfile(userId);
+      if (user) {
+        user.xp += result.xpAwarded;
+        user.level = calculateLevel(user.xp);
+        await this.updateUserProfile(user.uid, { xp: user.xp, level: user.level });
+      }
+    }
+
+    return result;
   }
 
   // Reset & Re-seed
   async resetAndSeedDatabase(): Promise<void> {
-    await localStorageService.resetAndSeedDatabase();
+    const db = this.getDb();
+    const seedPlays = (rawSeedData as { plays: Play[] }).plays || [];
+    const seedQuotes = (rawSeedData as { dailyQuotes: DailyQuote[] }).dailyQuotes || [];
+    const seedBadges = (rawSeedData as { badges: Badge[] }).badges || [];
 
-    if (isFirebaseConfigured && db) {
-      const seedPlays = (rawSeedData as { plays: Play[] }).plays || [];
-      const seedQuotes = (rawSeedData as { dailyQuotes: DailyQuote[] }).dailyQuotes || [];
-      const seedBadges = (rawSeedData as { badges: Badge[] }).badges || [];
-
-      for (const play of seedPlays) {
-        await setDoc(doc(db, 'plays', play.id), play);
-      }
-      for (const quote of seedQuotes) {
-        await setDoc(doc(db, 'quotes', quote.id), quote);
-      }
-      for (const badge of seedBadges) {
-        await setDoc(doc(db, 'badges', badge.id), badge);
-      }
-      for (const user of [DEFAULT_DEMO_USER, ...SEED_COMMUNITY_USERS]) {
-        await setDoc(doc(db, 'users', user.uid), user);
-      }
-      for (const rev of SEED_REVIEWS) {
-        await setDoc(doc(db, 'reviews', rev.id), rev);
-      }
+    for (const play of seedPlays) {
+      await setDoc(doc(db, 'plays', play.id), play);
+    }
+    for (const quote of seedQuotes) {
+      await setDoc(doc(db, 'dailyQuotes', quote.id), quote);
+    }
+    for (const badge of seedBadges) {
+      await setDoc(doc(db, 'badges', badge.id), badge);
     }
   }
 }

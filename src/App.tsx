@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/layout/Header';
 import MobileDock from './components/layout/MobileDock';
 import Footer from './components/layout/Footer';
-import SetupBanner from './components/layout/SetupBanner';
 import CatalogPage from './pages/CatalogPage';
 import IzlediklerimPage from './pages/IzlediklerimPage';
 import LeaderboardPage from './pages/LeaderboardPage';
@@ -26,9 +25,6 @@ export const App: React.FC = () => {
     <BrowserRouter>
       <AuthProvider>
         <div className="min-h-screen flex flex-col bg-canvas text-text-primary antialiased font-sans selection:bg-theatre-curtain selection:text-white">
-          {/* Zero-friction demo setup banner */}
-          <SetupBanner />
-
           {/* Editorial Header */}
           <Header onOpenLogModal={handleOpenLogModal} onOpenDailyQuote={handleOpenDailyQuote} />
 
