@@ -397,7 +397,7 @@ export class FirebaseStorageService implements IStorageService {
       return localStorageService.getQuotes();
     }
     try {
-      const snap = await getDocs(collection(db, 'quotes'));
+      const snap = await getDocs(collection(db, 'dailyQuotes'));
       if (snap.empty) {
         return localStorageService.getQuotes();
       }
@@ -426,7 +426,7 @@ export class FirebaseStorageService implements IStorageService {
     }
     const id = `q-${Date.now()}`;
     const newQuote: DailyQuote = { ...quote, id };
-    await setDoc(doc(db, 'quotes', id), newQuote);
+    await setDoc(doc(db, 'dailyQuotes', id), newQuote);
     return newQuote;
   }
 
@@ -434,7 +434,7 @@ export class FirebaseStorageService implements IStorageService {
     if (!isFirebaseConfigured || !db) {
       return localStorageService.updateQuote(id, updates);
     }
-    const docRef = doc(db, 'quotes', id);
+    const docRef = doc(db, 'dailyQuotes', id);
     await updateDoc(docRef, updates as { [key: string]: any });
     const snap = await getDoc(docRef);
     return { ...snap.data(), id: snap.id } as DailyQuote;
@@ -444,7 +444,7 @@ export class FirebaseStorageService implements IStorageService {
     if (!isFirebaseConfigured || !db) {
       return localStorageService.deleteQuote(id);
     }
-    await deleteDoc(doc(db, 'quotes', id));
+    await deleteDoc(doc(db, 'dailyQuotes', id));
   }
 
   async recordQuoteGuess(userId: string, guessTitle: string, attemptNumber: number): Promise<QuoteGuessResult> {

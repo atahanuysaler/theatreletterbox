@@ -147,10 +147,21 @@ export function evaluateQuoteGuess(
     (str || '')
       .trim()
       .toLocaleLowerCase('tr')
-      .replace(/['".,!?-]/g, '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[ıİiI]/g, 'i')
+      .replace(/[ğĞgG]/g, 'g')
+      .replace(/[üÜuU]/g, 'u')
+      .replace(/[şŞsS]/g, 's')
+      .replace(/[öÖoO]/g, 'o')
+      .replace(/[çÇcC]/g, 'c')
+      .replace(/['".,!?:;-]/g, '')
       .replace(/\s+/g, ' ');
 
-  const isCorrect = normalize(rawGuessTitle) === normalize(dailyQuote.playTitle);
+  const nGuess = normalize(rawGuessTitle);
+  const nTitle = normalize(dailyQuote.playTitle);
+
+  const isCorrect = nGuess.length > 0 && (nGuess === nTitle || (nGuess.length >= 5 && nTitle.includes(nGuess)));
   const remainingAttempts = Math.max(0, 3 - attemptNumber);
 
   let xpAwarded = 0;
