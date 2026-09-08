@@ -9,6 +9,7 @@ import IzlediklerimPage from './pages/IzlediklerimPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import PlayDetailPage from './pages/PlayDetailPage';
 import AdminPage from './pages/AdminPage';
+import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
 import LogModal from './components/LogModal';
 import DailyQuoteModal from './components/DailyQuoteModal';
@@ -34,10 +35,11 @@ export const App: React.FC = () => {
           {/* Main Viewport Content */}
           <main className="flex-1 pb-20 sm:pb-8">
             <Routes>
-              <Route path="/" element={<CatalogPage onOpenLogModal={handleOpenLogModal} />} />
+              <Route path="/" element={<CatalogPage onOpenLogModal={handleOpenLogModal} onOpenDailyQuote={handleOpenDailyQuote} />} />
               <Route path="/izlediklerim" element={<IzlediklerimPage />} />
               <Route path="/liderler" element={<LeaderboardPage />} />
               <Route path="/oyun/:id" element={<PlayDetailPage onOpenLogModal={handleOpenLogModal} />} />
+              <Route path="/profil" element={<ProfilePage onOpenDailyQuote={handleOpenDailyQuote} />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/404" element={<NotFoundPage />} />
               <Route path="*" element={<Navigate to="/404" replace />} />

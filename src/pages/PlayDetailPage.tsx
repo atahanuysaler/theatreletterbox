@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { ReviewEntry } from '../types';
 import PlayKunye, { PlayWithDetails } from '../components/catalog/PlayKunye';
+import SocialShareModal from '../components/SocialShareModal';
 import { storageService } from '../services/storage';
 import { useAuthSafe } from '../context/AuthContext';
 import seedData from '../../seed-data.json';
@@ -35,6 +36,8 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
   const [reviews, setReviews] = useState<ReviewEntry[]>([]);
   const [imageError, setImageError] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+  const [shareReview, setShareReview] = useState<ReviewEntry | null>(null);
 
   // Load play, reviews, and user seen status dynamically
   useEffect(() => {
@@ -253,18 +256,18 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
                 <span>{isSeen ? 'İzlendi Olarak İşaretli' : 'Gördüm Olarak İşaretle (+10 XP)'}</span>
               </button>
 
-              {/* Share Story Card Button (Milestone 4 hook) */}
+              {/* Share Story Card Button */}
               <button
                 type="button"
                 onClick={() => {
-                  console.log('[Tiyatronot] Social Story Modal Trigger (Milestone 4 hook)');
-                  alert(`"${play.title}" için 9:16 Instagram Hikaye Kartı oluşturucu Milestone 4 ile entegre edilecektir.`);
+                  setShareReview(reviews[0] || null);
+                  setIsShareModalOpen(true);
                 }}
                 className="inline-flex items-center gap-1.5 bg-layer-01 hover:bg-layer-02 border border-border-subtle text-text-primary px-3.5 py-2.5 text-xs font-medium rounded-sm transition-colors cursor-pointer"
-                title="9:16 Instagram Story veya Twitter kartı oluştur"
+                title="9:16 Instagram Story veya 16:9 görsel kart oluştur"
               >
-                <Share2 className="w-4 h-4 text-text-secondary" />
-                <span>Hikaye Paylaş (9:16)</span>
+                <Share2 className="w-4 h-4 text-theatre-curtain" />
+                <span>Hikaye Paylaş (9:16 / 16:9)</span>
               </button>
             </div>
           </div>
@@ -308,7 +311,21 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
                       ★ {rev.rating.toFixed(1)}
                     </div>
                   </div>
-                  <span className="font-mono text-text-tertiary text-[11px]">{rev.performanceDate}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-text-tertiary text-[11px]">{rev.performanceDate}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShareReview(rev);
+                        setIsShareModalOpen(true);
+                      }}
+                      className="text-text-tertiary hover:text-theatre-curtain flex items-center gap-1 font-mono text-[11px] cursor-pointer"
+                      title="Bu notu görsel kart olarak paylaş"
+                    >
+                      <Share2 className="w-3 h-3" />
+                      <span className="hidden sm:inline">Paylaş</span>
+                    </button>
+                  </div>
                 </div>
                 <p className="text-xs text-text-secondary leading-relaxed">{rev.reviewText}</p>
                 {rev.venue && (
@@ -332,6 +349,16 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
           </div>
         )}
       </div>
+
+      {/* Social Story / Card Exporter Modal */}
+      {play && (
+        <SocialShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          play={play}
+          review={shareReview}
+        />
+      )}
     </div>
   );
 };

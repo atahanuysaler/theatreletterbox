@@ -5,7 +5,7 @@ import {
   CheckCircle2, 
   Plus, 
   Trophy, 
-  Shield 
+  User 
 } from 'lucide-react';
 
 interface MobileDockProps {
@@ -13,7 +13,7 @@ interface MobileDockProps {
   onOpenDailyQuote?: () => void;
 }
 
-export const MobileDock: React.FC<MobileDockProps> = ({ onOpenLogModal, onOpenDailyQuote: _onOpenDailyQuote }) => {
+export const MobileDock: React.FC<MobileDockProps> = ({ onOpenLogModal }) => {
   const dockLinkClass = ({ isActive }: { isActive: boolean }) =>
     `touch-target flex flex-col items-center justify-center w-full h-full py-1 text-[10px] font-sans transition-colors ${
       isActive 
@@ -43,7 +43,7 @@ export const MobileDock: React.FC<MobileDockProps> = ({ onOpenLogModal, onOpenDa
         <button
           type="button"
           onClick={onOpenLogModal}
-          className="touch-target group flex flex-col items-center justify-center w-full h-full focus:outline-none"
+          className="touch-target group flex flex-col items-center justify-center w-full h-full focus:outline-none cursor-pointer"
           aria-label="Tiyatronot Al"
         >
           <div className="w-10 h-10 -mt-3 bg-theatre-curtain text-white rounded-sm flex items-center justify-center shadow-md group-hover:bg-theatre-curtain-hover group-active:scale-95 transition-all">
@@ -58,10 +58,10 @@ export const MobileDock: React.FC<MobileDockProps> = ({ onOpenLogModal, onOpenDa
           <span>Liderler</span>
         </NavLink>
 
-        {/* 5. Yönetim / Profil */}
-        <NavLink to="/admin" className={dockLinkClass}>
-          <Shield className="w-5 h-5 mb-0.5" />
-          <span>Yönetim</span>
+        {/* 5. Profil / Pasaport */}
+        <NavLink to="/profil" className={dockLinkClass}>
+          <User className="w-5 h-5 mb-0.5" />
+          <span>Profil</span>
         </NavLink>
       </div>
     </nav>

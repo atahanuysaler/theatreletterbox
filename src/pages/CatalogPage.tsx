@@ -21,11 +21,12 @@ import seedData from '../../seed-data.json';
 
 interface CatalogPageProps {
   onOpenLogModal?: () => void;
+  onOpenDailyQuote?: () => void;
 }
 
 type SortOption = 'rating' | 'reviews' | 'year' | 'title';
 
-export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal }) => {
+export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpenDailyQuote }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlSearchQuery = searchParams.get('q') || '';
   const authContext = useAuthSafe();
@@ -270,6 +271,38 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal }) => {
           </button>
         </div>
       </div>
+
+      {/* Daily Quote Teaser Banner */}
+      {onOpenDailyQuote && (
+        <div className="bg-layer-01 border border-border-subtle p-4 sm:p-5 rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="w-10 h-10 rounded-sm bg-theatre-curtain text-white flex items-center justify-center flex-shrink-0 text-lg shadow-sm">
+              🎭
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-serif font-bold text-sm sm:text-base text-text-primary">
+                  Günün Repliği: Türk Tiyatrosu Bulmacası
+                </span>
+                <span className="text-[10px] font-mono bg-theatre-curtain/10 text-theatre-curtain font-bold px-1.5 py-0.5 rounded-sm">
+                  +30 XP
+                </span>
+              </div>
+              <p className="text-xs text-text-secondary mt-0.5">
+                Bugünün repliğini 3 tahminde bil, seriyi koru ve tiyatrosever kademeni yükselt.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onOpenDailyQuote}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-canvas hover:bg-layer-02 border border-border-strong px-4 py-2 text-xs font-mono font-semibold text-text-primary rounded-sm transition-colors cursor-pointer flex-shrink-0"
+          >
+            <span>Bulmacayı Başlat</span>
+            <span className="text-theatre-curtain font-bold">→</span>
+          </button>
+        </div>
+      )}
 
       {/* Catalog Search & Controls Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-layer-01 p-3 border border-border-subtle rounded-sm">
