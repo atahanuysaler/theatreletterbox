@@ -20,7 +20,7 @@
  *   --help                    Display help message
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
@@ -70,6 +70,7 @@ const options = {
   output: path.join(rootDir, 'scraped-plays.json'),
   dryRun: false,
   injectOnly: false,
+  serviceAccount: null,
   help: false,
 };
 
@@ -81,6 +82,7 @@ for (const arg of args) {
   else if (arg.startsWith('--limit=')) options.limit = parseInt(arg.split('=')[1], 10);
   else if (arg.startsWith('--delay=')) options.delay = parseInt(arg.split('=')[1], 10);
   else if (arg.startsWith('--output=')) options.output = path.resolve(rootDir, arg.split('=')[1]);
+  else if (arg.startsWith('--service-account=')) options.serviceAccount = path.resolve(rootDir, arg.split('=')[1]);
   else if (arg.startsWith('--admin-email=')) options.adminEmail = arg.split('=')[1];
   else if (arg.startsWith('--admin-password=')) options.adminPassword = arg.split('=')[1];
   else if (arg.startsWith('--plays=')) {
@@ -447,6 +449,25 @@ async function upsertPlayToFirestore(play, authToken) {
   return true;
 }
 
+function findServiceAccountKey() {
+  if (options.serviceAccount && existsSync(options.serviceAccount)) {
+    return options.serviceAccount;
+  }
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS && existsSync(process.env.GOOGLE_APPLICATION_CREDENTIALS)) {
+    return process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  }
+  const defaultKeyPath = path.join(rootDir, 'serviceAccountKey.json');
+  if (existsSync(defaultKeyPath)) return defaultKeyPath;
+
+  try {
+    const files = readdirSync(rootDir);
+    const found = files.find(f => f.endsWith('.json') && (f.includes('adminsdk') || f.includes('serviceAccount')));
+    if (found) return path.join(rootDir, found);
+  } catch {}
+
+  return null;
+}
+
 // ─── MAIN EXECUTION ───────────────────────────────────────────────────────────
 
 async function main() {
@@ -514,27 +535,62 @@ async function main() {
     return;
   }
 
-  if (!PROJECT_ID || !API_KEY) {
-    console.warn(`\n⚠️ Firebase credentials missing in .env.local (VITE_FIREBASE_PROJECT_ID / VITE_FIREBASE_API_KEY).`);
+  const keyPath = findServiceAccountKey();
+  let adminDb = null;
+
+  if (keyPath) {
+    try {
+      const serviceAccount = JSON.parse(readFileSync(keyPath, 'utf-8'));
+      const admin = await import('firebase-admin');
+      const apps = admin.default.apps || [];
+      const app = apps.length > 0
+        ? apps[0]
+        : admin.default.initializeApp({
+            credential: admin.default.credential.cert(serviceAccount),
+          });
+      adminDb = admin.default.firestore(app);
+      console.log(`\n🛡️  Firebase Admin SDK activated using service account: ${path.basename(keyPath)}`);
+      console.log(`   (All security rules bypassed, direct administrative write enabled)`);
+    } catch (err) {
+      console.warn(`\n⚠️ Failed to initialize Firebase Admin SDK from ${keyPath}: ${err.message}`);
+    }
+  }
+
+  if (!adminDb && (!PROJECT_ID || !API_KEY)) {
+    console.warn(`\n⚠️ Neither a service account key nor valid Firebase credentials in .env.local were found.`);
     console.warn(`   Scraped data was saved to '${path.relative(rootDir, options.output)}'.`);
-    console.warn(`   You can inject it later with: node scripts/scrape-plays.mjs --inject-only\n`);
+    console.warn(`   Place 'serviceAccountKey.json' in your project root to enable Admin SDK writes.\n`);
     return;
   }
 
   console.log(`\n🚀 Injecting ${plays.length} plays into Firestore collection 'plays'...`);
-  const authToken = await getAuthToken();
-
   let successCount = 0;
   let failCount = 0;
 
-  for (const play of plays) {
-    process.stdout.write(`  Writing ${play.id} ("${play.title}")... `);
-    const ok = await upsertPlayToFirestore(play, authToken);
-    if (ok) {
-      successCount++;
-      console.log(`✅`);
-    } else {
-      failCount++;
+  if (adminDb) {
+    for (const play of plays) {
+      process.stdout.write(`  Writing ${play.id} ("${play.title}")... `);
+      try {
+        await adminDb.collection('plays').doc(play.id).set(play, { merge: true });
+        successCount++;
+        console.log(`✅`);
+      } catch (err) {
+        failCount++;
+        console.log(`❌ Error: ${err.message}`);
+      }
+    }
+  } else {
+    console.log(`  ℹ️  No service account key found. Attempting REST API write...`);
+    const authToken = await getAuthToken();
+    for (const play of plays) {
+      process.stdout.write(`  Writing ${play.id} ("${play.title}")... `);
+      const ok = await upsertPlayToFirestore(play, authToken);
+      if (ok) {
+        successCount++;
+        console.log(`✅`);
+      } else {
+        failCount++;
+      }
     }
   }
 
@@ -542,7 +598,7 @@ async function main() {
   console.log(`🎉 Injection Complete!`);
   console.log(`   ✅ Succeeded: ${successCount}`);
   console.log(`   ❌ Failed:    ${failCount}`);
-  console.log(`   📦 Firebase Console: https://console.firebase.google.com/project/${PROJECT_ID}/firestore`);
+  console.log(`   📦 Firebase Console: https://console.firebase.google.com/project/${PROJECT_ID || 'your-project'}/firestore`);
   console.log(`=======================================================\n`);
 }
 

@@ -76,18 +76,32 @@ node scripts/scrape-plays.mjs --source=sitemap --limit=50
 
 ---
 
-## 🔐 Firebase Authentication & Permissions
+## 🔐 Firebase Authentication: Service Account Key (Recommended)
 
-The script uses your Firebase settings from `.env.local`:
-- `VITE_FIREBASE_PROJECT_ID`
-- `VITE_FIREBASE_API_KEY`
+Using a Firebase Service Account key gives the script administrative access and **bypasses all security rules**. You do **not** need to provide an email or password.
 
-If your Firestore security rules restrict writes to admin accounts (e.g. `role == 'admin'`), you can supply your admin user credentials in `.env.local` or environment variables:
-```env
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=your-secret-password
-```
-The script will automatically authenticate and acquire a bearer token to perform the writes.
+### How to set up:
+1. Open [Firebase Console](https://console.firebase.google.com/) and select **tiyatronot-app**.
+2. Click the ⚙️ **Project settings** icon (top-left).
+3. Go to the **Service accounts** tab.
+4. Click **Generate new private key** and confirm.
+5. Save the downloaded JSON file into your project root folder as:
+   ```
+   serviceAccountKey.json
+   ```
+   *(Note: The file is already added to `.gitignore` so your key will never be committed to git).*
+
+6. Once the file is in place, simply run:
+   ```bash
+   npm run scrape:plays -- --inject-only
+   ```
+   The script will automatically detect `serviceAccountKey.json`, initialize the Firebase Admin SDK, and inject your plays directly!
+
+---
+
+### Alternative: Custom key path or env variable
+- Using flag: `npm run scrape:plays -- --inject-only --service-account=./my-key.json`
+- Using environment variable: `export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json`
 
 ---
 

@@ -36,3 +36,8 @@ dist-ssr
 
 # Scraped data dumps
 scraped-plays*.json
+
+# Firebase Service Account Credentials
+serviceAccountKey.json
+*serviceAccount*.json
+*-adminsdk-*.json
