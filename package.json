@@ -8,15 +8,17 @@
     "build": "tsc && vite build",
     "preview": "vite preview --port 3001 --host",
     "lint": "tsc --noEmit",
-    "test:e2e": "node tests/e2e/runner.js"
+    "test:e2e": "node tests/e2e/runner.js",
+    "test:scrape": "node tests/scrape-plays.test.mjs",
+    "scrape:plays": "node scripts/scrape-plays.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.3",
-    "firebase": "^10.14.1",
+    "firebase": "^12.18.0",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0"
+    "react-router-dom": "^7.18.3"
   },
   "devDependencies": {
     "@types/canvas-confetti": "^1.9.0",
@@ -28,10 +30,17 @@
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.16",
     "typescript": "~5.6.3",
-    "vite": "^5.4.11"
+    "vite": "^8.2.2"
+  },
+  "overrides": {
+    "@vitejs/plugin-react": {
+      "vite": "$vite"
+    }
   },
   "allowScripts": {
     "esbuild@0.21.5": true,
-    "protobufjs@7.6.6": true
+    "protobufjs@7.6.6": true,
+    "fsevents@2.3.3": true,
+    "@firebase/util@1.15.3": true
   }
 }

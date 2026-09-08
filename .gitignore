@@ -33,3 +33,6 @@ dist-ssr
 # Agent directories or files
 .agents/
 .agents
+
+# Scraped data dumps
+scraped-plays*.json
