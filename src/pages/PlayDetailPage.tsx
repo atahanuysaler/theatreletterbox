@@ -12,9 +12,10 @@ import {
   Layers, 
   MessageSquare,
   Theater,
-  Award
+  Award,
+  Trash2
 } from 'lucide-react';
-import { ReviewEntry } from '../types';
+import { Play, ReviewEntry } from '../types';
 import PlayKunye, { PlayWithDetails } from '../components/catalog/PlayKunye';
 import SocialShareModal from '../components/SocialShareModal';
 import TicketStub from '../components/TicketStub';
@@ -22,7 +23,7 @@ import { storageService } from '../services/storage';
 import { useAuthSafe } from '../context/AuthContext';
 
 interface PlayDetailPageProps {
-  onOpenLogModal?: () => void;
+  onOpenLogModal?: (play?: Play | null) => void;
 }
 
 export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }) => {
@@ -120,6 +121,26 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
       }
     } catch (e) {
       console.warn('[PlayDetailPage] Could not persist seen toggle:', e);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!window.confirm('Bu notu silmek istediğinden emin misin?')) return;
+    try {
+      await storageService.deleteReview(reviewId);
+      setReviews(prev => prev.filter(r => r.id !== reviewId));
+      setToastMessage('Not başarıyla silindi.');
+      setTimeout(() => setToastMessage(null), 2500);
+      if (id) {
+        const updatedPlay = await storageService.getPlayById(id);
+        if (updatedPlay) {
+          setPlay(updatedPlay as PlayWithDetails);
+        }
+      }
+    } catch (err) {
+      console.error('[PlayDetailPage] Error deleting review:', err);
+      setToastMessage('Not silinirken bir hata oluştu.');
+      setTimeout(() => setToastMessage(null), 3000);
     }
   };
 
@@ -249,7 +270,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
               {/* Primary CTA: Not Al */}
               <button
                 type="button"
-                onClick={onOpenLogModal}
+                onClick={() => onOpenLogModal?.(play)}
                 className="inline-flex items-center gap-2 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white px-5 py-2.5 text-xs font-medium rounded-sm shadow-sm transition-colors cursor-pointer"
               >
                 <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -305,7 +326,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
           </div>
           <button
             type="button"
-            onClick={onOpenLogModal}
+            onClick={() => onOpenLogModal?.(play)}
             className="text-xs font-mono text-theatre-curtain hover:underline flex items-center gap-1 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -324,6 +345,11 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
                   setShareReview(r);
                   setIsShareModalOpen(true);
                 }}
+                onDelete={
+                  activeUserId === rev.userId || authContext?.role === 'admin'
+                    ? () => handleDeleteReview(rev.id)
+                    : undefined
+                }
               />
             ))}
           </div>

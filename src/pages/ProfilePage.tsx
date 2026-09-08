@@ -17,7 +17,8 @@ import {
   MessageSquare,
   ArrowRight,
   Sun,
-  Moon
+  Moon,
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -64,6 +65,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
     });
     return () => { isMounted = false; };
   }, []);
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!window.confirm('Bu notu silmek istediğinden emin misin?')) return;
+    try {
+      await storageService.deleteReview(reviewId);
+      setReviews(prev => prev.filter(r => r.id !== reviewId));
+    } catch (err) {
+      console.error('[ProfilePage] Failed to delete review:', err);
+      alert('Not silinirken bir hata oluştu.');
+    }
+  };
 
   const xp = user?.xp ?? 0;
   const level = user?.level ?? 'Fuaye Meraklısı';
@@ -520,6 +532,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
                     setShareReview(r);
                     setIsShareOpen(true);
                   }}
+                  onDelete={() => handleDeleteReview(rev.id)}
                 />
               ))}
             </div>

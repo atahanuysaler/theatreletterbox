@@ -106,8 +106,9 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, preselected
       setSelectedPlay(preselectedPlay);
       setPlaySearch(preselectedPlay.title);
       setVenue(preselectedPlay.venue);
+    } else {
+      setTimeout(() => playSearchRef.current?.focus(), 100);
     }
-    setTimeout(() => playSearchRef.current?.focus(), 100);
   }, [isOpen, preselectedPlay]);
 
   const resetForm = useCallback(() => {
@@ -151,21 +152,27 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, preselected
     setError(null);
 
     try {
-      await storageService.createReview({
+      const reviewPayload: any = {
         playId: selectedPlay.id,
         playTitle: selectedPlay.title,
         playPosterUrl: selectedPlay.posterUrl,
         userId: user.uid,
         userName: user.displayName,
-        userAvatar: user.photoURL,
         rating,
         reviewText,
         performanceDate,
         sessionType,
         venue,
-        seatInfo: seatInfo || undefined,
         hasSpoilers,
-      });
+      };
+      if (user.photoURL) {
+        reviewPayload.userAvatar = user.photoURL;
+      }
+      if (seatInfo && seatInfo.trim()) {
+        reviewPayload.seatInfo = seatInfo.trim();
+      }
+
+      await storageService.createReview(reviewPayload);
       setSuccess(true);
       setTimeout(() => handleClose(), 1800);
     } catch (err) {
@@ -209,39 +216,62 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, preselected
               <label className="text-xs font-mono font-semibold text-text-secondary uppercase">
                 Oyun *
               </label>
-              <div className="relative">
-                <input
-                  ref={playSearchRef}
-                  type="text"
-                  value={playSearch}
-                  onChange={e => { setPlaySearch(e.target.value); setShowPlayList(true); setSelectedPlay(null); }}
-                  onFocus={() => setShowPlayList(true)}
-                  placeholder="Oyun adını ara..."
-                  className="w-full border border-border-strong bg-canvas px-3 py-2.5 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors"
-                />
-                {showPlayList && filteredPlays.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 z-10 bg-canvas border border-border-strong border-t-0 shadow-lg max-h-48 overflow-y-auto">
-                    {filteredPlays.map(p => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => handleSelectPlay(p)}
-                        className="w-full text-left px-3 py-2.5 text-sm hover:bg-layer-01 transition-colors border-b border-border-subtle last:border-b-0 flex items-center gap-3"
-                      >
-                        <img src={p.posterUrl} alt="" className="w-6 h-9 object-cover rounded-sm flex-shrink-0" />
-                        <div>
-                          <div className="font-semibold text-text-primary text-xs">{p.title}</div>
-                          <div className="text-[10px] text-text-tertiary font-mono">{p.playwright} · {p.company}</div>
-                        </div>
-                      </button>
-                    ))}
+              {preselectedPlay ? (
+                <div className="flex items-center gap-3 p-3 bg-layer-01 border border-border-subtle rounded-sm">
+                  <img
+                    src={selectedPlay?.posterUrl || preselectedPlay.posterUrl}
+                    alt=""
+                    className="w-10 h-14 object-cover rounded-sm flex-shrink-0 border border-border-subtle shadow-sm"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-serif font-bold text-sm text-text-primary truncate">
+                      {selectedPlay?.title || preselectedPlay.title}
+                    </div>
+                    <div className="text-xs text-text-secondary font-mono truncate">
+                      {selectedPlay?.playwright || preselectedPlay.playwright}
+                    </div>
+                    <div className="text-[11px] text-text-tertiary font-mono truncate">
+                      {selectedPlay?.company || preselectedPlay.company} · {selectedPlay?.venue || preselectedPlay.venue}
+                    </div>
                   </div>
-                )}
-              </div>
-              {selectedPlay && (
-                <div className="text-[10px] font-mono text-theatre-curtain">
-                  ✓ {selectedPlay.title} — {selectedPlay.playwright}
                 </div>
+              ) : (
+                <>
+                  <div className="relative">
+                    <input
+                      ref={playSearchRef}
+                      type="text"
+                      value={playSearch}
+                      onChange={e => { setPlaySearch(e.target.value); setShowPlayList(true); setSelectedPlay(null); }}
+                      onFocus={() => setShowPlayList(true)}
+                      placeholder="Oyun adını ara..."
+                      className="w-full border border-border-strong bg-canvas px-3 py-2.5 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors"
+                    />
+                    {showPlayList && filteredPlays.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 z-10 bg-canvas border border-border-strong border-t-0 shadow-lg max-h-48 overflow-y-auto">
+                        {filteredPlays.map(p => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => handleSelectPlay(p)}
+                            className="w-full text-left px-3 py-2.5 text-sm hover:bg-layer-01 transition-colors border-b border-border-subtle last:border-b-0 flex items-center gap-3"
+                          >
+                            <img src={p.posterUrl} alt="" className="w-6 h-9 object-cover rounded-sm flex-shrink-0" />
+                            <div>
+                              <div className="font-semibold text-text-primary text-xs">{p.title}</div>
+                              <div className="text-[10px] text-text-tertiary font-mono">{p.playwright} · {p.company}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {selectedPlay && (
+                    <div className="text-[10px] font-mono text-theatre-curtain">
+                      ✓ {selectedPlay.title} — {selectedPlay.playwright}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 

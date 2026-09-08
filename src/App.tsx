@@ -14,12 +14,17 @@ import LogModal from './components/LogModal';
 import DailyQuoteModal from './components/DailyQuoteModal';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import type { Play } from './types';
 
 export const App: React.FC = () => {
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [logModalPlay, setLogModalPlay] = useState<Play | null>(null);
   const [isDailyQuoteOpen, setIsDailyQuoteOpen] = useState(false);
 
-  const handleOpenLogModal = () => setIsLogModalOpen(true);
+  const handleOpenLogModal = (play?: Play | null) => {
+    setLogModalPlay(play || null);
+    setIsLogModalOpen(true);
+  };
   const handleOpenDailyQuote = () => setIsDailyQuoteOpen(true);
 
   return (
@@ -29,7 +34,7 @@ export const App: React.FC = () => {
           <div className="min-h-screen flex flex-col bg-canvas text-text-primary antialiased font-sans selection:bg-theatre-curtain selection:text-white">
 
           {/* Editorial Header */}
-          <Header onOpenLogModal={handleOpenLogModal} onOpenDailyQuote={handleOpenDailyQuote} />
+          <Header onOpenLogModal={() => handleOpenLogModal()} onOpenDailyQuote={handleOpenDailyQuote} />
 
           {/* Main Viewport Content */}
           <main className="flex-1 pb-20 sm:pb-8">
@@ -49,10 +54,17 @@ export const App: React.FC = () => {
           <Footer />
 
           {/* Mobile Sticky Bottom Dock */}
-          <MobileDock onOpenLogModal={handleOpenLogModal} onOpenDailyQuote={handleOpenDailyQuote} />
+          <MobileDock onOpenLogModal={() => handleOpenLogModal()} onOpenDailyQuote={handleOpenDailyQuote} />
 
           {/* Global Modals */}
-          <LogModal isOpen={isLogModalOpen} onClose={() => setIsLogModalOpen(false)} />
+          <LogModal
+            isOpen={isLogModalOpen}
+            onClose={() => {
+              setIsLogModalOpen(false);
+              setLogModalPlay(null);
+            }}
+            preselectedPlay={logModalPlay}
+          />
           <DailyQuoteModal isOpen={isDailyQuoteOpen} onClose={() => setIsDailyQuoteOpen(false)} />
         </div>
         </AuthProvider>

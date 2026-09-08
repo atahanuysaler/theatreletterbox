@@ -23,6 +23,20 @@ import {
 import { IStorageService, SeenPlayResult, QuoteGuessResult } from './storage';
 import { calculateLevel, evaluateBadges, evaluateQuoteGuess } from './gamification';
 
+/**
+ * Removes undefined fields from an object because Firestore setDoc/updateDoc
+ * throws an error when any field value is undefined.
+ */
+function removeUndefined<T extends Record<string, any>>(obj: T): T {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      result[key] = value;
+    }
+  }
+  return result as T;
+}
+
 export class FirebaseStorageService implements IStorageService {
   readonly isDemoMode = false;
 
@@ -78,10 +92,18 @@ export class FirebaseStorageService implements IStorageService {
   // Reviews CRUD
   async getReviews(playId?: string): Promise<ReviewEntry[]> {
     const reviewsRef = collection(this.getDb(), 'reviews');
-    const q = playId
-      ? query(reviewsRef, where('playId', '==', playId), orderBy('createdAt', 'desc'))
-      : query(reviewsRef, orderBy('createdAt', 'desc'));
+    // If playId is provided, querying where('playId', '==', playId) combined with
+    // orderBy('createdAt', 'desc') requires a composite Firestore index.
+    // To work seamlessly without forcing custom composite indexes in Firebase Console,
+    // we filter by playId and sort in-memory.
+    if (playId) {
+      const q = query(reviewsRef, where('playId', '==', playId));
+      const snap = await getDocs(q);
+      const items = snap.docs.map(d => ({ ...d.data(), id: d.id } as ReviewEntry));
+      return items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
 
+    const q = query(reviewsRef, orderBy('createdAt', 'desc'));
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ ...d.data(), id: d.id } as ReviewEntry));
   }
@@ -106,39 +128,43 @@ export class FirebaseStorageService implements IStorageService {
       likes: 0
     };
 
-    await setDoc(doc(this.getDb(), 'reviews', id), newReview);
+    await setDoc(doc(this.getDb(), 'reviews', id), removeUndefined(newReview));
 
-    // Recalculate average rating & review count for the play
-    const reviews = await this.getReviews(newReview.playId);
-    const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-    await this.updatePlay(newReview.playId, {
-      rating: parseFloat(avg.toFixed(1)),
-      reviewCount: reviews.length
-    });
-
-    // Check user badge unlocks
-    const user = await this.getUserProfile(newReview.userId);
-    if (user) {
-      const userReviews = reviews.filter(r => r.userId === user.uid);
-      const plays = await this.getPlays();
-      const { allUnlocked, newlyUnlocked } = evaluateBadges({
-        seenPlayIds: user.seenPlayIds || [],
-        reviews: userReviews,
-        existingBadges: user.badges || [],
-        allPlays: plays
+    // Recalculate average rating & review count for the play safely
+    try {
+      const reviews = await this.getReviews(newReview.playId);
+      const avg = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
+      await this.updatePlay(newReview.playId, {
+        rating: parseFloat(avg.toFixed(1)),
+        reviewCount: reviews.length
       });
 
-      user.badges = allUnlocked;
-      let bonusXp = 0;
-      for (const b of newlyUnlocked) {
-        bonusXp += b.xpBonus;
-      }
+      // Check user badge unlocks
+      const user = await this.getUserProfile(newReview.userId);
+      if (user) {
+        const userReviews = reviews.filter(r => r.userId === user.uid);
+        const plays = await this.getPlays();
+        const { allUnlocked, newlyUnlocked } = evaluateBadges({
+          seenPlayIds: user.seenPlayIds || [],
+          reviews: userReviews,
+          existingBadges: user.badges || [],
+          allPlays: plays
+        });
 
-      if (bonusXp > 0) {
-        user.xp += bonusXp;
-        user.level = calculateLevel(user.xp);
-        await this.updateUserProfile(user.uid, user);
+        user.badges = allUnlocked;
+        let bonusXp = 0;
+        for (const b of newlyUnlocked) {
+          bonusXp += b.xpBonus;
+        }
+
+        if (bonusXp > 0) {
+          user.xp += bonusXp;
+          user.level = calculateLevel(user.xp);
+          await this.updateUserProfile(user.uid, user);
+        }
       }
+    } catch (metricErr) {
+      console.warn('[FirebaseStorage] Review saved, but metric/badge update failed:', metricErr);
     }
 
     return newReview;
@@ -146,13 +172,26 @@ export class FirebaseStorageService implements IStorageService {
 
   async updateReview(id: string, updates: Partial<ReviewEntry>): Promise<ReviewEntry> {
     const docRef = doc(this.getDb(), 'reviews', id);
-    await updateDoc(docRef, updates as { [key: string]: any });
+    await updateDoc(docRef, removeUndefined(updates as { [key: string]: any }));
     const snap = await getDoc(docRef);
     return { ...snap.data(), id: snap.id } as ReviewEntry;
   }
 
   async deleteReview(id: string): Promise<void> {
+    const review = await this.getReviewById(id);
     await deleteDoc(doc(this.getDb(), 'reviews', id));
+    if (review?.playId) {
+      try {
+        const reviews = await this.getReviews(review.playId);
+        const avg = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
+        await this.updatePlay(review.playId, {
+          rating: parseFloat(avg.toFixed(1)),
+          reviewCount: reviews.length
+        });
+      } catch (err) {
+        console.warn('[FirebaseStorage] Failed to update play ratings after review deletion:', err);
+      }
+    }
   }
 
   async toggleLikeReview(reviewId: string): Promise<number> {
@@ -179,7 +218,7 @@ export class FirebaseStorageService implements IStorageService {
   }
 
   async createUserProfile(profile: UserProfile): Promise<UserProfile> {
-    await setDoc(doc(this.getDb(), 'users', profile.uid), profile);
+    await setDoc(doc(this.getDb(), 'users', profile.uid), removeUndefined(profile));
     return profile;
   }
 
@@ -188,7 +227,7 @@ export class FirebaseStorageService implements IStorageService {
     if (updates.xp !== undefined && !updates.level) {
       updates.level = calculateLevel(updates.xp);
     }
-    await updateDoc(docRef, updates as { [key: string]: any });
+    await updateDoc(docRef, removeUndefined(updates as { [key: string]: any }));
     const snap = await getDoc(docRef);
     return snap.data() as UserProfile;
   }

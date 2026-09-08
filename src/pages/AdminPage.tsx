@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Shield, Plus, BookOpen, MessageSquare, Trash2, ChevronDown, ChevronUp, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Shield, RotateCcw, Plus, BookOpen, MessageSquare, Trash2, ChevronDown, ChevronUp, CheckCircle2, AlertTriangle, Edit2 } from 'lucide-react';
 import { storageService } from '../services/storage';
 import { useAuth } from '../context/AuthContext';
 import type { Play, DailyQuote } from '../types';
@@ -43,6 +43,7 @@ function PlaysSection() {
   const [plays, setPlays] = useState<Play[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingPlayId, setEditingPlayId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyPlay());
   const [castRaw, setCastRaw] = useState('');
   const [tagsRaw, setTagsRaw] = useState('');
@@ -58,6 +59,38 @@ function PlaysSection() {
 
   useEffect(() => { reload(); }, [reload]);
 
+  const handleStartEdit = (play: Play) => {
+    setEditingPlayId(play.id);
+    setForm({
+      title: play.title,
+      originalTitle: play.originalTitle || '',
+      playwright: play.playwright,
+      director: play.director || '',
+      cast: play.cast || [],
+      company: play.company || '',
+      venue: play.venue || '',
+      synopsis: play.synopsis || '',
+      duration: play.duration || 90,
+      hasIntermission: Boolean(play.hasIntermission),
+      year: play.year || new Date().getFullYear(),
+      genre: Array.isArray(play.genre) ? play.genre.join(', ') : (play.genre || ''),
+      posterUrl: play.posterUrl || '',
+      tags: play.tags || [],
+    });
+    setCastRaw((play.cast || []).join(', '));
+    setTagsRaw((play.tags || []).join(', '));
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelForm = () => {
+    setEditingPlayId(null);
+    setForm(emptyPlay());
+    setCastRaw('');
+    setTagsRaw('');
+    setShowForm(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title.trim() || !form.playwright.trim()) {
@@ -66,19 +99,24 @@ function PlaysSection() {
     }
     setSubmitting(true);
     try {
-      await storageService.createPlay({
+      const playPayload = {
         ...form,
         cast: castRaw.split(',').map(s => s.trim()).filter(Boolean),
         tags: tagsRaw.split(',').map(s => s.trim()).filter(Boolean),
-      });
-      setStatus({ type: 'success', msg: `"${form.title}" eklendi.` });
-      setForm(emptyPlay());
-      setCastRaw('');
-      setTagsRaw('');
-      setShowForm(false);
+      };
+
+      if (editingPlayId) {
+        await storageService.updatePlay(editingPlayId, playPayload);
+        setStatus({ type: 'success', msg: `"${form.title}" güncellendi.` });
+      } else {
+        await storageService.createPlay(playPayload);
+        setStatus({ type: 'success', msg: `"${form.title}" eklendi.` });
+      }
+
+      handleCancelForm();
       reload();
     } catch {
-      setStatus({ type: 'error', msg: 'Oyun eklenirken hata oluştu.' });
+      setStatus({ type: 'error', msg: editingPlayId ? 'Oyun güncellenirken hata oluştu.' : 'Oyun eklenirken hata oluştu.' });
     } finally {
       setSubmitting(false);
     }
@@ -89,6 +127,9 @@ function PlaysSection() {
     setDeletingId(play.id);
     try {
       await storageService.deletePlay(play.id);
+      if (editingPlayId === play.id) {
+        handleCancelForm();
+      }
       reload();
     } catch {
       setStatus({ type: 'error', msg: 'Silme sırasında hata oluştu.' });
@@ -107,11 +148,17 @@ function PlaysSection() {
         </div>
         <button
           type="button"
-          onClick={() => setShowForm(v => !v)}
+          onClick={() => {
+            if (showForm) {
+              handleCancelForm();
+            } else {
+              setShowForm(true);
+            }
+          }}
           className="flex items-center gap-1.5 text-xs font-semibold bg-theatre-curtain text-white px-3 py-1.5 hover:opacity-90 transition-opacity"
         >
           {showForm ? <ChevronUp className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-          {showForm ? 'Formu Kapat' : 'Yeni Oyun Ekle'}
+          {showForm ? (editingPlayId ? 'Düzenlemeyi Kapat' : 'Formu Kapat') : 'Yeni Oyun Ekle'}
         </button>
       </div>
 
@@ -182,13 +229,22 @@ function PlaysSection() {
           <Field label="Özet">
             <textarea value={form.synopsis} onChange={e => setForm(f => ({ ...f, synopsis: e.target.value }))} rows={3} placeholder="Oyun özeti..." className={`${inputCls} resize-none`} />
           </Field>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-theatre-curtain text-white py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-opacity"
-          >
-            {submitting ? 'Ekleniyor...' : 'Oyunu Ekle'}
-          </button>
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 bg-theatre-curtain text-white py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-opacity"
+            >
+              {submitting ? (editingPlayId ? 'Güncelleniyor...' : 'Ekleniyor...') : (editingPlayId ? 'Değişiklikleri Kaydet' : 'Oyunu Ekle')}
+            </button>
+            <button
+              type="button"
+              onClick={handleCancelForm}
+              className="px-4 py-2.5 text-sm font-semibold bg-layer-02 hover:bg-layer-03 text-text-secondary border border-border-subtle transition-colors"
+            >
+              Vazgeç
+            </button>
+          </div>
         </form>
       )}
 
@@ -206,7 +262,7 @@ function PlaysSection() {
                 <th className="py-2 px-3 text-left hidden sm:table-cell">Yazar</th>
                 <th className="py-2 px-3 text-left hidden md:table-cell">Şirket</th>
                 <th className="py-2 px-3 text-right">Puan</th>
-                <th className="py-2 px-3 w-10" />
+                <th className="py-2 px-3 w-16 text-right">İşlem</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-subtle">
@@ -216,16 +272,26 @@ function PlaysSection() {
                   <td className="py-2.5 px-3 text-text-secondary hidden sm:table-cell font-mono">{play.playwright}</td>
                   <td className="py-2.5 px-3 text-text-tertiary hidden md:table-cell font-mono">{play.company}</td>
                   <td className="py-2.5 px-3 text-right font-mono text-text-primary">{play.rating?.toFixed(1) ?? '—'}</td>
-                  <td className="py-2.5 px-3">
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(play)}
-                      disabled={deletingId === play.id}
-                      className="p-1 text-text-tertiary hover:text-theatre-curtain disabled:opacity-40 transition-colors"
-                      title="Sil"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                  <td className="py-2.5 px-3 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleStartEdit(play)}
+                        className="p-1 text-text-tertiary hover:text-theatre-curtain transition-colors"
+                        title="Düzenle"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(play)}
+                        disabled={deletingId === play.id}
+                        className="p-1 text-text-tertiary hover:text-theatre-curtain disabled:opacity-40 transition-colors"
+                        title="Sil"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

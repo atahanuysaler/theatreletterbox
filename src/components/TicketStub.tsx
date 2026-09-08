@@ -7,10 +7,11 @@ import {
   Calendar, 
   User, 
   Eye, 
-  EyeOff, 
+  EyeOff,
   Award, 
   Sparkles,
-  Ticket
+  Ticket,
+  Trash2
 } from 'lucide-react';
 import type { ReviewEntry } from '../types';
 
@@ -18,6 +19,7 @@ export interface TicketStubProps {
   review: ReviewEntry;
   showPlayTitle?: boolean;
   onShare?: (review: ReviewEntry) => void;
+  onDelete?: (reviewId: string) => void;
   className?: string;
 }
 
@@ -25,6 +27,7 @@ export const TicketStub: React.FC<TicketStubProps> = ({
   review,
   showPlayTitle = true,
   onShare,
+  onDelete,
   className = '',
 }) => {
   const [showSpoiler, setShowSpoiler] = useState(!review.hasSpoilers);
@@ -195,6 +198,17 @@ export const TicketStub: React.FC<TicketStubProps> = ({
               >
                 <Share2 className="w-3.5 h-3.5 text-theatre-curtain" />
                 <span>Bileti Paylaş</span>
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                onClick={() => onDelete(review.id)}
+                className="inline-flex items-center gap-1 text-text-tertiary hover:text-theatre-curtain px-2 py-1 rounded-sm bg-canvas border border-border-subtle hover:border-border-strong text-xs font-medium transition-colors cursor-pointer"
+                title="Bu notu sil"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Sil</span>
               </button>
             )}
             {showPlayTitle && (

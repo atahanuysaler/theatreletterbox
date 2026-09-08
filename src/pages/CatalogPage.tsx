@@ -19,7 +19,7 @@ import { storageService } from '../services/storage';
 import { useAuthSafe } from '../context/AuthContext';
 
 interface CatalogPageProps {
-  onOpenLogModal?: () => void;
+  onOpenLogModal?: (play?: Play | null) => void;
   onOpenDailyQuote?: () => void;
 }
 
@@ -272,7 +272,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
 
           <button
             type="button"
-            onClick={onOpenLogModal}
+            onClick={() => onOpenLogModal?.()}
             className="inline-flex items-center gap-1.5 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white px-3.5 py-1.5 text-xs font-medium rounded-sm shadow-sm transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -468,7 +468,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
                     play={play}
                     isSeen={seenPlayIds.includes(play.id)}
                     onToggleSeen={handleToggleSeen}
-                    onOpenLogModal={() => onOpenLogModal?.()}
+                    onOpenLogModal={(p) => onOpenLogModal?.(p)}
                   />
                 ))}
               </div>
