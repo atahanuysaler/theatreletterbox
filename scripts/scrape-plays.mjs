@@ -80,8 +80,16 @@ for (const arg of args) {
   else if (arg === '--dry-run') options.dryRun = true;
   else if (arg === '--inject-only') options.injectOnly = true;
   else if (arg === '--force') options.force = true;
+  else if (arg === '--no-limit') options.limit = Infinity;
   else if (arg.startsWith('--source=')) options.source = arg.split('=')[1].toLowerCase();
-  else if (arg.startsWith('--limit=')) options.limit = parseInt(arg.split('=')[1], 10);
+  else if (arg.startsWith('--limit=')) {
+    const rawLimit = arg.split('=')[1].toLowerCase();
+    if (['all', '0', 'none', 'inf', 'infinity'].includes(rawLimit)) {
+      options.limit = Infinity;
+    } else {
+      options.limit = parseInt(rawLimit, 10);
+    }
+  }
   else if (arg.startsWith('--delay=')) options.delay = parseInt(arg.split('=')[1], 10);
   else if (arg.startsWith('--output=')) options.output = path.resolve(rootDir, arg.split('=')[1]);
   else if (arg.startsWith('--service-account=')) options.serviceAccount = path.resolve(rootDir, arg.split('=')[1]);
@@ -171,6 +179,34 @@ function cleanText(str) {
     .replace(/&nbsp;/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+export function normalizeKey(str) {
+  if (!str) return '';
+  return str
+    .toLocaleLowerCase('tr')
+    .replace(/[^a-z0-9ğüşıöç]/g, '')
+    .trim();
+}
+
+/**
+ * Generates a unique theatrical production signature.
+ * Differentiates multiple distinct stagings of the same classic
+ * (e.g. Macbeth by Moda Sahnesi vs Macbeth by Trabzon DT).
+ */
+export function getProductionSignature(play) {
+  if (!play || !play.title) return '';
+  const normTitle = normalizeKey(play.title);
+  const normDirector = normalizeKey(play.director);
+  const normCompany = normalizeKey(play.company);
+  const normPlaywright = normalizeKey(play.playwright);
+
+  // Use director and company to distinguish distinct productions of the same play
+  const stagingSignature = [normDirector, normCompany, normPlaywright]
+    .filter(s => s && s !== 'bilinmiyor' && s !== 'belirtilmemis')
+    .join('_');
+
+  return `${normTitle}::${stagingSignature}`;
 }
 
 // ─── PLAY DETAIL PARSER ───────────────────────────────────────────────────────
@@ -519,13 +555,20 @@ async function main() {
     }
   }
 
-  // Step 1: Pre-fetch existing play IDs from Firestore to prevent duplicate scraping & writes
+  // Step 1: Pre-fetch existing plays & production signatures from Firestore
   const existingFirestoreIds = new Set();
+  const existingSignatures = new Set();
+
   if (adminDb) {
     try {
-      const snap = await adminDb.collection('plays').select().get();
-      snap.docs.forEach(d => existingFirestoreIds.add(d.id));
-      console.log(`📊 Found ${existingFirestoreIds.size} existing play(s) in Firestore.`);
+      const snap = await adminDb.collection('plays').select('title', 'director', 'company', 'playwright').get();
+      snap.docs.forEach(d => {
+        existingFirestoreIds.add(d.id);
+        const data = d.data();
+        const sig = getProductionSignature({ ...data, id: d.id });
+        if (sig) existingSignatures.add(sig);
+      });
+      console.log(`📊 Found ${existingFirestoreIds.size} existing play(s) in Firestore (${existingSignatures.size} production signatures).`);
     } catch (err) {
       console.warn(`⚠️ Could not pre-fetch existing plays from Firestore: ${err.message}`);
     }
@@ -537,7 +580,11 @@ async function main() {
     try {
       const parsed = JSON.parse(readFileSync(options.output, 'utf-8'));
       if (Array.isArray(parsed)) {
-        parsed.forEach(p => p.id && existingLocalMap.set(p.id, p));
+        parsed.forEach(p => {
+          if (p.id) existingLocalMap.set(p.id, p);
+          const sig = getProductionSignature(p);
+          if (sig) existingSignatures.add(sig);
+        });
         console.log(`📁 Found ${existingLocalMap.size} play(s) in local ${path.basename(options.output)}.`);
       }
     } catch {}
@@ -573,8 +620,20 @@ async function main() {
 
           const play = parsePlayHtml(html, slug);
           if (play && play.title) {
+            const sig = getProductionSignature(play);
+            if (!options.force && existingSignatures.has(sig)) {
+              console.log(`⏭️  Duplicate production signature for "${play.title}" (${play.company || 'Bağımsız'}, Yön: ${play.director || '-'}) - skipped.`);
+              continue;
+            }
+            if (sig) existingSignatures.add(sig);
             newPlaysScraped.push(play);
             console.log(`✅ "${play.title}" (${play.genre || 'Tiyatro'}, ${play.cast.length} cast)`);
+
+            // Periodic auto-flush every 10 plays to prevent loss during long scrapes
+            if (newPlaysScraped.length % 10 === 0) {
+              for (const p of newPlaysScraped) existingLocalMap.set(p.id, p);
+              writeFileSync(options.output, JSON.stringify(Array.from(existingLocalMap.values()), null, 2), 'utf-8');
+            }
           } else {
             console.log(`⚠️ Incomplete data`);
           }
@@ -586,7 +645,7 @@ async function main() {
         if (options.delay > 0) await sleep(options.delay);
       }
 
-      // Merge newly scraped plays with existing local plays (never overwrite existing collection, accumulative append)
+      // Final merge
       for (const play of newPlaysScraped) {
         existingLocalMap.set(play.id, play);
       }

@@ -181,6 +181,12 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
     sortBy,
   ]);
 
+  // Limit number of plays displayed on the front page to 40
+  const FRONT_PAGE_LIMIT = 40;
+  const displayedPlays = useMemo(() => {
+    return filteredPlays.slice(0, FRONT_PAGE_LIMIT);
+  }, [filteredPlays]);
+
   // Handle "Gördüm" Toggle with Confetti & Storage Update
   const handleToggleSeen = async (playId: string) => {
     const isCurrentlySeen = seenPlayIds.includes(playId);
@@ -391,7 +397,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
           onSelectIntermission={setSelectedIntermission}
           onResetFilters={handleResetFilters}
           totalPlaysCount={plays.length}
-          filteredPlaysCount={filteredPlays.length}
+          filteredPlaysCount={displayedPlays.length}
           isMobileOpen={isMobileFiltersOpen}
           onCloseMobile={() => setIsMobileFiltersOpen(false)}
         />
@@ -452,18 +458,28 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
             </div>
           )}
 
-          {/* Repertoire Grid: 10 Plays */}
-          {filteredPlays.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-              {filteredPlays.map((play) => (
-                <PlayCard
-                  key={play.id}
-                  play={play}
-                  isSeen={seenPlayIds.includes(play.id)}
-                  onToggleSeen={handleToggleSeen}
-                  onOpenLogModal={() => onOpenLogModal?.()}
-                />
-              ))}
+          {/* Repertoire Grid: Max 40 Plays */}
+          {displayedPlays.length > 0 ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+                {displayedPlays.map((play) => (
+                  <PlayCard
+                    key={play.id}
+                    play={play}
+                    isSeen={seenPlayIds.includes(play.id)}
+                    onToggleSeen={handleToggleSeen}
+                    onOpenLogModal={() => onOpenLogModal?.()}
+                  />
+                ))}
+              </div>
+
+              {filteredPlays.length > FRONT_PAGE_LIMIT && (
+                <div className="bg-layer-01 border border-border-subtle rounded-sm p-4 text-center">
+                  <p className="text-xs font-mono text-text-secondary">
+                    Ön sayfada en fazla {FRONT_PAGE_LIMIT} oyun gösterilmektedir (toplam {filteredPlays.length} sonuç arasından). İstediğiniz yapımlara erişmek için arama veya filtreleri daraltabilirsiniz.
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             /* Empty State */

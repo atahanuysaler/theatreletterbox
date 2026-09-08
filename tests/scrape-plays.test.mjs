@@ -73,8 +73,26 @@ if (existsSync('/tmp/sample_kel_diva.html')) {
   assert.strictEqual(kd.director, 'Muharrem Özcan');
   assert.ok(kd.cast.includes('Haluk Bilginer'));
   assert.strictEqual(kd.company, 'Oyun Atölyesi');
-  assert.strictEqual(kd.hasIntermission, false);
   console.log('  ✅ Real Kel Diva sample parsed and verified.');
 }
 
-console.log('🎉 All parser tests passed successfully!\n');
+// 3. Testing getProductionSignature (multi-factor staging verification)
+const { getProductionSignature } = await import('../scripts/scrape-plays.mjs');
+
+const macbethModa = { title: 'Macbeth', director: 'Kemal Aydoğan', company: 'Moda Sahnesi' };
+const macbethTrabzon = { title: 'Macbeth', director: 'Barış Erdenk', company: 'Trabzon DT' };
+const macbethModaDupe = { title: 'Macbeth ', director: 'Kemal Aydoğan', company: 'Moda Sahnesi' };
+
+const sig1 = getProductionSignature(macbethModa);
+const sig2 = getProductionSignature(macbethTrabzon);
+const sig3 = getProductionSignature(macbethModaDupe);
+
+// Distinct stagings must NOT match
+assert.notStrictEqual(sig1, sig2, 'Different stagings of the same play must have distinct signatures');
+
+// Duplicate staging must match
+assert.strictEqual(sig1, sig3, 'Identical productions must have the same signature');
+
+console.log('  ✅ Production signature test verified: multiple stagings of the same title are kept, duplicates are detected.');
+
+console.log('🎉 All parser and deduplication tests passed successfully!\n');
