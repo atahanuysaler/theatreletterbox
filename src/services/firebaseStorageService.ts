@@ -22,7 +22,6 @@ import {
 } from '../types';
 import { IStorageService, SeenPlayResult, QuoteGuessResult } from './storage';
 import { calculateLevel, evaluateBadges, evaluateQuoteGuess } from './gamification';
-import rawSeedData from '../../seed-data.json';
 
 export class FirebaseStorageService implements IStorageService {
   readonly isDemoMode = false;
@@ -353,22 +352,10 @@ export class FirebaseStorageService implements IStorageService {
     return result;
   }
 
-  // Reset & Re-seed
+  // Reset & Re-seed (Disabled)
   async resetAndSeedDatabase(): Promise<void> {
-    const db = this.getDb();
-    const seedPlays = (rawSeedData as { plays: Play[] }).plays || [];
-    const seedQuotes = (rawSeedData as { dailyQuotes: DailyQuote[] }).dailyQuotes || [];
-    const seedBadges = (rawSeedData as { badges: Badge[] }).badges || [];
-
-    for (const play of seedPlays) {
-      await setDoc(doc(db, 'plays', play.id), play);
-    }
-    for (const quote of seedQuotes) {
-      await setDoc(doc(db, 'dailyQuotes', quote.id), quote);
-    }
-    for (const badge of seedBadges) {
-      await setDoc(doc(db, 'badges', badge.id), badge);
-    }
+    console.warn('[FirebaseStorage] resetAndSeedDatabase is disabled.');
+    throw new Error('Veritabanını sıfırlama işlevi devre dışı bırakılmıştır.');
   }
 }
 

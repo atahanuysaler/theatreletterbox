@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Shield, RotateCcw, Plus, BookOpen, MessageSquare, Trash2, ChevronDown, ChevronUp, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Shield, Plus, BookOpen, MessageSquare, Trash2, ChevronDown, ChevronUp, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { storageService } from '../services/storage';
 import { useAuth } from '../context/AuthContext';
 import type { Play, DailyQuote } from '../types';
@@ -370,27 +370,10 @@ function QuotesSection() {
 // ── Main Admin Page ──────────────────────────────────────────────────────────
 export const AdminPage: React.FC = () => {
   const { user, role } = useAuth();
-  const [seeding, setSeeding] = useState(false);
-  const [seedResult, setSeedResult] = useState<string | null>(null);
 
   if (role !== 'admin') {
     return <AccessDenied />;
   }
-
-  const handleSeed = async () => {
-    if (!window.confirm('Veritabanı sıfırlanıp yeniden tohumlanacak. Emin misin?')) return;
-    setSeeding(true);
-    setSeedResult(null);
-    try {
-      await storageService.resetAndSeedDatabase();
-      setSeedResult('✅ 10 oyun, 5 replik ve 4 rozet başarıyla yüklendi.');
-    } catch (err) {
-      setSeedResult('❌ Tohumlama sırasında hata oluştu.');
-      console.error('[Admin] resetAndSeedDatabase error:', err);
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
@@ -405,7 +388,7 @@ export const AdminPage: React.FC = () => {
             Tiyatronot Yönetici Paneli
           </h1>
           <p className="text-sm text-text-secondary mt-1">
-            Oyun katalogu, günlük replik ve veritabanı kontrolleri.
+            Oyun katalogu ve günlük replik kontrolleri.
           </p>
         </div>
         <div className="flex items-center gap-2 bg-layer-01 border border-border-subtle px-3 py-1.5 rounded-sm flex-shrink-0">
@@ -427,35 +410,6 @@ export const AdminPage: React.FC = () => {
 
       {/* Quotes CRUD */}
       <QuotesSection />
-
-      {/* Divider */}
-      <hr className="border-border-subtle" />
-
-      {/* Seed / Reset */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 font-semibold text-sm text-text-primary">
-          <RotateCcw className="w-4 h-4 text-theatre-curtain" />
-          Veritabanını Sıfırla / Tohumla
-        </div>
-        <p className="text-xs text-text-secondary">
-          10 klasik oyunu, 5 günlük repliği ve 4 rozeti varsayılan ayarlarla yeniden yükler.
-          <span className="text-theatre-curtain font-semibold"> Mevcut oyunlar silinir.</span>
-        </p>
-        <button
-          type="button"
-          onClick={handleSeed}
-          disabled={seeding}
-          className="flex items-center gap-2 bg-theatre-curtain text-white px-4 py-2.5 text-sm font-semibold hover:opacity-90 disabled:opacity-60 disabled:cursor-wait transition-opacity"
-        >
-          <RotateCcw className={`w-4 h-4 ${seeding ? 'animate-spin' : ''}`} />
-          {seeding ? 'Tohumlanıyor...' : 'Veritabanını Sıfırla / Tohumla'}
-        </button>
-        {seedResult && (
-          <div className="text-xs font-mono text-text-secondary bg-layer-01 border border-border-subtle p-3 rounded-sm">
-            {seedResult}
-          </div>
-        )}
-      </div>
     </div>
   );
 };

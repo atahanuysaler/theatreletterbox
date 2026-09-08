@@ -541,14 +541,15 @@ async function main() {
   if (keyPath) {
     try {
       const serviceAccount = JSON.parse(readFileSync(keyPath, 'utf-8'));
-      const admin = await import('firebase-admin');
-      const apps = admin.default.apps || [];
+      const { initializeApp, cert, getApps } = await import('firebase-admin/app');
+      const { getFirestore } = await import('firebase-admin/firestore');
+      const apps = getApps();
       const app = apps.length > 0
         ? apps[0]
-        : admin.default.initializeApp({
-            credential: admin.default.credential.cert(serviceAccount),
+        : initializeApp({
+            credential: cert(serviceAccount),
           });
-      adminDb = admin.default.firestore(app);
+      adminDb = getFirestore(app);
       console.log(`\n🛡️  Firebase Admin SDK activated using service account: ${path.basename(keyPath)}`);
       console.log(`   (All security rules bypassed, direct administrative write enabled)`);
     } catch (err) {
