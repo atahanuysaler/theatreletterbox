@@ -79,7 +79,7 @@ export const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-sm border transition-colors cursor-pointer ${
+        className={`inline-flex items-center justify-between sm:justify-start gap-2 px-3 py-1.5 w-full sm:w-auto text-xs font-medium rounded-sm border transition-colors cursor-pointer ${
           selectedValue
             ? 'bg-layer-01 border-theatre-curtain text-text-primary shadow-xs'
             : 'bg-canvas hover:bg-layer-01 border-border-subtle hover:border-border-strong text-text-secondary hover:text-text-primary'
@@ -87,29 +87,33 @@ export const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
-        {icon && <span className="text-theatre-curtain">{icon}</span>}
-        <span className="font-mono text-text-tertiary">{label}:</span>
-        <span className="font-semibold text-text-primary max-w-[140px] sm:max-w-[180px] truncate">
-          {selectedValue || allLabel}
-        </span>
-        {selectedValue && (
-          <span
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect('');
-            }}
-            className="p-0.5 hover:bg-layer-02 rounded-xs text-text-tertiary hover:text-theatre-curtain"
-            title="Temizle"
-          >
-            <X className="w-3 h-3" />
+        <div className="flex items-center gap-1.5 min-w-0">
+          {icon && <span className="text-theatre-curtain shrink-0">{icon}</span>}
+          <span className="font-mono text-text-tertiary shrink-0">{label}:</span>
+          <span className="font-semibold text-text-primary truncate">
+            {selectedValue || allLabel}
           </span>
-        )}
-        <ChevronDown className={`w-3.5 h-3.5 text-text-tertiary transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </div>
+        <div className="flex items-center gap-1 shrink-0 ml-auto sm:ml-0">
+          {selectedValue && (
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect('');
+              }}
+              className="p-0.5 hover:bg-layer-02 rounded-xs text-text-tertiary hover:text-theatre-curtain"
+              title="Temizle"
+            >
+              <X className="w-3 h-3" />
+            </span>
+          )}
+          <ChevronDown className={`w-3.5 h-3.5 text-text-tertiary transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </div>
       </button>
 
       {/* Popover Menu */}
       {isOpen && (
-        <div className="absolute left-0 mt-1 w-64 sm:w-72 bg-canvas border border-border-strong rounded-sm shadow-modal z-50 overflow-hidden animate-fade-in">
+        <div className="absolute left-0 mt-1 w-64 sm:w-72 max-w-[calc(100vw-2.5rem)] bg-canvas border border-border-strong rounded-sm shadow-modal z-50 overflow-hidden animate-fade-in">
           {/* Internal Search Input */}
           <div className="p-2 border-b border-border-subtle bg-layer-01">
             <div className="relative">

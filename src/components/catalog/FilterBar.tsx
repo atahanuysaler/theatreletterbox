@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, 
   RotateCcw, 
@@ -9,7 +9,12 @@ import {
   SlidersHorizontal,
   ChevronDown,
   X,
-  Clapperboard
+  Clapperboard,
+  Star,
+  StickyNote,
+  Calendar,
+  ArrowDownAZ,
+  Check
 } from 'lucide-react';
 import SearchableDropdown from './SearchableDropdown';
 
@@ -64,6 +69,32 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   filteredPlaysCount,
 }) => {
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
+
+  // Close sort menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
+        setIsSortOpen(false);
+      }
+    };
+    if (isSortOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isSortOpen]);
+
+  const SORT_CONFIG: Record<SortOption, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
+    rating: { label: 'En Yüksek Puan', icon: Star },
+    reviews: { label: 'En Çok Not Alan', icon: StickyNote },
+    year: { label: 'Prömiyer Yılı', icon: Calendar },
+    title: { label: 'Alfabetik (A-Z)', icon: ArrowDownAZ },
+  };
+
+  const CurrentSortIcon = SORT_CONFIG[sortBy]?.icon || Star;
 
   const activeDropdownFiltersCount = 
     (selectedGenre ? 1 : 0) + 
@@ -74,74 +105,128 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   return (
     <div className="space-y-2.5">
-      {/* Primary Row: Long Search Bar + Single Filter Toggle Button */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Prominent Long Search Input */}
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary pointer-events-none" />
+      {/* Search Bar + Filters + Sort By on the Same Single Line */}
+      <div className="flex items-center gap-1.5 sm:gap-2 w-full">
+        {/* Search Input - Expands to fill available space */}
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Oyun, topluluk, yazar veya oyuncu ara..."
-            className="w-full bg-canvas border border-border-strong hover:border-text-secondary focus:border-theatre-curtain text-xs sm:text-sm pl-10 pr-9 py-2.5 rounded-sm outline-none transition-colors text-text-primary placeholder:text-text-tertiary font-sans shadow-xs"
+            className="w-full bg-canvas border border-border-strong hover:border-text-secondary focus:border-theatre-curtain text-xs sm:text-sm pl-9 pr-8 py-2 rounded-sm outline-none transition-colors text-text-primary placeholder:text-text-tertiary font-sans shadow-xs"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => onSearchChange('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-theatre-curtain text-xs p-1 cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-theatre-curtain text-xs p-1 cursor-pointer"
               aria-label="Aramayı temizle"
               title="Aramayı temizle"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
 
-        {/* Filters Toggle Button (Turn on and off) */}
-        <button
-          type="button"
-          onClick={() => setIsFiltersOpen(v => !v)}
-          className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2.5 text-xs font-semibold rounded-sm border transition-colors cursor-pointer select-none shrink-0 shadow-xs ${
-            isFiltersOpen || activeDropdownFiltersCount > 0
-              ? 'bg-layer-02 border-theatre-curtain text-theatre-curtain'
-              : 'bg-canvas hover:bg-layer-01 border-border-strong text-text-primary'
-          }`}
-          aria-expanded={isFiltersOpen}
-          title={isFiltersOpen ? 'Filtreleri Gizle' : 'Filtreleri Aç'}
-        >
-          <SlidersHorizontal className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Filtreler</span>
-          {activeDropdownFiltersCount > 0 && (
-            <span className="w-4 h-4 bg-theatre-curtain text-white rounded-full text-[10px] font-bold flex items-center justify-center font-mono">
-              {activeDropdownFiltersCount}
-            </span>
-          )}
-          <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isFiltersOpen ? 'rotate-180' : ''}`} />
-        </button>
-
-        {/* Sırala Dropdown (Replaced the total plays count) */}
-        <div className="flex items-center gap-1.5 bg-canvas border border-border-strong hover:border-text-secondary px-2.5 sm:px-3 py-2.5 rounded-sm text-xs shrink-0 shadow-xs">
-          <ArrowUpDown className="w-3.5 h-3.5 text-text-tertiary shrink-0" />
-          <select
-            value={sortBy}
-            onChange={(e) => onSortChange(e.target.value as SortOption)}
-            className="bg-transparent text-text-primary font-medium outline-none cursor-pointer text-xs font-sans pr-1"
-            aria-label="Sıralama ölçütü"
+        {/* Right End Side: Minimal Filters & Sort Buttons (As little as possible, without any texts) */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Filters Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setIsFiltersOpen(v => !v)}
+            className={`relative inline-flex items-center justify-center w-8 h-8 rounded-sm border transition-colors cursor-pointer select-none shrink-0 shadow-xs ${
+              isFiltersOpen || activeDropdownFiltersCount > 0
+                ? 'bg-layer-02 border-theatre-curtain text-theatre-curtain'
+                : 'bg-canvas hover:bg-layer-01 border-border-strong text-text-primary'
+            }`}
+            aria-expanded={isFiltersOpen}
+            aria-label="Filtreler"
+            title={isFiltersOpen ? 'Filtreleri Gizle' : 'Filtreleri Aç'}
           >
-            <option value="rating">En Yüksek Puan</option>
-            <option value="reviews">En Çok Not Alan</option>
-            <option value="year">Prömiyer Yılı</option>
-            <option value="title">Alfabetik (A-Z)</option>
-          </select>
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            {activeDropdownFiltersCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-theatre-curtain text-white rounded-full text-[9px] font-bold flex items-center justify-center font-mono ring-2 ring-canvas">
+                {activeDropdownFiltersCount}
+              </span>
+            )}
+          </button>
+
+          {/* Sort Button with Dynamic Logo per Selection */}
+          <div className="relative" ref={sortRef}>
+            <button
+              type="button"
+              onClick={() => setIsSortOpen(v => !v)}
+              className={`relative inline-flex items-center justify-center w-8 h-8 rounded-sm border transition-colors cursor-pointer select-none shrink-0 shadow-xs ${
+                isSortOpen || sortBy !== 'rating'
+                  ? 'bg-layer-02 border-theatre-curtain text-theatre-curtain'
+                  : 'bg-canvas hover:bg-layer-01 border-border-strong text-text-primary'
+              }`}
+              aria-expanded={isSortOpen}
+              aria-label={`Sıralama: ${SORT_CONFIG[sortBy]?.label}`}
+              title={`Sırala: ${SORT_CONFIG[sortBy]?.label}`}
+            >
+              <CurrentSortIcon className="w-3.5 h-3.5" />
+            </button>
+
+            {/* Sort Dropdown Popover */}
+            {isSortOpen && (
+              <div className="absolute right-0 mt-1 w-44 bg-canvas border border-border-strong rounded-sm shadow-modal z-50 py-1 animate-fade-in divide-y divide-border-subtle text-xs">
+                <div className="px-2.5 py-1 text-[10px] font-mono text-text-tertiary uppercase tracking-wider select-none">
+                  Sıralama Ölçütü
+                </div>
+                <div className="py-0.5">
+                  {(Object.keys(SORT_CONFIG) as SortOption[]).map((optionKey) => {
+                    const item = SORT_CONFIG[optionKey];
+                    const Icon = item.icon;
+                    const isSelected = sortBy === optionKey;
+                    return (
+                      <button
+                        key={optionKey}
+                        type="button"
+                        onClick={() => {
+                          onSortChange(optionKey);
+                          setIsSortOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 text-left hover:bg-layer-01 transition-colors cursor-pointer text-xs ${
+                          isSelected
+                            ? 'text-theatre-curtain font-semibold bg-layer-01/60'
+                            : 'text-text-primary'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-theatre-curtain' : 'text-text-tertiary'}`} />
+                          <span>{item.label}</span>
+                        </div>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-theatre-curtain shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Reset Filters Icon Button (when active) */}
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={onResetFilters}
+              className="inline-flex items-center justify-center w-8 h-8 rounded-sm border border-border-subtle bg-canvas hover:bg-layer-01 text-theatre-curtain transition-colors cursor-pointer shrink-0"
+              title="Tüm filtreleri sıfırla"
+              aria-label="Tüm filtreleri sıfırla"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
       {/* Collapsible Filter Panel (Appears when toggled on) */}
       {isFiltersOpen && (
         <div className="bg-layer-01 p-3 rounded-sm border border-border-subtle animate-fade-in space-y-3">
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5">
             {/* Tür Autocomplete Dropdown */}
             <SearchableDropdown
               label="Tür"
@@ -151,6 +236,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               onSelect={onSelectGenre}
               placeholder="Tür ara..."
               allLabel="Tüm Türler"
+              className="w-full sm:w-auto"
             />
 
             {/* Topluluk Autocomplete Dropdown */}
@@ -162,6 +248,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               onSelect={onSelectCompany}
               placeholder="Topluluk ara..."
               allLabel="Tüm Topluluklar"
+              className="w-full sm:w-auto"
             />
 
             {/* Oyuncu Autocomplete Dropdown */}
@@ -173,6 +260,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               onSelect={onSelectActor}
               placeholder="Oyuncu ara..."
               allLabel="Tüm Oyuncular"
+              className="w-full sm:w-auto"
             />
 
             {/* Yapım Ekibi Autocomplete Dropdown (Yazar / Yönetmen) */}
@@ -185,6 +273,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 onSelect={onSelectCrewMember}
                 placeholder="Yazar, yönetmen ara..."
                 allLabel="Tüm Ekip"
+                className="w-full sm:w-auto"
               />
             )}
 

@@ -68,6 +68,8 @@ html.dark,
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   body {
@@ -76,6 +78,8 @@ html.dark,
     background-color: rgb(var(--color-canvas));
     color: rgb(var(--color-text-primary));
     line-height: 1.5;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   /* Editorial Headings: Classical Play Scripts & Theatre Playbills */

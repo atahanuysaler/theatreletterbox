@@ -35,7 +35,7 @@ export const App: React.FC = () => {
     <ThemeProvider>
       <BrowserRouter>
         <AuthProvider>
-          <div className="min-h-screen flex flex-col bg-canvas text-text-primary antialiased font-sans selection:bg-theatre-curtain selection:text-white">
+          <div className="min-h-screen w-full max-w-full overflow-x-hidden flex flex-col bg-canvas text-text-primary antialiased font-sans selection:bg-theatre-curtain selection:text-white">
 
           {/* Editorial Header */}
           <Header onOpenLogModal={() => handleOpenLogModal()} onOpenDailyQuote={handleOpenDailyQuote} />

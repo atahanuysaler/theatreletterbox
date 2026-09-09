@@ -64,12 +64,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-18 gap-3 sm:gap-4">
             {/* Left: Menu Trigger, Brand & Logo */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               {/* Dedicated Menu Drawer Trigger */}
               <button
                 type="button"
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-2 -ml-1.5 text-text-secondary hover:text-text-primary hover:bg-layer-01 active:bg-layer-02 rounded-lg transition-colors cursor-pointer flex items-center justify-center focus:outline-none"
+                className="p-2 -ml-1.5 text-text-secondary hover:text-text-primary hover:bg-layer-01 active:bg-layer-02 rounded-lg transition-colors cursor-pointer flex items-center justify-center focus:outline-none shrink-0"
                 title="Menüyü Aç"
                 aria-label="Navigasyon Menüsünü Aç"
               >
@@ -77,24 +77,24 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
               </button>
 
               {/* Logo + Brand Name (Links to Home) */}
-              <Link to="/" className="flex items-center gap-2.5 group cursor-pointer">
+              <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group cursor-pointer min-w-0">
                 <img
                   src="/logo.png"
                   alt="Tiyatronot"
-                  className="h-10 sm:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-xs"
+                  className="h-9 sm:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-xs shrink-0"
                 />
-                <span className="font-serif font-black text-xl sm:text-2xl tracking-tighter text-text-primary group-hover:text-theatre-curtain transition-colors">
+                <span className="font-serif font-black text-xl sm:text-2xl tracking-tighter text-text-primary group-hover:text-theatre-curtain transition-colors truncate">
                   TIYATRO·NOT
                 </span>
               </Link>
 
-              <span className="hidden md:inline-block text-[11px] font-mono tracking-widest text-text-tertiary uppercase pl-3 border-l border-border-subtle">
+              <span className="hidden md:inline-block text-[11px] font-mono tracking-widest text-text-tertiary uppercase pl-3 border-l border-border-subtle shrink-0">
                 Dijital Oyun Günlüğü
               </span>
             </div>
 
-            {/* Right: Model 3 Segmented Action Pill Group & User Capsule */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            {/* Right: Model 3 Segmented Action Pill Group & User Capsule (Hidden on mobile) */}
+            <div className="hidden sm:flex items-center gap-2 sm:gap-3 shrink-0">
               {/* Segmented Action Capsule */}
               <div className="inline-flex items-center h-9 bg-layer-01 border border-border-subtle hover:border-border-strong rounded-lg p-0.5 shadow-xs transition-colors">
                 {/* Bulmacalar */}
