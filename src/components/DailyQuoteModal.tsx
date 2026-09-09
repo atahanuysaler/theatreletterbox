@@ -3,7 +3,7 @@ import { X, HelpCircle, CheckCircle2, XCircle, Share2, Flame, Sparkles } from 'l
 import confetti from 'canvas-confetti';
 import { storageService } from '../services/storage';
 import { useAuth } from '../context/AuthContext';
-import type { DailyQuote, Play } from '../types';
+import type { DailyQuote } from '../types';
 
 interface DailyQuoteModalProps {
   isOpen: boolean;
@@ -32,7 +32,6 @@ interface SavedState {
 export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClose }) => {
   const { user, updateProfile } = useAuth();
   const [quote, setQuote] = useState<DailyQuote | null>(null);
-  const [plays, setPlays] = useState<Play[]>([]);
   const [guess, setGuess] = useState('');
   const [attempts, setAttempts] = useState<AttemptRecord[]>([]);
   const [revealedHints, setRevealedHints] = useState<string[]>([]);
@@ -43,7 +42,6 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [showAutocomplete, setShowAutocomplete] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Load or restore state
@@ -64,12 +62,8 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
       } catch { /* ignore */ }
     }
 
-    Promise.all([
-      storageService.getTodayQuote(),
-      storageService.getPlays()
-    ]).then(([q, p]) => {
+    storageService.getTodayQuote().then((q) => {
       setQuote(q);
-      setPlays(p);
       setLoading(false);
       setTimeout(() => inputRef.current?.focus(), 150);
     }).catch(err => {
@@ -144,7 +138,6 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
       setXpEarned(newXp);
       setStreak(newStreak);
       setGuess('');
-      setShowAutocomplete(false);
 
       saveState({
         attempts: newAttempts,
@@ -176,10 +169,6 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
       }
     } catch { /* ignore */ }
   }, [attempts, quote]);
-
-  const filteredPlays = plays.filter(p =>
-    p.title.toLocaleLowerCase('tr').includes(guess.trim().toLocaleLowerCase('tr'))
-  ).slice(0, 5);
 
   if (!isOpen) return null;
 
@@ -307,7 +296,7 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
                 </div>
               </div>
             ) : (
-              /* Active Guess Form */
+              /* Active Guess Form - Direct Text Input */
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -317,49 +306,21 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
               >
                 <div className="flex items-center justify-between text-xs text-text-secondary font-mono">
                   <span>Tahmin {attempts.length + 1} / 3:</span>
-                  <span className="text-text-tertiary">Oyun adını yaz veya listeden seç</span>
+                  <span className="text-text-tertiary">Oyun adını yaz ve gönder</span>
                 </div>
 
-                <div className="relative">
+                <div>
                   <input
                     ref={inputRef}
                     type="text"
                     value={guess}
-                    onChange={(e) => {
-                      setGuess(e.target.value);
-                      setShowAutocomplete(true);
-                    }}
-                    onFocus={() => setShowAutocomplete(true)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Escape') {
-                        setShowAutocomplete(false);
-                      }
-                    }}
-                    placeholder="Örn: Lüküs Hayat, Keşanlı Ali..."
-                    className="w-full border border-border-strong bg-canvas px-3.5 py-2.5 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors rounded-sm"
+                    onChange={(e) => setGuess(e.target.value)}
+                    placeholder="Örn: Lüküs Hayat, Hamlet, Keşanlı Ali..."
+                    className="w-full border border-border-strong bg-canvas px-3.5 py-2.5 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors rounded-sm shadow-xs"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck="false"
                   />
-
-                  {/* Autocomplete Dropdown */}
-                  {showAutocomplete && guess.trim().length > 0 && filteredPlays.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-canvas border border-border-strong shadow-xl rounded-sm overflow-hidden max-h-48 overflow-y-auto">
-                      {filteredPlays.map((p) => (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onMouseDown={(e) => {
-                            e.preventDefault(); // Prevents input blur before click registers
-                            setGuess(p.title);
-                            setShowAutocomplete(false);
-                            setTimeout(() => inputRef.current?.focus(), 50);
-                          }}
-                          className="w-full text-left px-3 py-2 text-xs hover:bg-layer-01 transition-colors font-mono text-text-primary border-b border-border-subtle last:border-b-0 flex items-center justify-between cursor-pointer"
-                        >
-                          <span className="font-semibold">{p.title}</span>
-                          <span className="text-text-tertiary text-[10px] ml-2">({p.playwright})</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 <button
@@ -370,7 +331,7 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
                   {submitting ? (
                     <span className="font-mono animate-pulse">Kontrol Ediliyor...</span>
                   ) : (
-                    <span>Tahminini Gönder</span>
+                    <span>Tahmini Gönder</span>
                   )}
                 </button>
               </form>

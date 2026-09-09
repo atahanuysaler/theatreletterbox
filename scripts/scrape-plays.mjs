@@ -280,7 +280,7 @@ export function parsePlayHtml(html, slug) {
   }
 
   // 8. Premier Year
-  const dateMatch = html.match(/<i class="ico-tarih"><\/i>\s*(\d{2})\.(\d{2})\.(\d{4})/);
+  const dateMatch = html.match(/<i class="ico-tarih"><\/i>\s*(?:(\d{2})\.(\d{2})\.)?(\d{4})/);
   const year = dateMatch ? parseInt(dateMatch[3], 10) : new Date().getFullYear();
 
   // 9. Rating & Review Count (converted from 10-scale to 5.0-scale)

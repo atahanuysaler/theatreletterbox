@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { 
   Compass, 
   CheckCircle2, 
-  Plus, 
+  StickyNote, 
   Trophy, 
   User 
 } from 'lucide-react';
@@ -39,17 +39,17 @@ export const MobileDock: React.FC<MobileDockProps> = ({ onOpenLogModal }) => {
           <span>İzlediklerim</span>
         </NavLink>
 
-        {/* 3. Not Al [+] (Central Elevated CTA) */}
+        {/* 3. Not Ekle (Central Elevated CTA) */}
         <button
           type="button"
           onClick={onOpenLogModal}
           className="touch-target group flex flex-col items-center justify-center w-full h-full focus:outline-none cursor-pointer"
-          aria-label="Tiyatronot Al"
+          aria-label="Tiyatronot Ekle"
         >
           <div className="w-10 h-10 -mt-3 bg-theatre-curtain text-white rounded-sm flex items-center justify-center shadow-md group-hover:bg-theatre-curtain-hover group-active:scale-95 transition-all">
-            <Plus className="w-5 h-5" strokeWidth={2.5} />
+            <StickyNote className="w-5 h-5" strokeWidth={2} />
           </div>
-          <span className="text-[10px] font-medium text-text-secondary mt-0.5">Not Al</span>
+          <span className="text-[10px] font-medium text-text-secondary mt-0.5">Not Ekle</span>
         </button>
 
         {/* 4. Liderler */}

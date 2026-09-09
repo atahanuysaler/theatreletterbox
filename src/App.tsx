@@ -8,7 +8,11 @@ import IzlediklerimPage from './pages/IzlediklerimPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import PlayDetailPage from './pages/PlayDetailPage';
 import AdminPage from './pages/AdminPage';
+import BulmacalarPage from './pages/BulmacalarPage';
+import ListsPage from './pages/ListsPage';
 import ProfilePage from './pages/ProfilePage';
+import ContactPage from './pages/ContactPage';
+import AddPlayPage from './pages/AddPlayPage';
 import NotFoundPage from './pages/NotFoundPage';
 import LogModal from './components/LogModal';
 import DailyQuoteModal from './components/DailyQuoteModal';
@@ -41,9 +45,14 @@ export const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<CatalogPage onOpenLogModal={handleOpenLogModal} onOpenDailyQuote={handleOpenDailyQuote} />} />
               <Route path="/izlediklerim" element={<IzlediklerimPage />} />
+              <Route path="/izlemek-istediklerim" element={<ProfilePage initialTab="izlemek-istediklerim" onOpenDailyQuote={handleOpenDailyQuote} />} />
+              <Route path="/listeler" element={<ListsPage onOpenLogModal={handleOpenLogModal} />} />
               <Route path="/liderler" element={<LeaderboardPage />} />
               <Route path="/oyun/:id" element={<PlayDetailPage onOpenLogModal={handleOpenLogModal} />} />
               <Route path="/profil" element={<ProfilePage onOpenDailyQuote={handleOpenDailyQuote} />} />
+              <Route path="/bulmacalar" element={<BulmacalarPage onOpenDailyQuote={handleOpenDailyQuote} />} />
+              <Route path="/iletisim" element={<ContactPage />} />
+              <Route path="/oyun-ekle" element={<AddPlayPage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/404" element={<NotFoundPage />} />
               <Route path="*" element={<Navigate to="/404" replace />} />

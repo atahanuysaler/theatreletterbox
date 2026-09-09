@@ -28,6 +28,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   const [cardStyle, setCardStyle] = useState<CardStyle>(review ? 'ticket' : 'poster');
   const [downloading, setDownloading] = useState(false);
   const [shared, setShared] = useState(false);
+  const previewImgRef = useRef<HTMLImageElement>(null);
 
   const effectiveRating = review ? review.rating : play.rating;
   const effectiveText = review?.reviewText || play.synopsis;
@@ -51,20 +52,10 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
     ctx.fillStyle = '#BA1B23';
     ctx.fillRect(0, 0, width, 10);
 
-    // Try loading poster image safely
-    let posterLoaded = false;
-    let img: HTMLImageElement | null = null;
-    try {
-      img = new Image();
-      img.crossOrigin = 'anonymous';
-      await new Promise<void>((resolve) => {
-        if (!img) return resolve();
-        img.onload = () => { posterLoaded = true; resolve(); };
-        img.onerror = () => resolve();
-        img.src = play.posterUrl;
-        setTimeout(resolve, 2000);
-      });
-    } catch { /* proceed without external image */ }
+    // Reuse the already-loaded preview image — avoids CORS re-fetch
+    const img: HTMLImageElement | null = previewImgRef.current ?? null;
+    const posterLoaded = !!(img && img.complete && img.naturalWidth > 0);
+
 
     if (cardStyle === 'ticket') {
       // ==========================================
@@ -728,6 +719,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
               <div className="flex-1 flex flex-col justify-between overflow-hidden">
                 <div className="relative flex-1 min-h-[140px] overflow-hidden bg-layer-01">
                   <img
+                    ref={previewImgRef}
                     src={play.posterUrl}
                     alt={play.title}
                     className="w-full h-full object-cover"

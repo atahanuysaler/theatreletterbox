@@ -4,7 +4,10 @@ import {
   DailyQuote,
   Badge,
   UserProfile,
-  LeaderboardUser
+  LeaderboardUser,
+  PlaySubmission,
+  CuratedList,
+  PuzzleGameConfig
 } from '../types';
 import { firebaseStorageService } from './firebaseStorageService';
 
@@ -53,6 +56,7 @@ export interface IStorageService {
   // Gamification & Badges
   getBadges(): Promise<Badge[]>;
   toggleSeenPlay(userId: string, playId: string): Promise<SeenPlayResult>;
+  toggleWatchlistPlay(userId: string, playId: string): Promise<string[]>;
   getLeaderboard(tab?: 'allTime' | 'season'): Promise<LeaderboardUser[]>;
 
   // Daily Quote Mini-Game CRUD
@@ -63,6 +67,26 @@ export interface IStorageService {
   updateQuote(id: string, updates: Partial<DailyQuote>): Promise<DailyQuote>;
   deleteQuote(id: string): Promise<void>;
   recordQuoteGuess(userId: string, guessTitle: string, attemptNumber: number): Promise<QuoteGuessResult>;
+
+  // Play Submissions (User Proposed Plays)
+  getPlaySubmissions(status?: 'pending' | 'approved' | 'rejected'): Promise<PlaySubmission[]>;
+  submitPlay(submission: Omit<PlaySubmission, 'id' | 'status' | 'createdAt'>): Promise<PlaySubmission>;
+  approvePlaySubmission(id: string): Promise<Play>;
+  rejectPlaySubmission(id: string): Promise<void>;
+
+  // Curated Lists CRUD
+  getCuratedLists(): Promise<CuratedList[]>;
+  getCuratedListById(id: string): Promise<CuratedList | null>;
+  createCuratedList(list: Omit<CuratedList, 'id'>): Promise<CuratedList>;
+  updateCuratedList(id: string, updates: Partial<CuratedList>): Promise<CuratedList>;
+  deleteCuratedList(id: string): Promise<void>;
+
+  // Puzzle Games CRUD
+  getPuzzleGames(): Promise<PuzzleGameConfig[]>;
+  getPuzzleGameById(id: string): Promise<PuzzleGameConfig | null>;
+  createPuzzleGame(game: Omit<PuzzleGameConfig, 'id'>): Promise<PuzzleGameConfig>;
+  updatePuzzleGame(id: string, updates: Partial<PuzzleGameConfig>): Promise<PuzzleGameConfig>;
+  deletePuzzleGame(id: string): Promise<void>;
 
   // Reset & Re-seed
   resetAndSeedDatabase(): Promise<void>;

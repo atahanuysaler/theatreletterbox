@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, MapPin, Check, Plus, Theater, Eye, Award } from 'lucide-react';
+import { Star, Check, Plus, Theater, Eye, Bookmark } from 'lucide-react';
 import { Play } from '../../types';
 
 export interface PlayCardProps {
   play: Play;
   isSeen?: boolean;
+  isWatchlisted?: boolean;
   onToggleSeen?: (playId: string) => void;
+  onToggleWatchlist?: (playId: string) => void;
   onOpenLogModal?: (play: Play) => void;
   className?: string;
 }
@@ -14,7 +16,9 @@ export interface PlayCardProps {
 export const PlayCard: React.FC<PlayCardProps> = ({
   play,
   isSeen = false,
+  isWatchlisted = false,
   onToggleSeen,
+  onToggleWatchlist,
   onOpenLogModal,
   className = '',
 }) => {
@@ -31,8 +35,6 @@ export const PlayCard: React.FC<PlayCardProps> = ({
     e.stopPropagation();
     onOpenLogModal?.(play);
   };
-
-  const isStandingOvation = (play.rating || 0) >= 4.5;
 
   return (
     <Link
@@ -66,7 +68,7 @@ export const PlayCard: React.FC<PlayCardProps> = ({
               </p>
             </div>
             <div className="text-[10px] font-mono text-text-tertiary pt-2 border-t border-[#E0E0E0]">
-              {play.year} · {play.duration} dk
+              {play.year}
             </div>
           </div>
         )}
@@ -77,24 +79,18 @@ export const PlayCard: React.FC<PlayCardProps> = ({
           <span>{play.rating ? play.rating.toFixed(1) : '—'}</span>
         </div>
 
-        {/* Standing Ovation Laurels (Top-Right under Rating) */}
-        {isStandingOvation && (
-          <div
-            className="absolute top-8 right-2 flex items-center gap-1 bg-amber-500/90 text-white px-1.5 py-0.5 rounded-sm font-mono text-[9px] font-bold tracking-tight uppercase shadow-subtle z-10"
-            title="Başyapıt: Ayakta Alkış"
-          >
-            <Award className="w-2.5 h-2.5 text-white" />
-            <span>Alkış</span>
-          </div>
-        )}
-
-        {/* Seen Indicator Badge (Top-Left) */}
-        {isSeen && (
+        {/* Seen / Watchlist Indicator Badge (Top-Left) */}
+        {isSeen ? (
           <div className="absolute top-2 left-2 flex items-center gap-1 bg-success-mint text-white px-2 py-0.5 rounded-sm font-mono text-[10px] font-semibold tracking-wide uppercase shadow-subtle z-10 animate-fade-in">
             <Check className="w-3 h-3 stroke-[2.5]" />
-            <span>Gördüm</span>
+            <span>İzledim</span>
           </div>
-        )}
+        ) : isWatchlisted ? (
+          <div className="absolute top-2 left-2 flex items-center gap-1 bg-theatre-curtain text-white px-2 py-0.5 rounded-sm font-mono text-[10px] font-semibold tracking-wide uppercase shadow-subtle z-10 animate-fade-in">
+            <Bookmark className="w-3 h-3 fill-current" />
+            <span>İzlemek İstiyorum</span>
+          </div>
+        ) : null}
 
         {/* Quick Action Overlay on Desktop Hover */}
         <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 absolute inset-x-2 bottom-2 z-10 flex items-center gap-1.5 pointer-events-auto">
@@ -107,11 +103,31 @@ export const PlayCard: React.FC<PlayCardProps> = ({
                 ? 'bg-success-mint text-white border-success-mint hover:bg-success-mint/90'
                 : 'bg-canvas text-text-primary border-border-subtle hover:bg-layer-01 hover:border-stage-spotlight'
             }`}
-            title={isSeen ? 'İzlendi olarak işaretli (kaldırmak için tıkla)' : 'Gördüm olarak işaretle (+10 XP)'}
+            title={isSeen ? 'İzlendi olarak işaretli (kaldırmak için tıkla)' : 'İzledim olarak işaretle (+10 XP)'}
           >
             <Eye className="w-3.5 h-3.5" />
-            <span className="truncate">{isSeen ? 'İzlendi' : 'Gördüm'}</span>
+            <span className="truncate">{isSeen ? 'İzlendi' : 'İzledim'}</span>
           </button>
+
+          {/* Quick Watchlist Toggle */}
+          {onToggleWatchlist && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleWatchlist(play.id);
+              }}
+              className={`p-1.5 rounded-sm border shadow-sm transition-all cursor-pointer ${
+                isWatchlisted
+                  ? 'bg-theatre-curtain text-white border-theatre-curtain'
+                  : 'bg-canvas text-text-primary border-border-subtle hover:bg-layer-01'
+              }`}
+              title={isWatchlisted ? 'İzlemek istediklerimden çıkar' : 'İzlemek istediklerime ekle'}
+            >
+              <Bookmark className={`w-3.5 h-3.5 ${isWatchlisted ? 'fill-current' : ''}`} />
+            </button>
+          )}
 
           {/* Quick Not Al */}
           <button
@@ -126,7 +142,7 @@ export const PlayCard: React.FC<PlayCardProps> = ({
         </div>
       </div>
 
-      {/* Under-Poster Data */}
+      {/* Under-Poster Details: Names Only (No verbose labels) */}
       <div className="p-3 flex-1 flex flex-col justify-between space-y-2">
         <div className="space-y-1">
           <h3
@@ -135,26 +151,27 @@ export const PlayCard: React.FC<PlayCardProps> = ({
           >
             {play.title}
           </h3>
-          <div className="text-xs space-y-0.5">
-            <p className="font-sans font-medium text-text-primary line-clamp-1" title={play.playwright}>
+
+          <div className="text-[11px] space-y-0.5 text-text-secondary leading-tight">
+            <p className="font-medium text-text-primary line-clamp-1" title={play.playwright}>
               {play.playwright}
             </p>
-            <p className="font-sans text-[11px] text-text-secondary line-clamp-1" title={play.company}>
+
+            {play.director && (
+              <p className="text-text-secondary line-clamp-1" title={play.director}>
+                {play.director}
+              </p>
+            )}
+
+            <p className="text-text-tertiary line-clamp-1" title={play.company}>
               {play.company}
             </p>
           </div>
         </div>
 
-        {/* Venue Badge & Year Footer */}
-        <div className="pt-2 border-t border-[#E0E0E0] flex items-center justify-between gap-1 text-[11px] text-text-secondary">
-          <span
-            className="inline-flex items-center gap-1 font-mono text-[10px] sm:text-[11px] bg-layer-01 px-1.5 py-0.5 rounded-sm border border-[#E0E0E0] truncate max-w-[70%]"
-            title={play.venue}
-          >
-            <MapPin className="w-3 h-3 text-theatre-curtain flex-shrink-0" />
-            <span className="truncate">{play.venue}</span>
-          </span>
-          <span className="font-mono text-[10px] text-text-tertiary flex-shrink-0">
+        {/* Prömiyer Yılı Footer */}
+        <div className="pt-1.5 border-t border-[#E0E0E0] flex items-center justify-end text-[11px]">
+          <span className="font-mono text-xs font-semibold text-text-secondary">
             {play.year}
           </span>
         </div>

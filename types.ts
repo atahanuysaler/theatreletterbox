@@ -9,8 +9,33 @@ export interface UserProfile {
   xp: number;
   level: string; // e.g., 'Fuaye Meraklısı', 'Ön Sıra Müdavimi', 'Sahne Tozu Yutan', 'Dramaturg Gözü', 'Tiyatro Duayeni'
   seenPlayIds: string[];
+  watchlistPlayIds?: string[];
   badges: string[]; // badge ids
   createdAt: string;
+}
+
+export interface CuratedList {
+  id: string;
+  title: string;
+  description: string;
+  category?: string;
+  playIds: string[];
+  coverUrl?: string;
+  curator?: string;
+  createdAt?: string;
+}
+
+export interface PuzzleGameConfig {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  category: 'daily' | 'trivia' | 'visual' | 'word';
+  xpReward: number;
+  status: 'active' | 'coming_soon';
+  badge?: string;
+  icon: string;
+  estimatedTime: string;
 }
 
 export interface Play {
@@ -77,4 +102,26 @@ export interface LeaderboardUser {
   level: string;
   playsSeenCount: number;
   reviewsCount: number;
+}
+
+export interface PlaySubmission {
+  id: string;
+  title: string;
+  originalTitle?: string;
+  playwright: string;
+  director: string;
+  company: string;
+  year: number;
+  genre: string;
+  cast: string[];
+  duration?: number;
+  hasIntermission?: boolean;
+  venue?: string;
+  posterUrl?: string;
+  synopsis?: string;
+  tags?: string[];
+  submittedBy?: string;
+  submittedByEmail?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
 }

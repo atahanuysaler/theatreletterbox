@@ -6,14 +6,11 @@ import {
   Star, 
   Plus, 
   Share2, 
-  Clock, 
-  MapPin, 
   Check, 
-  Layers, 
   MessageSquare,
   Theater,
   Award,
-  Trash2
+  Bookmark
 } from 'lucide-react';
 import { Play, ReviewEntry } from '../types';
 import PlayKunye, { PlayWithDetails } from '../components/catalog/PlayKunye';
@@ -33,11 +30,13 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
 
   const [play, setPlay] = useState<PlayWithDetails | null>(null);
   const [isSeen, setIsSeen] = useState<boolean>(false);
+  const [isWatchlisted, setIsWatchlisted] = useState<boolean>(false);
   const [reviews, setReviews] = useState<ReviewEntry[]>([]);
   const [imageError, setImageError] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
   const [shareReview, setShareReview] = useState<ReviewEntry | null>(null);
+  const [isSynopsisExpanded, setIsSynopsisExpanded] = useState<boolean>(false);
 
   // Load play, reviews, and user seen status dynamically from Firebase
   useEffect(() => {
@@ -51,11 +50,13 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
         }
         if (activeUserId) {
           const user = await storageService.getUserProfile(activeUserId);
-          if (user && user.seenPlayIds && isMounted) {
-            setIsSeen(user.seenPlayIds.includes(id));
+          if (user && isMounted) {
+            setIsSeen((user.seenPlayIds || []).includes(id));
+            setIsWatchlisted((user.watchlistPlayIds || []).includes(id));
           }
         } else if (isMounted) {
           setIsSeen(false);
+          setIsWatchlisted(false);
         }
         const playReviews = await storageService.getReviews(id);
         if (playReviews && isMounted) {
@@ -121,6 +122,30 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
       }
     } catch (e) {
       console.warn('[PlayDetailPage] Could not persist seen toggle:', e);
+    }
+  };
+
+  const handleToggleWatchlist = async () => {
+    if (!play) return;
+    const nextState = !isWatchlisted;
+    setIsWatchlisted(nextState);
+    if (nextState) {
+      setToastMessage(`"${play.title}" izleme listene eklendi.`);
+    } else {
+      setToastMessage(`"${play.title}" izleme listenden kaldırıldı.`);
+    }
+    if (!activeUserId) {
+      setToastMessage('İzleme listesine eklemek için lütfen giriş yapın.');
+      setTimeout(() => setToastMessage(null), 3000);
+      return;
+    }
+    try {
+      await storageService.toggleWatchlistPlay(activeUserId, play.id);
+      if (authContext?.refreshUser) {
+        await authContext.refreshUser();
+      }
+    } catch (e) {
+      console.warn('[PlayDetailPage] Could not persist watchlist toggle:', e);
     }
   };
 
@@ -191,33 +216,35 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
             {isSeen && (
               <div className="absolute top-2 left-2 flex items-center gap-1 bg-success-mint text-white px-2 py-0.5 rounded-sm font-mono text-[10px] font-semibold tracking-wide uppercase shadow-subtle">
                 <Check className="w-3 h-3 stroke-[2.5]" />
-                <span>Gördüm</span>
+                <span>İzledim</span>
               </div>
             )}
           </div>
 
           {/* Core Info & Action Center */}
-          <div className="flex-1 space-y-5">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-mono uppercase tracking-wider text-theatre-curtain font-semibold">
-                  {play.genre}
-                </span>
-                <span className="text-text-tertiary">·</span>
-                <span className="text-xs font-mono text-text-secondary">{play.year}</span>
+          <div className="flex-1 space-y-4">
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                <h1 className="font-serif font-bold text-3xl sm:text-4xl text-text-primary tracking-tight">
+                  {play.title}
+                </h1>
+
+                {/* Top Right: Genre & Prömiyer Yılı */}
+                <div className="flex items-center gap-2 flex-shrink-0 self-start">
+                  <span className="text-xs font-mono uppercase tracking-wider text-theatre-curtain font-semibold bg-theatre-curtain/10 px-2.5 py-1 rounded-sm border border-theatre-curtain/20">
+                    {play.genre}
+                  </span>
+                  <span className="text-xs font-mono font-bold text-text-primary bg-layer-01 px-2.5 py-1 rounded-sm border border-border-subtle">
+                    {play.year}
+                  </span>
+                </div>
               </div>
 
-              <h1 className="font-serif font-bold text-3xl sm:text-4xl text-text-primary tracking-tight">
-                {play.title}
-              </h1>
-
-              <div className="flex items-center gap-2 text-sm text-text-secondary font-sans flex-wrap">
-                <span className="font-medium text-text-primary">{play.playwright}</span>
-                <span>·</span>
-                <span>Yön: {play.director}</span>
-                <span>·</span>
-                <span className="text-theatre-curtain font-medium">{play.company}</span>
-              </div>
+              {play.originalTitle && play.originalTitle !== play.title && (
+                <p className="font-serif italic text-xs text-text-tertiary mt-1">
+                  Orijinal Eser: {play.originalTitle}
+                </p>
+              )}
             </div>
 
             {/* Star Rating Display */}
@@ -249,24 +276,26 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
               )}
             </div>
 
-            {/* Quick Metrics Bar */}
-            <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-text-secondary">
-              <span className="inline-flex items-center gap-1.5 bg-layer-01 px-2.5 py-1 border border-border-subtle rounded-sm">
-                <Clock className="w-3.5 h-3.5 text-theatre-curtain" />
-                <span>{play.duration} Dakika</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5 bg-layer-01 px-2.5 py-1 border border-border-subtle rounded-sm">
-                <Layers className="w-3.5 h-3.5 text-theatre-curtain" />
-                <span>{play.hasIntermission ? '2 Perde (Ara Var)' : 'Tek Perde (Ara Yok)'}</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5 bg-layer-01 px-2.5 py-1 border border-border-subtle rounded-sm">
-                <MapPin className="w-3.5 h-3.5 text-theatre-curtain" />
-                <span>{play.venue}</span>
-              </span>
-            </div>
+            {/* Synopsis (Oyun Özeti) with Read More Option */}
+            {play.synopsis && (
+              <div className="space-y-1.5">
+                <p className={`text-xs sm:text-sm text-text-secondary leading-relaxed font-sans ${isSynopsisExpanded ? '' : 'line-clamp-4'}`}>
+                  {play.synopsis}
+                </p>
+                {play.synopsis.length > 200 && (
+                  <button
+                    type="button"
+                    onClick={() => setIsSynopsisExpanded(!isSynopsisExpanded)}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-theatre-curtain hover:underline focus:outline-none cursor-pointer select-none"
+                  >
+                    <span>{isSynopsisExpanded ? 'Daha Az Göster' : 'Devamını Oku...'}</span>
+                  </button>
+                )}
+              </div>
+            )}
 
-            {/* Action Buttons: "Not Al", "Gördüm", "Hikaye Paylaş" */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            {/* Action Buttons: "Not Al", "İzledim", "Hikaye Paylaş" */}
+            <div className="flex flex-wrap items-center gap-3 pt-1">
               {/* Primary CTA: Not Al */}
               <button
                 type="button"
@@ -277,7 +306,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
                 <span>Tiyatronot Al</span>
               </button>
 
-              {/* Fast "Gördüm" Toggle Button */}
+              {/* Fast "İzledim" Toggle Button */}
               <button
                 type="button"
                 onClick={handleToggleSeen}
@@ -288,7 +317,21 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
                 }`}
               >
                 <Check className="w-4 h-4 stroke-[2.5]" />
-                <span>{isSeen ? 'İzlendi Olarak İşaretli' : 'Gördüm Olarak İşaretle (+10 XP)'}</span>
+                <span>{isSeen ? 'İzlendi Olarak İşaretli' : 'İzledim Olarak İşaretle (+10 XP)'}</span>
+              </button>
+
+              {/* Watchlist Toggle Button */}
+              <button
+                type="button"
+                onClick={handleToggleWatchlist}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-medium rounded-sm border transition-all cursor-pointer ${
+                  isWatchlisted
+                    ? 'bg-theatre-curtain text-white border-theatre-curtain shadow-sm'
+                    : 'bg-layer-01 hover:bg-layer-02 text-text-primary border-border-subtle hover:border-border-strong'
+                }`}
+              >
+                <Bookmark className={`w-4 h-4 ${isWatchlisted ? 'fill-current' : ''}`} />
+                <span>{isWatchlisted ? 'İzlemek İstediklerimde' : 'İzlemek İstiyorum'}</span>
               </button>
 
               {/* Share Story Card Button */}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { 
   Award, 
   CheckCircle2, 
@@ -16,20 +16,23 @@ import {
   Calendar,
   MessageSquare,
   ArrowRight,
-  Sun,
-  Moon,
+  Sparkles,
+  Bookmark,
   Trash2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { storageService } from '../services/storage';
 import { getTierProgress, TIERS } from '../services/gamification';
 import type { Play, ReviewEntry, Badge } from '../types';
 import TicketStub from '../components/TicketStub';
 import SocialShareModal from '../components/SocialShareModal';
+import SeasonWrappedModal from '../components/SeasonWrappedModal';
+
+export type ProfileTabType = 'pasaport' | 'izlenenler' | 'izlemek-istediklerim' | 'notlar';
 
 interface ProfilePageProps {
   onOpenDailyQuote?: () => void;
+  initialTab?: ProfileTabType;
 }
 
 const BADGE_ICONS: Record<string, React.ReactNode> = {
@@ -39,16 +42,29 @@ const BADGE_ICONS: Record<string, React.ReactNode> = {
   'dramaturg': <Feather className="w-5 h-5" />,
 };
 
-export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) => {
-  const { user, role, loginWithGoogle, logout } = useAuth();
-  const { isDark, toggleTheme, setTheme } = useTheme();
+export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, initialTab }) => {
+  const { user, role, loginWithGoogle, logout, updateProfile } = useAuth();
+  const [searchParams] = useSearchParams();
+  const queryTab = searchParams.get('tab') as ProfileTabType | null;
+
   const [plays, setPlays] = useState<Play[]>([]);
   const [reviews, setReviews] = useState<ReviewEntry[]>([]);
   const [allBadges, setAllBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'pasaport' | 'izlenenler' | 'notlar'>('pasaport');
+  const [activeTab, setActiveTab] = useState<ProfileTabType>(
+    initialTab || queryTab || 'pasaport'
+  );
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    } else if (queryTab) {
+      setActiveTab(queryTab);
+    }
+  }, [initialTab, queryTab]);
   const [shareReview, setShareReview] = useState<ReviewEntry | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isWrappedOpen, setIsWrappedOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -86,6 +102,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
     return plays.filter(p => user.seenPlayIds.includes(p.id));
   }, [plays, user?.seenPlayIds]);
 
+  const watchlistPlays = useMemo(() => {
+    const list = user?.watchlistPlayIds;
+    if (!list) return [];
+    return plays.filter(p => list.includes(p.id));
+  }, [plays, user?.watchlistPlayIds]);
+
   const userReviews = useMemo(() => {
     if (!user?.uid) return [];
     return reviews.filter(r => r.userId === user.uid);
@@ -108,33 +130,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
         <button
           type="button"
           onClick={() => loginWithGoogle()}
-          className="w-full inline-flex items-center justify-center gap-2 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white py-3 text-xs font-semibold rounded-sm shadow-sm transition-colors cursor-pointer"
+          className="w-full inline-flex items-center justify-center gap-2 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white py-3 text-xs font-semibold rounded-md shadow-sm transition-colors cursor-pointer"
         >
           <LogIn className="w-4 h-4" />
           <span>Google ile Giriş Yap</span>
         </button>
-
-        {/* Theme Preference for Visitors */}
-        <div className="pt-6 border-t border-border-subtle flex items-center justify-between text-xs font-mono">
-          <span className="text-text-secondary">Görünüm Teması:</span>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-layer-01 hover:bg-layer-02 border border-border-subtle rounded-sm text-xs font-mono font-medium text-text-primary cursor-pointer transition-colors"
-          >
-            {isDark ? (
-              <>
-                <Sun className="w-3.5 h-3.5 text-theatre-gold" />
-                <span>Aydınlık Moda Geç</span>
-              </>
-            ) : (
-              <>
-                <Moon className="w-3.5 h-3.5 text-text-secondary" />
-                <span>Karanlık Moda Geç</span>
-              </>
-            )}
-          </button>
-        </div>
       </div>
     );
   }
@@ -187,31 +187,21 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
 
           {/* Quick Action Buttons */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* Dark Mode Quick Toggle */}
+            {/* Sezon Özeti (Theatre Wrapped) */}
             <button
               type="button"
-              onClick={toggleTheme}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-layer-01 hover:bg-layer-02 border border-border-subtle rounded-sm text-xs font-medium text-text-primary transition-colors cursor-pointer"
-              title={isDark ? 'Aydınlık moda geç' : 'Karanlık moda geç'}
-              aria-label="Karanlık / Aydınlık Mod"
+              onClick={() => setIsWrappedOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-layer-01 hover:bg-layer-02 border border-border-subtle rounded-md text-xs font-semibold text-theatre-curtain hover:text-theatre-curtain-hover transition-colors cursor-pointer shadow-xs"
+              title="Tiyatro Sezonu Özeti (Theatre Wrapped)"
             >
-              {isDark ? (
-                <>
-                  <Sun className="w-3.5 h-3.5 text-theatre-gold" />
-                  <span>Aydınlık Mod</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="w-3.5 h-3.5 text-text-secondary" />
-                  <span>Karanlık Mod</span>
-                </>
-              )}
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Sezon Özeti 🎟️</span>
             </button>
 
             {role === 'admin' && (
               <Link
                 to="/admin"
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-layer-01 hover:bg-layer-02 border border-border-subtle rounded-sm text-xs font-semibold text-text-primary transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-layer-01 hover:bg-layer-02 border border-border-subtle rounded-md text-xs font-semibold text-text-primary transition-colors cursor-pointer"
               >
                 <Shield className="w-3.5 h-3.5 text-theatre-curtain" />
                 <span>Yönetici Paneli</span>
@@ -220,7 +210,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
             <button
               type="button"
               onClick={() => logout()}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-canvas hover:bg-layer-01 border border-border-subtle rounded-sm text-xs font-medium text-text-secondary hover:text-theatre-curtain transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-canvas hover:bg-layer-01 border border-border-subtle rounded-md text-xs font-medium text-text-secondary hover:text-theatre-curtain transition-colors cursor-pointer"
               title="Oturumu Kapat"
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -267,59 +257,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
         </div>
       </div>
 
-      {/* Appearance & Theme Preference Card */}
-      <div className="bg-canvas border border-border-subtle rounded-sm p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            {isDark ? (
-              <Moon className="w-4 h-4 text-theatre-gold" />
-            ) : (
-              <Sun className="w-4 h-4 text-theatre-curtain" />
-            )}
-            <h2 className="font-serif font-bold text-base text-text-primary">Görünüm & Tema</h2>
-          </div>
-          <p className="text-xs text-text-secondary font-sans">
-            Tiyatro salonu atmosferi için karanlık mod veya klasik aydınlık mod seçin.
-          </p>
-        </div>
-
-        <div className="inline-flex p-1 bg-layer-01 border border-border-subtle rounded-sm gap-1 self-start sm:self-auto font-mono text-xs">
-          <button
-            type="button"
-            onClick={() => setTheme('light')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm transition-colors cursor-pointer ${
-              !isDark
-                ? 'bg-canvas text-theatre-curtain font-bold shadow-sm border border-border-subtle'
-                : 'text-text-secondary hover:text-text-primary'
-            }`}
-            aria-pressed={!isDark}
-          >
-            <Sun className="w-3.5 h-3.5" />
-            <span>Aydınlık</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setTheme('dark')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm transition-colors cursor-pointer ${
-              isDark
-                ? 'bg-layer-02 text-theatre-gold font-bold shadow-sm border border-border-strong'
-                : 'text-text-secondary hover:text-text-primary'
-            }`}
-            aria-pressed={isDark}
-          >
-            <Moon className="w-3.5 h-3.5" />
-            <span>Karanlık</span>
-          </button>
-        </div>
-      </div>
-
-
       {/* Tabs */}
-      <div className="flex border-b border-border-subtle gap-2 text-xs font-mono">
+      <div className="flex border-b border-border-subtle gap-2 text-xs font-mono overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab('pasaport')}
-          className={`pb-3 px-3 font-semibold transition-colors relative cursor-pointer ${
+          className={`pb-3 px-3 font-semibold transition-colors relative cursor-pointer whitespace-nowrap ${
             activeTab === 'pasaport'
               ? 'text-theatre-curtain border-b-2 border-theatre-curtain -mb-px'
               : 'text-text-secondary hover:text-text-primary'
@@ -330,7 +273,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
         <button
           type="button"
           onClick={() => setActiveTab('izlenenler')}
-          className={`pb-3 px-3 font-semibold transition-colors relative cursor-pointer ${
+          className={`pb-3 px-3 font-semibold transition-colors relative cursor-pointer whitespace-nowrap ${
             activeTab === 'izlenenler'
               ? 'text-theatre-curtain border-b-2 border-theatre-curtain -mb-px'
               : 'text-text-secondary hover:text-text-primary'
@@ -340,8 +283,19 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
         </button>
         <button
           type="button"
+          onClick={() => setActiveTab('izlemek-istediklerim')}
+          className={`pb-3 px-3 font-semibold transition-colors relative cursor-pointer whitespace-nowrap ${
+            activeTab === 'izlemek-istediklerim'
+              ? 'text-theatre-curtain border-b-2 border-theatre-curtain -mb-px'
+              : 'text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          İzlemek İstediklerim ({watchlistPlays.length})
+        </button>
+        <button
+          type="button"
           onClick={() => setActiveTab('notlar')}
-          className={`pb-3 px-3 font-semibold transition-colors relative cursor-pointer ${
+          className={`pb-3 px-3 font-semibold transition-colors relative cursor-pointer whitespace-nowrap ${
             activeTab === 'notlar'
               ? 'text-theatre-curtain border-b-2 border-theatre-curtain -mb-px'
               : 'text-text-secondary hover:text-text-primary'
@@ -509,7 +463,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
               </p>
               <Link
                 to="/izlediklerim"
-                className="inline-flex items-center gap-1.5 bg-theatre-curtain text-white px-4 py-2 text-xs font-semibold rounded-sm hover:bg-theatre-curtain-hover transition-colors"
+                className="inline-flex items-center gap-1.5 bg-theatre-curtain text-white px-4 py-2 text-xs font-semibold rounded-md hover:bg-theatre-curtain-hover transition-colors"
               >
                 <span>İzlediklerimi İşaretle</span>
               </Link>
@@ -518,7 +472,105 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
         </div>
       )}
 
-      {/* Tab 3: Tiyatro Notlarım */}
+      {/* Tab 3: İzlemek İstediklerim (Watchlist) */}
+      {activeTab === 'izlemek-istediklerim' && (
+        <div className="space-y-4">
+          {watchlistPlays.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {watchlistPlays.map((play) => (
+                <div
+                  key={play.id}
+                  className="p-3.5 bg-canvas border border-border-subtle hover:border-border-strong rounded-md flex gap-3.5 transition-all shadow-xs"
+                >
+                  <Link to={`/oyun/${play.id}`} className="flex-shrink-0">
+                    <div className="w-16 aspect-[2/3] rounded-xs overflow-hidden bg-layer-01 border border-border-subtle">
+                      {play.posterUrl ? (
+                        <img src={play.posterUrl} alt={play.title} className="w-full h-full object-cover hover:scale-105 transition-transform" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-text-tertiary">
+                          <Theater className="w-5 h-5 opacity-40" />
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                  <div className="flex-1 flex flex-col justify-between min-w-0">
+                    <div>
+                      <Link
+                        to={`/oyun/${play.id}`}
+                        className="font-serif font-bold text-sm text-text-primary hover:text-theatre-curtain transition-colors line-clamp-1"
+                      >
+                        {play.title}
+                      </Link>
+                      <p className="text-xs text-text-secondary font-mono truncate">{play.playwright}</p>
+                      <p className="text-[11px] text-text-tertiary font-mono truncate">{play.venue}</p>
+                    </div>
+                    <div className="flex items-center gap-2 pt-2 border-t border-border-subtle/50 mt-1">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!user) return;
+                          try {
+                            const res = await storageService.toggleSeenPlay(user.uid, play.id);
+                            const updatedWatchlist = await storageService.toggleWatchlistPlay(user.uid, play.id);
+                            await updateProfile({
+                              seenPlayIds: res.seen ? [...(user.seenPlayIds || []), play.id] : user.seenPlayIds,
+                              watchlistPlayIds: updatedWatchlist,
+                              xp: res.newXp,
+                              level: res.newLevel
+                            });
+                          } catch (err) {
+                            console.error(err);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-1 bg-success-mint/10 text-success-mint hover:bg-success-mint/20 border border-success-mint/30 rounded-md transition-colors cursor-pointer"
+                        title="İzlendi olarak işaretle"
+                      >
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span>İzledim</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!user) return;
+                          try {
+                            const updatedWatchlist = await storageService.toggleWatchlistPlay(user.uid, play.id);
+                            await updateProfile({ watchlistPlayIds: updatedWatchlist });
+                          } catch (err) {
+                            console.error(err);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-1 bg-layer-01 hover:bg-layer-02 text-text-tertiary hover:text-theatre-curtain border border-border-subtle rounded-md transition-colors cursor-pointer ml-auto"
+                        title="Listeden Kaldır"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span>Kaldır</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-canvas border border-dashed border-border-subtle p-10 text-center space-y-3 rounded-md">
+              <Bookmark className="w-10 h-10 text-text-tertiary mx-auto opacity-60" />
+              <h3 className="font-serif font-bold text-base text-text-primary">
+                İzlemek istediğin oyunlar listen henüz boş
+              </h3>
+              <p className="text-xs text-text-secondary max-w-sm mx-auto">
+                Oyun kataloğundan veya küratörlü listelerden merak ettiğin oyunları "İzlemek İstiyorum" olarak kaydedebilirsin.
+              </p>
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1.5 bg-theatre-curtain text-white px-4 py-2 text-xs font-semibold rounded-md hover:bg-theatre-curtain-hover transition-colors"
+              >
+                <span>Oyun Kataloğuna Git</span>
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 4: Tiyatro Notlarım */}
       {activeTab === 'notlar' && (
         <div className="space-y-4">
           {userReviews.length > 0 ? (
@@ -578,6 +630,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote }) =>
             reviewCount: 1,
             tags: []
           }}
+        />
+      )}
+
+      {/* Theatre Wrapped Modal */}
+      {isWrappedOpen && user && (
+        <SeasonWrappedModal
+          isOpen={isWrappedOpen}
+          onClose={() => setIsWrappedOpen(false)}
+          user={user}
+          seenPlays={seenPlays}
+          reviews={userReviews}
         />
       )}
     </div>

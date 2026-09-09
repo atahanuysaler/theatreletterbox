@@ -155,13 +155,21 @@ export function evaluateQuoteGuess(
       .replace(/[şŞsS]/g, 's')
       .replace(/[öÖoO]/g, 'o')
       .replace(/[çÇcC]/g, 'c')
-      .replace(/['".,!?:;-]/g, '')
-      .replace(/\s+/g, ' ');
+      .replace(/['"’‘`.,!?:;\-_/\\]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
 
   const nGuess = normalize(rawGuessTitle);
   const nTitle = normalize(dailyQuote.playTitle);
 
-  const isCorrect = nGuess.length > 0 && (nGuess === nTitle || (nGuess.length >= 5 && nTitle.includes(nGuess)));
+  // Flexible matching:
+  // 1. Exact normalized match ("keşanlı ali destanı" === "kesanli ali destani")
+  // 2. Contains match if length >= 3 ("keşanlı ali" in "keşanlı ali destanı", or vice versa)
+  const isCorrect =
+    nGuess.length > 0 &&
+    (nGuess === nTitle ||
+      (nGuess.length >= 3 && nTitle.includes(nGuess)) ||
+      (nTitle.length >= 3 && nGuess.includes(nTitle)));
   const remainingAttempts = Math.max(0, 3 - attemptNumber);
 
   let xpAwarded = 0;

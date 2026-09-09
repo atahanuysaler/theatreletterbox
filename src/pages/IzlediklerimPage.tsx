@@ -335,12 +335,12 @@ export const IzlediklerimPage: React.FC = () => {
                   ) : seen ? (
                     <>
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      Gördüm
+                      İzledim
                     </>
                   ) : (
                     <>
                       <Circle className="w-3.5 h-3.5" />
-                      Görmedim
+                      İzlemedim
                     </>
                   )}
                 </button>

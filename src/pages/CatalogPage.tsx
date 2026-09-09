@@ -1,20 +1,19 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { 
   Compass, 
-  Search, 
-  SlidersHorizontal, 
   Plus, 
   RotateCcw, 
   CheckCircle2, 
-  ArrowUpDown,
   Theater,
-  Check
+  Check,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Play } from '../types';
 import PlayCard from '../components/catalog/PlayCard';
-import FilterSidebar from '../components/catalog/FilterSidebar';
+import FilterBar, { SortOption, GenreItem } from '../components/catalog/FilterBar';
 import { storageService } from '../services/storage';
 import { useAuthSafe } from '../context/AuthContext';
 
@@ -23,7 +22,7 @@ interface CatalogPageProps {
   onOpenDailyQuote?: () => void;
 }
 
-type SortOption = 'rating' | 'reviews' | 'year' | 'title';
+const PAGE_SIZE = 40;
 
 export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpenDailyQuote }) => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -34,25 +33,35 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
   // Plays and User State
   const [plays, setPlays] = useState<Play[]>([]);
   const [seenPlayIds, setSeenPlayIds] = useState<string[]>([]);
+  const [watchlistPlayIds, setWatchlistPlayIds] = useState<string[]>([]);
   const [feedbackToast, setFeedbackToast] = useState<string | null>(null);
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
   const [selectedGenre, setSelectedGenre] = useState('');
   const [selectedCompany, setSelectedCompany] = useState('');
-  const [selectedVenue, setSelectedVenue] = useState('');
-  const [selectedIntermission, setSelectedIntermission] = useState<string>('all');
+  const [selectedActor, setSelectedActor] = useState('');
+  const [selectedCrewMember, setSelectedCrewMember] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('rating');
-  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
-  // Sync searchQuery when URL ?q= updates from Header
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const catalogGridRef = useRef<HTMLDivElement>(null);
+
+  // Sync searchQuery when URL ?q= updates from navigation
   useEffect(() => {
     if (urlSearchQuery !== searchQuery) {
       setSearchQuery(urlSearchQuery);
+      setCurrentPage(1);
     }
   }, [urlSearchQuery]);
 
-  // Load live plays and seen plays from Firebase storage
+  // Reset page to 1 when filters or sort change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedGenre, selectedCompany, selectedActor, selectedCrewMember, sortBy]);
+
+  // Load live plays and seen plays from storage
   useEffect(() => {
     let isMounted = true;
     const loadData = async () => {
@@ -63,14 +72,16 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
         }
         if (activeUserId) {
           const user = await storageService.getUserProfile(activeUserId);
-          if (user && user.seenPlayIds && isMounted) {
-            setSeenPlayIds(user.seenPlayIds);
+          if (user && isMounted) {
+            setSeenPlayIds(user.seenPlayIds || []);
+            setWatchlistPlayIds(user.watchlistPlayIds || []);
           }
         } else if (isMounted) {
           setSeenPlayIds([]);
+          setWatchlistPlayIds([]);
         }
       } catch (err) {
-        console.error('[CatalogPage] Failed to load plays from Firebase:', err);
+        console.error('[CatalogPage] Failed to load plays from storage:', err);
       }
     };
     loadData();
@@ -79,33 +90,98 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
     };
   }, [activeUserId]);
 
-  // Extract dynamic filter lists from catalog
-  const genres = useMemo(() => {
+  const handleToggleWatchlist = async (playId: string) => {
+    if (!activeUserId) {
+      setFeedbackToast('İzleme listesine eklemek için lütfen giriş yapın.');
+      setTimeout(() => setFeedbackToast(null), 3000);
+      return;
+    }
+    const targetPlay = plays.find((p) => p.id === playId);
+    const playTitle = targetPlay ? targetPlay.title : 'Oyun';
+    const isCurrentlyWatchlisted = watchlistPlayIds.includes(playId);
+    try {
+      const updatedList = await storageService.toggleWatchlistPlay(activeUserId, playId);
+      setWatchlistPlayIds(updatedList);
+      if (authContext?.updateProfile) {
+        await authContext.updateProfile({ watchlistPlayIds: updatedList });
+      }
+      setFeedbackToast(
+        !isCurrentlyWatchlisted
+          ? `"${playTitle}" izleme listene eklendi.`
+          : `"${playTitle}" izleme listenden kaldırıldı.`
+      );
+      setTimeout(() => setFeedbackToast(null), 3000);
+    } catch (err) {
+      console.error('[CatalogPage] Failed to toggle watchlist play:', err);
+    }
+  };
 
-    const set = new Set<string>();
-    plays.forEach((p) => {
-      if (p.genre) set.add(p.genre);
+  // Deduplicate and normalize genres into clean, atomic category items with counts
+  const genres = useMemo((): GenreItem[] => {
+    const genreCategories = [
+      { key: 'Dram', match: ['dram', 'trajedi'] },
+      { key: 'Komedi', match: ['komedi', 'fars'] },
+      { key: 'Müzikal', match: ['müzikal', 'operet', 'kabare'] },
+      { key: 'Klasik', match: ['klasik'] },
+      { key: 'Tek Kişilik', match: ['tek kişilik', 'monolog', 'monodram'] },
+      { key: 'Epik', match: ['epik'] },
+      { key: 'Absürt', match: ['absürt'] },
+      { key: 'Biyografik', match: ['biyografi', 'biyografik'] },
+      { key: 'Belgesel', match: ['belgesel'] },
+    ];
+
+    const result: GenreItem[] = [];
+    genreCategories.forEach((cat) => {
+      const count = plays.filter((p) => {
+        const g = (p.genre || '').toLocaleLowerCase('tr-TR');
+        const tags = (p.tags || []).map((t) => t.toLocaleLowerCase('tr-TR'));
+        return cat.match.some((m) => g.includes(m) || tags.some((t) => t.includes(m)));
+      }).length;
+
+      if (count > 0) {
+        result.push({ name: cat.key, count });
+      }
     });
-    return Array.from(set).sort();
+
+    return result;
   }, [plays]);
 
+  // Extract unique companies sorted alphabetically
   const companies = useMemo(() => {
     const set = new Set<string>();
     plays.forEach((p) => {
-      if (p.company) set.add(p.company);
+      if (p.company && p.company.trim()) set.add(p.company.trim());
     });
-    return Array.from(set).sort();
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'tr-TR'));
   }, [plays]);
 
-  const venues = useMemo(() => {
+  // Extract unique cast members sorted alphabetically
+  const actors = useMemo(() => {
     const set = new Set<string>();
     plays.forEach((p) => {
-      if (p.venue) set.add(p.venue);
+      (p.cast || []).forEach((actor) => {
+        const trimmed = actor.trim();
+        if (trimmed) set.add(trimmed);
+      });
     });
-    return Array.from(set).sort();
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'tr-TR'));
   }, [plays]);
 
-  // Filter & Search Logic with Turkish character normalization
+  // Extract unique production crew members (playwright, director, translator) sorted alphabetically
+  const crewMembers = useMemo(() => {
+    const set = new Set<string>();
+    plays.forEach((p) => {
+      if (p.playwright && p.playwright.trim()) set.add(p.playwright.trim());
+      if (p.director && p.director.trim()) set.add(p.director.trim());
+      const ext = p as any;
+      if (ext.translator && typeof ext.translator === 'string' && ext.translator.trim()) {
+        set.add(ext.translator.trim());
+      }
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'tr-TR'));
+  }, [plays]);
+
+  // Universal Filter & Omni-Search Logic
   const filteredPlays = useMemo(() => {
     const normalizedQuery = searchQuery
       .toLocaleLowerCase('tr-TR')
@@ -115,7 +191,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
 
     return plays
       .filter((play) => {
-        // 1. Search query match
+        // 1. Universal Omni-Search (Searches across play name, company, cast, playwright, director, etc.)
         if (normalizedQuery) {
           const searchableText = [
             play.title,
@@ -123,10 +199,10 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
             play.playwright,
             play.director,
             play.company,
-            play.venue,
             play.genre,
             ...(play.cast || []),
             ...(play.tags || []),
+            play.synopsis,
           ]
             .filter(Boolean)
             .join(' ')
@@ -139,9 +215,23 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
           }
         }
 
-        // 2. Genre filter
-        if (selectedGenre && play.genre !== selectedGenre) {
-          return false;
+        // 2. Deduplicated Genre filter
+        if (selectedGenre) {
+          const g = (play.genre || '').toLocaleLowerCase('tr-TR');
+          const tags = (play.tags || []).map((t) => t.toLocaleLowerCase('tr-TR'));
+          const genreKeyLower = selectedGenre.toLocaleLowerCase('tr-TR');
+
+          let matches = g.includes(genreKeyLower) || tags.some((t) => t.includes(genreKeyLower));
+          if (selectedGenre === 'Dram') {
+            matches = g.includes('dram') || g.includes('trajedi') || tags.some((t) => t.includes('dram'));
+          } else if (selectedGenre === 'Komedi') {
+            matches = g.includes('komedi') || g.includes('fars') || tags.some((t) => t.includes('komedi'));
+          } else if (selectedGenre === 'Müzikal') {
+            matches = g.includes('müzikal') || g.includes('operet') || g.includes('kabare');
+          } else if (selectedGenre === 'Tek Kişilik') {
+            matches = g.includes('tek kişilik') || g.includes('monolog') || g.includes('monodram');
+          }
+          if (!matches) return false;
         }
 
         // 3. Company filter
@@ -149,17 +239,22 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
           return false;
         }
 
-        // 4. Venue filter
-        if (selectedVenue && play.venue !== selectedVenue) {
-          return false;
+        // 4. Actor filter
+        if (selectedActor) {
+          const hasActor = (play.cast || []).some(
+            (a) => a.toLocaleLowerCase('tr-TR') === selectedActor.toLocaleLowerCase('tr-TR')
+          );
+          if (!hasActor) return false;
         }
 
-        // 5. Intermission filter
-        if (selectedIntermission === 'intermission' && !play.hasIntermission) {
-          return false;
-        }
-        if (selectedIntermission === 'single' && play.hasIntermission) {
-          return false;
+        // 5. Production Crew filter (director, playwright, translator)
+        if (selectedCrewMember) {
+          const target = selectedCrewMember.toLocaleLowerCase('tr-TR');
+          const pw = (play.playwright || '').toLocaleLowerCase('tr-TR');
+          const dir = (play.director || '').toLocaleLowerCase('tr-TR');
+          const trans = ((play as any).translator || '').toLocaleLowerCase('tr-TR');
+          const matchesCrew = pw === target || dir === target || trans === target;
+          if (!matchesCrew) return false;
         }
 
         return true;
@@ -176,18 +271,28 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
     searchQuery,
     selectedGenre,
     selectedCompany,
-    selectedVenue,
-    selectedIntermission,
+    selectedActor,
+    selectedCrewMember,
     sortBy,
   ]);
 
-  // Limit number of plays displayed on the front page to 40
-  const FRONT_PAGE_LIMIT = 40;
-  const displayedPlays = useMemo(() => {
-    return filteredPlays.slice(0, FRONT_PAGE_LIMIT);
-  }, [filteredPlays]);
+  // Pagination calculations: 40 plays per page
+  const totalPages = Math.max(1, Math.ceil(filteredPlays.length / PAGE_SIZE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
 
-  // Handle "Gördüm" Toggle with Confetti & Storage Update
+  const displayedPlays = useMemo(() => {
+    const startIndex = (safeCurrentPage - 1) * PAGE_SIZE;
+    return filteredPlays.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [filteredPlays, safeCurrentPage]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages && newPage !== safeCurrentPage) {
+      setCurrentPage(newPage);
+      catalogGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Handle "İzledim" Toggle with Confetti & Storage Update
   const handleToggleSeen = async (playId: string) => {
     const isCurrentlySeen = seenPlayIds.includes(playId);
     const targetPlay = plays.find((p) => p.id === playId);
@@ -223,16 +328,32 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
     }
   };
 
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+    if (query) {
+      setSearchParams({ q: query });
+    } else {
+      setSearchParams({});
+    }
+  };
+
   const handleResetFilters = () => {
     setSearchQuery('');
     setSelectedGenre('');
     setSelectedCompany('');
-    setSelectedVenue('');
-    setSelectedIntermission('all');
+    setSelectedActor('');
+    setSelectedCrewMember('');
     setSearchParams({});
   };
 
   const seenPercentage = plays.length > 0 ? Math.round((seenPlayIds.length / plays.length) * 100) : 0;
+  const hasActiveFilters = Boolean(
+    searchQuery ||
+    selectedGenre ||
+    selectedCompany ||
+    selectedActor ||
+    selectedCrewMember
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
@@ -244,255 +365,180 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
         </div>
       )}
 
-      {/* Editorial Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border-subtle pb-5">
-        <div>
-          <div className="flex items-center gap-2 text-theatre-curtain text-xs font-mono font-semibold uppercase tracking-wider mb-1">
-            <Compass className="w-4 h-4" />
-            <span>Oyun Kataloğu · Repertuar</span>
-          </div>
-          <h1 className="font-serif font-bold text-2xl sm:text-3xl text-text-primary tracking-tight">
-            Türkiye Tiyatro Sahnesi
-          </h1>
-          <p className="text-sm text-text-secondary mt-1 max-w-2xl font-sans">
-            Klasik ve çağdaş Türk tiyatrosundan seçkin yapımlar, ayrıntılı künyeler ve seyirci notları.
-          </p>
-        </div>
+      {/* Modern Horizontal Filter Bar */}
+      <FilterBar
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
+        genres={genres}
+        selectedGenre={selectedGenre}
+        onSelectGenre={setSelectedGenre}
+        companies={companies}
+        selectedCompany={selectedCompany}
+        onSelectCompany={setSelectedCompany}
+        actors={actors}
+        selectedActor={selectedActor}
+        onSelectActor={setSelectedActor}
+        crewMembers={crewMembers}
+        selectedCrewMember={selectedCrewMember}
+        onSelectCrewMember={setSelectedCrewMember}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        onResetFilters={handleResetFilters}
+        totalPlaysCount={plays.length}
+        filteredPlaysCount={filteredPlays.length}
+      />
 
-        {/* Repertoire Stats & Action */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <div className="font-mono text-xs text-text-secondary bg-layer-01 px-3 py-1.5 border border-border-subtle rounded-sm flex items-center gap-2">
-            <span>{plays.length} Repertuar Oyunu</span>
-            <span className="text-border-strong">·</span>
-            <span className="text-theatre-curtain font-semibold flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              {seenPlayIds.length} İzlendi (%{seenPercentage})
+      {/* Active Filter Badges Bar */}
+      {hasActiveFilters && (
+        <div className="flex items-center gap-2 flex-wrap text-xs bg-layer-01/60 p-2.5 border border-border-subtle rounded-sm">
+          <span className="text-text-secondary font-mono">Aktif Filtreler:</span>
+          {searchQuery && (
+            <span className="inline-flex items-center gap-1 bg-canvas border border-border-subtle px-2 py-0.5 rounded-sm">
+              <span>Arama: "{searchQuery}"</span>
+              <button
+                type="button"
+                onClick={() => handleSearchChange('')}
+                className="text-text-tertiary hover:text-theatre-curtain cursor-pointer"
+              >
+                ×
+              </button>
             </span>
-          </div>
-
+          )}
+          {selectedGenre && (
+            <span className="inline-flex items-center gap-1 bg-canvas border border-border-subtle px-2 py-0.5 rounded-sm">
+              <span>Tür: {selectedGenre}</span>
+              <button
+                type="button"
+                onClick={() => setSelectedGenre('')}
+                className="text-text-tertiary hover:text-theatre-curtain cursor-pointer"
+              >
+                ×
+              </button>
+            </span>
+          )}
+          {selectedCompany && (
+            <span className="inline-flex items-center gap-1 bg-canvas border border-border-subtle px-2 py-0.5 rounded-sm">
+              <span>Topluluk: {selectedCompany}</span>
+              <button
+                type="button"
+                onClick={() => setSelectedCompany('')}
+                className="text-text-tertiary hover:text-theatre-curtain cursor-pointer"
+              >
+                ×
+              </button>
+            </span>
+          )}
+          {selectedActor && (
+            <span className="inline-flex items-center gap-1 bg-canvas border border-border-subtle px-2 py-0.5 rounded-sm">
+              <span>Oyuncu: {selectedActor}</span>
+              <button
+                type="button"
+                onClick={() => setSelectedActor('')}
+                className="text-text-tertiary hover:text-theatre-curtain cursor-pointer"
+              >
+                ×
+              </button>
+            </span>
+          )}
+          {selectedCrewMember && (
+            <span className="inline-flex items-center gap-1 bg-canvas border border-border-subtle px-2 py-0.5 rounded-sm">
+              <span>Yapım Ekibi: {selectedCrewMember}</span>
+              <button
+                type="button"
+                onClick={() => setSelectedCrewMember('')}
+                className="text-text-tertiary hover:text-theatre-curtain cursor-pointer"
+              >
+                ×
+              </button>
+            </span>
+          )}
           <button
             type="button"
-            onClick={() => onOpenLogModal?.()}
-            className="inline-flex items-center gap-1.5 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white px-3.5 py-1.5 text-xs font-medium rounded-sm shadow-sm transition-colors cursor-pointer"
+            onClick={handleResetFilters}
+            className="text-theatre-curtain hover:underline text-xs ml-auto font-mono cursor-pointer"
           >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Not Al</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Daily Quote Teaser Banner */}
-      {onOpenDailyQuote && (
-        <div className="bg-layer-01 border border-border-subtle p-4 sm:p-5 rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-start sm:items-center gap-3.5">
-            <div className="w-10 h-10 rounded-sm bg-theatre-curtain text-white flex items-center justify-center flex-shrink-0 text-lg shadow-sm">
-              🎭
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-serif font-bold text-sm sm:text-base text-text-primary">
-                  Günün Repliği: Türk Tiyatrosu Bulmacası
-                </span>
-                <span className="text-[10px] font-mono bg-theatre-curtain/10 text-theatre-curtain font-bold px-1.5 py-0.5 rounded-sm">
-                  +30 XP
-                </span>
-              </div>
-              <p className="text-xs text-text-secondary mt-0.5">
-                Bugünün repliğini 3 tahminde bil, seriyi koru ve tiyatrosever kademeni yükselt.
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onOpenDailyQuote}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-canvas hover:bg-layer-02 border border-border-strong px-4 py-2 text-xs font-mono font-semibold text-text-primary rounded-sm transition-colors cursor-pointer flex-shrink-0"
-          >
-            <span>Bulmacayı Başlat</span>
-            <span className="text-theatre-curtain font-bold">→</span>
+            Tümünü Temizle
           </button>
         </div>
       )}
 
-      {/* Catalog Search & Controls Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-layer-01 p-3 border border-border-subtle rounded-sm">
-        {/* Real-time In-Page Search */}
-        <div className="relative flex-1 max-w-lg">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary pointer-events-none" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              if (e.target.value) {
-                setSearchParams({ q: e.target.value });
-              } else {
-                setSearchParams({});
-              }
-            }}
-            placeholder="Oyun, yazar, yönetmen veya oyuncu ara..."
-            className="w-full bg-canvas border border-border-subtle hover:border-border-strong focus:border-theatre-curtain text-xs sm:text-sm pl-9 pr-8 py-2 rounded-sm outline-none transition-colors text-text-primary placeholder:text-text-tertiary font-sans"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setSearchParams({});
-              }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary text-xs cursor-pointer"
-              aria-label="Aramayı temizle"
-            >
-              ×
-            </button>
-          )}
-        </div>
-
-        {/* Sort & Mobile Filter Toggle */}
-        <div className="flex items-center gap-2 justify-end">
-          {/* Sort Dropdown */}
-          <div className="flex items-center gap-1.5 bg-canvas border border-border-subtle px-2.5 py-1.5 rounded-sm text-xs">
-            <ArrowUpDown className="w-3.5 h-3.5 text-text-tertiary" />
-            <span className="text-text-secondary hidden sm:inline">Sırala:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="bg-transparent text-text-primary font-medium outline-none cursor-pointer text-xs"
-            >
-              <option value="rating">En Yüksek Puan</option>
-              <option value="reviews">En Çok Not Alan</option>
-              <option value="year">Prömiyer Yılı</option>
-              <option value="title">Alfabetik (A-Z)</option>
-            </select>
-          </div>
-
-          {/* Mobile Filter Button (< 1024px) */}
-          <button
-            type="button"
-            onClick={() => setIsMobileFiltersOpen(true)}
-            className="lg:hidden inline-flex items-center gap-1.5 bg-canvas hover:bg-layer-02 border border-border-subtle text-text-primary px-3 py-1.5 text-xs font-medium rounded-sm transition-colors cursor-pointer"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-theatre-curtain" />
-            <span>Filtrele</span>
-            {(selectedGenre || selectedCompany || selectedVenue || selectedIntermission !== 'all') && (
-              <span className="w-2 h-2 rounded-full bg-theatre-curtain" />
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Main Layout: Sidebar + Repertoire Grid */}
-      <div className="flex items-start gap-6">
-        {/* Left Filter Sidebar */}
-        <FilterSidebar
-          genres={genres}
-          companies={companies}
-          venues={venues}
-          selectedGenre={selectedGenre}
-          selectedCompany={selectedCompany}
-          selectedVenue={selectedVenue}
-          selectedIntermission={selectedIntermission}
-          onSelectGenre={setSelectedGenre}
-          onSelectCompany={setSelectedCompany}
-          onSelectVenue={setSelectedVenue}
-          onSelectIntermission={setSelectedIntermission}
-          onResetFilters={handleResetFilters}
-          totalPlaysCount={plays.length}
-          filteredPlaysCount={displayedPlays.length}
-          isMobileOpen={isMobileFiltersOpen}
-          onCloseMobile={() => setIsMobileFiltersOpen(false)}
-        />
-
-        {/* Right Repertoire Content */}
-        <div className="flex-1 min-w-0 space-y-4">
-          {/* Active Filter Tags Bar */}
-          {(selectedGenre || selectedCompany || selectedVenue || selectedIntermission !== 'all' || searchQuery) && (
-            <div className="flex items-center gap-2 flex-wrap text-xs bg-layer-01/60 p-2.5 border border-border-subtle rounded-sm">
-              <span className="text-text-secondary font-mono">Aktif Filtreler:</span>
-              {searchQuery && (
-                <span className="inline-flex items-center gap-1 bg-canvas border border-border-subtle px-2 py-0.5 rounded-sm">
-                  <span>Arama: "{searchQuery}"</span>
-                  <button type="button" onClick={() => setSearchQuery('')} className="text-text-tertiary hover:text-theatre-curtain cursor-pointer">
-                    ×
-                  </button>
-                </span>
-              )}
-              {selectedGenre && (
-                <span className="inline-flex items-center gap-1 bg-canvas border border-border-subtle px-2 py-0.5 rounded-sm">
-                  <span>Tür: {selectedGenre}</span>
-                  <button type="button" onClick={() => setSelectedGenre('')} className="text-text-tertiary hover:text-theatre-curtain cursor-pointer">
-                    ×
-                  </button>
-                </span>
-              )}
-              {selectedCompany && (
-                <span className="inline-flex items-center gap-1 bg-canvas border border-border-subtle px-2 py-0.5 rounded-sm">
-                  <span>Topluluk: {selectedCompany}</span>
-                  <button type="button" onClick={() => setSelectedCompany('')} className="text-text-tertiary hover:text-theatre-curtain cursor-pointer">
-                    ×
-                  </button>
-                </span>
-              )}
-              {selectedVenue && (
-                <span className="inline-flex items-center gap-1 bg-canvas border border-border-subtle px-2 py-0.5 rounded-sm">
-                  <span>Sahne: {selectedVenue}</span>
-                  <button type="button" onClick={() => setSelectedVenue('')} className="text-text-tertiary hover:text-theatre-curtain cursor-pointer">
-                    ×
-                  </button>
-                </span>
-              )}
-              {selectedIntermission !== 'all' && (
-                <span className="inline-flex items-center gap-1 bg-canvas border border-border-subtle px-2 py-0.5 rounded-sm">
-                  <span>{selectedIntermission === 'intermission' ? '2 Perde' : 'Tek Perde'}</span>
-                  <button type="button" onClick={() => setSelectedIntermission('all')} className="text-text-tertiary hover:text-theatre-curtain cursor-pointer">
-                    ×
-                  </button>
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={handleResetFilters}
-                className="text-theatre-curtain hover:underline text-xs ml-auto font-mono cursor-pointer"
-              >
-                Tümünü Temizle
-              </button>
+      {/* Expansive Full-Width Repertoire Grid */}
+      <div ref={catalogGridRef} className="scroll-mt-6">
+        {displayedPlays.length > 0 ? (
+          <div className="space-y-8">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+              {displayedPlays.map((play) => (
+                <PlayCard
+                  key={play.id}
+                  play={play}
+                  isSeen={seenPlayIds.includes(play.id)}
+                  isWatchlisted={watchlistPlayIds.includes(play.id)}
+                  onToggleSeen={handleToggleSeen}
+                  onToggleWatchlist={handleToggleWatchlist}
+                  onOpenLogModal={(p) => onOpenLogModal?.(p)}
+                />
+              ))}
             </div>
-          )}
 
-          {/* Repertoire Grid: Max 40 Plays */}
-          {displayedPlays.length > 0 ? (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-                {displayedPlays.map((play) => (
-                  <PlayCard
-                    key={play.id}
-                    play={play}
-                    isSeen={seenPlayIds.includes(play.id)}
-                    onToggleSeen={handleToggleSeen}
-                    onOpenLogModal={(p) => onOpenLogModal?.(p)}
-                  />
-                ))}
-              </div>
-
-              {filteredPlays.length > FRONT_PAGE_LIMIT && (
-                <div className="bg-layer-01 border border-border-subtle rounded-sm p-4 text-center">
-                  <p className="text-xs font-mono text-text-secondary">
-                    Ön sayfada en fazla {FRONT_PAGE_LIMIT} oyun gösterilmektedir (toplam {filteredPlays.length} sonuç arasından). İstediğiniz yapımlara erişmek için arama veya filtreleri daraltabilirsiniz.
-                  </p>
+            {/* Pagination Bar (40 Plays Per Page) */}
+            {totalPages > 1 && (
+              <div className="border-t border-border-subtle pt-6 pb-2 flex flex-col sm:flex-row items-center justify-between gap-4">
+                {/* Results count indicator */}
+                <div className="text-xs font-mono text-text-secondary">
+                  Toplam <strong className="text-text-primary">{filteredPlays.length}</strong> oyun arasından{' '}
+                  <strong className="text-text-primary">
+                    {(safeCurrentPage - 1) * PAGE_SIZE + 1} - {Math.min(safeCurrentPage * PAGE_SIZE, filteredPlays.length)}
+                  </strong>{' '}
+                  arası gösteriliyor (Sayfa {safeCurrentPage} / {totalPages})
                 </div>
-              )}
-            </div>
-          ) : (
-            /* Empty State */
-            <div className="bg-canvas border border-border-subtle rounded-sm p-12 text-center space-y-4">
-              <Theater className="w-12 h-12 mx-auto text-theatre-curtain/60" />
-              <div className="space-y-1">
-                <h3 className="font-serif font-bold text-lg text-text-primary">
-                  Eşleşen Oyun Bulunamadı
-                </h3>
-                <p className="text-xs text-text-secondary max-w-md mx-auto">
-                  Arama kriterlerinize veya seçilen filtrelere uygun yapım repertuarda bulunamadı. Lütfen filtrelerinizi gevşetin.
-                </p>
+
+                {/* Page Navigation Controls */}
+                <div className="flex items-center gap-2">
+                  {/* Previous Button */}
+                  <button
+                    type="button"
+                    disabled={safeCurrentPage === 1}
+                    onClick={() => handlePageChange(safeCurrentPage - 1)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-sm border transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed bg-canvas hover:bg-layer-01 border-border-subtle text-text-primary"
+                    aria-label="Önceki Sayfa"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span>Önceki</span>
+                  </button>
+
+                  {/* Page Indicator */}
+                  <div className="px-3 py-1.5 text-xs font-mono font-medium text-text-secondary bg-layer-01 border border-border-subtle rounded-sm select-none">
+                    Sayfa <strong className="text-text-primary">{safeCurrentPage}</strong> / {totalPages}
+                  </div>
+
+                  {/* Next Button */}
+                  <button
+                    type="button"
+                    disabled={safeCurrentPage === totalPages}
+                    onClick={() => handlePageChange(safeCurrentPage + 1)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-sm border transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed bg-canvas hover:bg-layer-01 border-border-subtle text-text-primary"
+                    aria-label="Sonraki Sayfa"
+                  >
+                    <span>Sonraki</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
+            )}
+          </div>
+        ) : (
+          /* Empty State */
+          <div className="bg-canvas border border-border-subtle rounded-sm p-12 text-center space-y-4">
+            <Theater className="w-12 h-12 mx-auto text-theatre-curtain/60" />
+            <div className="space-y-1">
+              <h3 className="font-serif font-bold text-lg text-text-primary">
+                Eşleşen Oyun Bulunamadı
+              </h3>
+              <p className="text-xs text-text-secondary max-w-md mx-auto">
+                Arama kriterlerinize veya seçilen filtrelere uygun yapım repertuarda bulunamadı. Lütfen filtrelerinizi gevşetin.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={handleResetFilters}
@@ -501,9 +547,16 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Filtreleri Temizle</span>
               </button>
+              <Link
+                to="/oyun-ekle"
+                className="inline-flex items-center gap-1.5 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white px-4 py-2 text-xs font-medium rounded-sm transition-colors cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Oyunu Kataloğa Ekle</span>
+              </Link>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
