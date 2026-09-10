@@ -53,8 +53,22 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
     ctx.fillRect(0, 0, width, 10);
 
     // Reuse the already-loaded preview image — avoids CORS re-fetch
-    const img: HTMLImageElement | null = previewImgRef.current ?? null;
-    const posterLoaded = !!(img && img.complete && img.naturalWidth > 0);
+    let img: HTMLImageElement | null = previewImgRef.current ?? null;
+    let posterLoaded = !!(img && img.complete && img.naturalWidth > 0);
+
+    if (!posterLoaded && play.posterUrl) {
+      await new Promise<void>(resolve => {
+        const tempImg = new Image();
+        tempImg.crossOrigin = 'anonymous';
+        tempImg.onload = () => {
+          img = tempImg;
+          posterLoaded = true;
+          resolve();
+        };
+        tempImg.onerror = () => resolve();
+        tempImg.src = play.posterUrl;
+      });
+    }
 
 
     if (cardStyle === 'ticket') {
@@ -664,6 +678,18 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
             </button>
           </div>
 
+          {/* Persistent hidden image so canvas exporter always has loaded poster reference regardless of active tab or template style */}
+          {play.posterUrl && (
+            <img
+              ref={previewImgRef}
+              src={play.posterUrl}
+              alt=""
+              aria-hidden="true"
+              className="absolute -top-[9999px] -left-[9999px] opacity-0 pointer-events-none"
+              crossOrigin="anonymous"
+            />
+          )}
+
           {/* Live Preview Card */}
           <div
             className="relative w-full rounded-sm overflow-hidden border border-border-subtle shadow-inner flex flex-col justify-between"
@@ -719,10 +745,10 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
               <div className="flex-1 flex flex-col justify-between overflow-hidden">
                 <div className="relative flex-1 min-h-[140px] overflow-hidden bg-layer-01">
                   <img
-                    ref={previewImgRef}
                     src={play.posterUrl}
                     alt={play.title}
                     className="w-full h-full object-cover"
+                    crossOrigin="anonymous"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
                 </div>
@@ -744,7 +770,12 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
               /* Standard Poster 16:9 Preview */
               <div className="flex-1 flex overflow-hidden">
                 <div className="w-1/3 overflow-hidden bg-layer-01">
-                  <img src={play.posterUrl} alt="" className="w-full h-full object-cover" />
+                  <img
+                    src={play.posterUrl}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    crossOrigin="anonymous"
+                  />
                 </div>
                 <div className="w-2/3 p-3 flex flex-col justify-between bg-white">
                   <div>
