@@ -21,7 +21,8 @@ import {
   LeaderboardUser,
   PlaySubmission,
   CuratedList,
-  PuzzleGameConfig
+  PuzzleGameConfig,
+  ContactMessage
 } from '../types';
 import { IStorageService, SeenPlayResult, QuoteGuessResult } from './storage';
 import { calculateLevel, evaluateBadges, evaluateQuoteGuess } from './gamification';
@@ -777,6 +778,82 @@ export class FirebaseStorageService implements IStorageService {
       const all = await this.getPuzzleGames();
       const filtered = all.filter(g => g.id !== id);
       localStorage.setItem('tiyatronot_puzzle_games', JSON.stringify(filtered));
+    } catch {}
+  }
+
+  // Contact Messages CRUD
+  async getContactMessages(): Promise<ContactMessage[]> {
+    try {
+      const q = query(collection(this.getDb(), 'contact_messages'), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      const messages = snap.docs.map(d => ({ ...d.data(), id: d.id } as ContactMessage));
+      if (messages.length > 0) {
+        localStorage.setItem('tiyatronot_contact_messages', JSON.stringify(messages));
+        return messages;
+      }
+    } catch (err) {
+      console.warn('[FirebaseStorage] Could not fetch contact messages from Firestore:', err);
+    }
+
+    try {
+      const local = localStorage.getItem('tiyatronot_contact_messages');
+      if (local) {
+        return JSON.parse(local);
+      }
+    } catch {}
+
+    return [];
+  }
+
+  async saveContactMessage(message: Omit<ContactMessage, 'id' | 'createdAt' | 'status'>): Promise<ContactMessage> {
+    const id = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const newMsg: ContactMessage = {
+      ...message,
+      id,
+      createdAt: new Date().toISOString(),
+      status: 'unread'
+    };
+
+    try {
+      await setDoc(doc(this.getDb(), 'contact_messages', id), removeUndefined(newMsg));
+    } catch (err) {
+      console.warn('[FirebaseStorage] Could not save contact message to Firestore:', err);
+    }
+
+    try {
+      const local = await this.getContactMessages();
+      const updated = [newMsg, ...local.filter(m => m.id !== id)];
+      localStorage.setItem('tiyatronot_contact_messages', JSON.stringify(updated));
+    } catch {}
+
+    return newMsg;
+  }
+
+  async updateContactMessageStatus(id: string, status: 'unread' | 'read'): Promise<void> {
+    try {
+      await updateDoc(doc(this.getDb(), 'contact_messages', id), { status });
+    } catch (err) {
+      console.warn('[FirebaseStorage] Could not update contact message status in Firestore:', err);
+    }
+
+    try {
+      const local = await this.getContactMessages();
+      const updated = local.map(m => m.id === id ? { ...m, status } : m);
+      localStorage.setItem('tiyatronot_contact_messages', JSON.stringify(updated));
+    } catch {}
+  }
+
+  async deleteContactMessage(id: string): Promise<void> {
+    try {
+      await deleteDoc(doc(this.getDb(), 'contact_messages', id));
+    } catch (err) {
+      console.warn('[FirebaseStorage] Could not delete contact message from Firestore:', err);
+    }
+
+    try {
+      const local = await this.getContactMessages();
+      const filtered = local.filter(m => m.id !== id);
+      localStorage.setItem('tiyatronot_contact_messages', JSON.stringify(filtered));
     } catch {}
   }
 

@@ -126,3 +126,13 @@ export interface PlaySubmission {
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
 }
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  createdAt: string;
+  status: 'unread' | 'read';
+}
+

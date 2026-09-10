@@ -3,6 +3,7 @@ import { X, Star, Calendar, MapPin, AlertTriangle, CheckCircle2, Sparkles, Searc
 import { storageService } from '../services/storage';
 import { useAuth } from '../context/AuthContext';
 import type { Play } from '../types';
+import { matchesSearchQuery } from '../utils/textUtils';
 
 interface LogModalProps {
   isOpen: boolean;
@@ -162,8 +163,7 @@ export const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, preselected
 
   const filteredPlays = playSearch.trim().length >= 2
     ? plays.filter(p =>
-        p.title.toLocaleLowerCase('tr').includes(playSearch.toLocaleLowerCase('tr')) ||
-        p.playwright.toLocaleLowerCase('tr').includes(playSearch.toLocaleLowerCase('tr'))
+        matchesSearchQuery([p.title, p.playwright, p.venue || ''], playSearch)
       ).slice(0, 6)
     : [];
 

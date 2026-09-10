@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { 
   Plus,
@@ -30,15 +30,88 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const isSidebarOpenRef = useRef(isSidebarOpen);
   const location = useLocation();
   const authContext = useAuthSafe();
   const user = authContext?.user;
   const { isDark, toggleTheme } = useTheme();
 
-  // Close sidebar on route change
+  // Sync isSidebarOpen ref and ensure header is visible when menu is opened
+  useEffect(() => {
+    isSidebarOpenRef.current = isSidebarOpen;
+    if (isSidebarOpen) {
+      setIsVisible(true);
+    }
+  }, [isSidebarOpen]);
+
+  // Close sidebar and show header on route change
   useEffect(() => {
     setIsSidebarOpen(false);
+    setIsVisible(true);
   }, [location.pathname]);
+
+  // Dynamic header visibility on mobile scroll / swipe:
+  // - Swiping/scrolling down -> slides away (-translate-y-full)
+  // - Swiping/scrolling up -> slides back into view (translate-y-0)
+  // - Near top of page (scrollY <= 20) -> always visible
+  // - Desktop (sm: >= 640px) -> always visible (sm:translate-y-0)
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (isSidebarOpenRef.current) {
+        ticking = false;
+        return;
+      }
+
+      const currentScrollY = window.scrollY;
+
+      // Always keep header visible when near or at the top of the page
+      if (currentScrollY <= 20) {
+        setIsVisible(true);
+        lastScrollY = Math.max(0, currentScrollY);
+        ticking = false;
+        return;
+      }
+
+      // Avoid false triggers on iOS rubber-band overscroll at the bottom of the page
+      const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
+      if (maxScrollY > 0 && currentScrollY >= maxScrollY - 20) {
+        ticking = false;
+        return;
+      }
+
+      const diff = currentScrollY - lastScrollY;
+      const threshold = 8; // Small threshold to avoid micro-jitter
+
+      if (Math.abs(diff) > threshold) {
+        if (diff > 0 && currentScrollY > 60) {
+          // Scrolling / swiping down -> hide header on mobile
+          setIsVisible(false);
+        } else if (diff < 0) {
+          // Scrolling / swiping up -> show header on mobile
+          setIsVisible(true);
+        }
+        lastScrollY = currentScrollY;
+      }
+
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(handleScroll);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, []);
 
   // Lock background body scrolling when sidebar is open
   useEffect(() => {
@@ -90,7 +163,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-canvas/95 backdrop-blur-sm border-b border-border-subtle">
+      <header
+        className={`fixed top-0 left-0 right-0 z-30 bg-canvas/95 backdrop-blur-sm border-b border-border-subtle transition-transform duration-300 ease-in-out will-change-transform ${
+          isVisible ? 'translate-y-0' : '-translate-y-full sm:translate-y-0'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-18 gap-3 sm:gap-4">
             {/* Left: Menu Trigger, Brand & Logo */}
@@ -210,6 +287,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
           </div>
         </div>
       </header>
+      {/* Spacer to preserve normal document layout below fixed header */}
+      <div className="h-16 sm:h-18 shrink-0 pointer-events-none" aria-hidden="true" />
 
       {/* Slide-out Navigation Drawer */}
       <div
@@ -275,10 +354,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
                 <span>Oyun Kataloğu</span>
               </NavLink>
 
-              {/* İzlediklerim (In mobile bottom dock -> desktop-only in sidebar) */}
+              {/* İzlediklerim (Always accessible in sidebar) */}
               <NavLink
                 to="/izlediklerim"
-                className={getSidebarNavLinkClass('desktop-only')}
+                className={getSidebarNavLinkClass('all')}
                 onClick={() => setIsSidebarOpen(false)}
               >
                 <CheckCircle2 className="w-4 h-4 text-theatre-curtain" />
@@ -305,10 +384,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
                 <span>Küratörlü Listeler</span>
               </NavLink>
 
-              {/* Bulmacalar (In desktop header -> mobile-only in sidebar) */}
+              {/* Bulmacalar (Accessible in sidebar) */}
               <NavLink
                 to="/bulmacalar"
-                className={getSidebarNavLinkClass('mobile-only')}
+                className={getSidebarNavLinkClass('all')}
                 onClick={() => setIsSidebarOpen(false)}
               >
                 <Puzzle className="w-4 h-4 text-theatre-curtain" />

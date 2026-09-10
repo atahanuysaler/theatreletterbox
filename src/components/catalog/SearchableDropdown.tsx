@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Search, X, Check } from 'lucide-react';
+import { normalizeSearchText } from '../../utils/textUtils';
 
 export interface SearchableDropdownProps {
   label: string;
@@ -66,8 +67,8 @@ export const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
   const filteredOptions = isSearching
     ? options
         .filter((option) => {
-          const normalizedOption = option.toLocaleLowerCase('tr-TR');
-          const normalizedQuery = searchQuery.toLocaleLowerCase('tr-TR').trim();
+          const normalizedOption = normalizeSearchText(option);
+          const normalizedQuery = normalizeSearchText(searchQuery.trim());
           return normalizedOption.includes(normalizedQuery);
         })
         .slice(0, 15)

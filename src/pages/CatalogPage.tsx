@@ -16,6 +16,7 @@ import PlayCard from '../components/catalog/PlayCard';
 import FilterBar, { SortOption, GenreItem } from '../components/catalog/FilterBar';
 import { storageService } from '../services/storage';
 import { useAuthSafe } from '../context/AuthContext';
+import { normalizeSearchText } from '../utils/textUtils';
 
 interface CatalogPageProps {
   onOpenLogModal?: (play?: Play | null) => void;
@@ -215,17 +216,14 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
 
   // Universal Filter & Omni-Search Logic
   const filteredPlays = useMemo(() => {
-    const normalizedQuery = searchQuery
-      .toLocaleLowerCase('tr-TR')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .trim();
+    const normalizedQuery = normalizeSearchText(searchQuery);
+    const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
 
     return plays
       .filter((play) => {
         // 1. Universal Omni-Search (Searches across play name, company, cast, playwright, director, etc.)
-        if (normalizedQuery) {
-          const searchableText = [
+        if (queryTokens.length > 0) {
+          const searchableText = normalizeSearchText([
             play.title,
             play.originalTitle,
             play.playwright,
@@ -237,12 +235,9 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
             play.synopsis,
           ]
             .filter(Boolean)
-            .join(' ')
-            .toLocaleLowerCase('tr-TR')
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '');
+            .join(' '));
 
-          if (!searchableText.includes(normalizedQuery)) {
+          if (!queryTokens.every(token => searchableText.includes(token))) {
             return false;
           }
         }

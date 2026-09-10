@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   Compass, 
-  CheckCircle2, 
+  Puzzle, 
   StickyNote, 
   Trophy, 
   User 
@@ -33,10 +33,10 @@ export const MobileDock: React.FC<MobileDockProps> = ({ onOpenLogModal }) => {
           <span>Keşfet</span>
         </NavLink>
 
-        {/* 2. İzlediklerim */}
-        <NavLink to="/izlediklerim" className={dockLinkClass}>
-          <CheckCircle2 className="w-5 h-5 mb-0.5" />
-          <span>İzlediklerim</span>
+        {/* 2. Bulmacalar */}
+        <NavLink to="/bulmacalar" className={dockLinkClass}>
+          <Puzzle className="w-5 h-5 mb-0.5" />
+          <span>Bulmacalar</span>
         </NavLink>
 
         {/* 3. Not Ekle (Central Elevated CTA) */}

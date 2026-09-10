@@ -7,7 +7,8 @@ import {
   LeaderboardUser,
   PlaySubmission,
   CuratedList,
-  PuzzleGameConfig
+  PuzzleGameConfig,
+  ContactMessage
 } from '../types';
 import { firebaseStorageService } from './firebaseStorageService';
 
@@ -87,6 +88,12 @@ export interface IStorageService {
   createPuzzleGame(game: Omit<PuzzleGameConfig, 'id'>): Promise<PuzzleGameConfig>;
   updatePuzzleGame(id: string, updates: Partial<PuzzleGameConfig>): Promise<PuzzleGameConfig>;
   deletePuzzleGame(id: string): Promise<void>;
+
+  // Contact Messages CRUD
+  getContactMessages(): Promise<ContactMessage[]>;
+  saveContactMessage(message: Omit<ContactMessage, 'id' | 'createdAt' | 'status'>): Promise<ContactMessage>;
+  updateContactMessageStatus(id: string, status: 'unread' | 'read'): Promise<void>;
+  deleteContactMessage(id: string): Promise<void>;
 
   // Reset & Re-seed
   resetAndSeedDatabase(): Promise<void>;

@@ -1,21 +1,49 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Send, CheckCircle2, ArrowLeft, MapPin } from 'lucide-react';
+import { Mail, Send, CheckCircle2, ArrowLeft, MapPin, Copy, Check, AlertTriangle, Loader2 } from 'lucide-react';
+import { storageService } from '../services/storage';
 
 export const ContactPage: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const [copied, setCopied] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleCopyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText('tiyatronotiletisim@gmail.com');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {}
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !message.trim()) return;
-    setSubmitted(true);
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      await storageService.saveContactMessage({
+        name: name.trim() || 'İsimsiz Tiyatrosever',
+        email: email.trim(),
+        message: message.trim(),
+      });
+      setSubmitted(true);
+    } catch (err) {
+      console.error('[ContactPage] Error submitting message:', err);
+      setError('Mesaj kaydedilirken bir hata oluştu. Lütfen tekrar deneyin veya doğrudan e-posta adresimiz üzerinden yazın.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
       {/* Breadcrumb / Back link */}
       <div className="mb-6">
         <Link
@@ -40,23 +68,35 @@ export const ContactPage: React.FC = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Contact Information & Channels */}
-        <div className="md:col-span-1 space-y-6">
-          <div className="p-4 bg-layer-01 border border-border-subtle rounded-sm space-y-3">
+        <div className="lg:col-span-5 space-y-6">
+          <div className="p-4 sm:p-5 bg-layer-01 border border-border-subtle rounded-sm space-y-3">
             <div className="flex items-center gap-2 text-xs font-mono font-semibold uppercase text-text-primary">
-              <Mail className="w-4 h-4 text-theatre-curtain" />
+              <Mail className="w-4 h-4 text-theatre-curtain shrink-0" />
               <span>E-Posta</span>
             </div>
             <p className="text-xs text-text-secondary leading-relaxed">
               Doğrudan e-posta yoluyla bize yazabilirsiniz:
             </p>
-            <a
-              href="mailto:iletisim@tiyatronot.com"
-              className="block text-xs font-mono text-theatre-curtain hover:underline break-all"
-            >
-              iletisim@tiyatronot.com
-            </a>
+            <div className="flex items-center justify-between gap-2 p-2.5 bg-canvas border border-border-subtle rounded-sm">
+              <a
+                href="mailto:tiyatronotiletisim@gmail.com"
+                className="text-[11.5px] sm:text-xs font-mono font-semibold text-theatre-curtain hover:underline whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
+                title="tiyatronotiletisim@gmail.com"
+              >
+                tiyatronotiletisim@gmail.com
+              </a>
+              <button
+                type="button"
+                onClick={handleCopyEmail}
+                className="p-1 text-text-tertiary hover:text-text-primary hover:bg-layer-01 rounded-xs transition-colors cursor-pointer shrink-0"
+                title={copied ? 'Kopyalandı!' : 'Adresi Kopyala'}
+                aria-label="E-posta adresini kopyala"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
           </div>
 
           <div className="p-4 bg-layer-01 border border-border-subtle rounded-sm space-y-3">
@@ -74,29 +114,41 @@ export const ContactPage: React.FC = () => {
         </div>
 
         {/* Contact Form / Placeholder */}
-        <div className="md:col-span-2">
+        <div className="lg:col-span-7">
           {submitted ? (
-            <div className="p-8 bg-layer-01 border border-border-subtle rounded-sm text-center space-y-3">
-              <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto" />
-              <h3 className="font-serif font-bold text-lg text-text-primary">Mesajınız Alındı</h3>
-              <p className="text-xs text-text-secondary font-mono max-w-md mx-auto">
-                Geri bildiriminiz için teşekkür ederiz. En kısa sürede sizinle iletişime geçeceğiz.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setSubmitted(false);
-                  setName('');
-                  setEmail('');
-                  setMessage('');
-                }}
-                className="mt-4 text-xs font-mono text-theatre-curtain hover:underline cursor-pointer"
-              >
-                Yeni bir mesaj gönder
-              </button>
+            <div className="p-8 bg-layer-01 border border-border-subtle rounded-sm text-center space-y-4 animate-fade-in">
+              <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto" />
+              <div className="space-y-1">
+                <h3 className="font-serif font-bold text-xl text-text-primary">Mesajınız Alındı!</h3>
+                <p className="text-xs text-text-secondary font-mono max-w-md mx-auto leading-relaxed">
+                  Geri bildiriminiz başarıyla kaydedildi. En kısa sürede <strong className="text-text-primary">{email}</strong> adresinize dönüş yapacağız.
+                </p>
+              </div>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSubmitted(false);
+                    setName('');
+                    setEmail('');
+                    setMessage('');
+                    setError(null);
+                  }}
+                  className="px-4 py-2 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white text-xs font-semibold rounded-sm transition-colors cursor-pointer"
+                >
+                  Yeni bir mesaj gönder
+                </button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4 p-6 bg-layer-01 border border-border-subtle rounded-sm">
+              {error && (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-400 text-xs font-mono flex items-center gap-2 rounded-xs">
+                  <AlertTriangle className="w-4 h-4 shrink-0 text-red-500" />
+                  <span>{error}</span>
+                </div>
+              )}
+
               <div className="space-y-1.5">
                 <label className="text-xs font-mono font-semibold text-text-secondary uppercase">
                   Adınız
@@ -106,7 +158,8 @@ export const ContactPage: React.FC = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Adınız ve soyadınız"
-                  className="w-full border border-border-strong bg-canvas px-3 py-2 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors"
+                  disabled={submitting}
+                  className="w-full border border-border-strong bg-canvas px-3 py-2 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors disabled:opacity-50"
                 />
               </div>
 
@@ -120,7 +173,8 @@ export const ContactPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="ornek@posta.com"
-                  className="w-full border border-border-strong bg-canvas px-3 py-2 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors"
+                  disabled={submitting}
+                  className="w-full border border-border-strong bg-canvas px-3 py-2 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors disabled:opacity-50"
                 />
               </div>
 
@@ -134,16 +188,27 @@ export const ContactPage: React.FC = () => {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Mesajınızı veya geri bildiriminizi buraya yazın..."
-                  className="w-full border border-border-strong bg-canvas px-3 py-2 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors resize-none"
+                  disabled={submitting}
+                  className="w-full border border-border-strong bg-canvas px-3 py-2 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors resize-none disabled:opacity-50"
                 />
               </div>
 
               <button
                 type="submit"
-                className="inline-flex items-center justify-center gap-2 w-full bg-theatre-curtain text-white py-2.5 text-xs font-semibold hover:bg-theatre-curtain-hover transition-colors cursor-pointer"
+                disabled={submitting}
+                className="inline-flex items-center justify-center gap-2 w-full bg-theatre-curtain text-white py-2.5 text-xs font-semibold hover:bg-theatre-curtain-hover active:bg-theatre-curtain/90 transition-colors cursor-pointer disabled:opacity-50"
               >
-                <Send className="w-3.5 h-3.5" />
-                <span>Mesajı Gönder</span>
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Gönderiliyor...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Mesajı Gönder</span>
+                  </>
+                )}
               </button>
             </form>
           )}

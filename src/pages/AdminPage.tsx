@@ -17,13 +17,16 @@ import {
   Search,
   Sparkles,
   Library,
-  Edit2,
   X,
-  Puzzle
+  Puzzle,
+  Mail,
+  Send,
+  Edit2
 } from 'lucide-react';
 import { storageService } from '../services/storage';
 import { useAuth } from '../context/AuthContext';
-import type { Play, DailyQuote, PlaySubmission, CuratedList, PuzzleGameConfig } from '../types';
+import type { Play, DailyQuote, PlaySubmission, CuratedList, PuzzleGameConfig, ContactMessage } from '../types';
+import { normalizeSearchText } from '../utils/textUtils';
 
 // ── Access Denied ────────────────────────────────────────────────────────────
 function AccessDenied() {
@@ -401,11 +404,15 @@ function PublishedPlaysSection() {
     }
   };
 
-  const filtered = plays.filter(p =>
-    p.title.toLocaleLowerCase('tr').includes(search.toLocaleLowerCase('tr')) ||
-    p.playwright.toLocaleLowerCase('tr').includes(search.toLocaleLowerCase('tr')) ||
-    p.company.toLocaleLowerCase('tr').includes(search.toLocaleLowerCase('tr'))
-  );
+  const filtered = plays.filter(p => {
+    const q = normalizeSearchText(search);
+    if (!q) return true;
+    return (
+      normalizeSearchText(p.title).includes(q) ||
+      normalizeSearchText(p.playwright).includes(q) ||
+      normalizeSearchText(p.company).includes(q)
+    );
+  });
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
   const safePage = Math.min(Math.max(1, currentPage), totalPages);
@@ -1627,11 +1634,15 @@ function CuratedListsSection() {
     }
   };
 
-  const filteredPlays = plays.filter(p =>
-    p.title.toLowerCase().includes(playSearchQuery.toLowerCase()) ||
-    p.playwright.toLowerCase().includes(playSearchQuery.toLowerCase()) ||
-    p.company.toLowerCase().includes(playSearchQuery.toLowerCase())
-  );
+  const filteredPlays = plays.filter(p => {
+    const q = normalizeSearchText(playSearchQuery);
+    if (!q) return true;
+    return (
+      normalizeSearchText(p.title).includes(q) ||
+      normalizeSearchText(p.playwright).includes(q) ||
+      normalizeSearchText(p.company).includes(q)
+    );
+  });
 
   const selectedPlaysObjects = plays.filter(p => selectedPlayIds.includes(p.id));
 
@@ -1951,26 +1962,251 @@ function CuratedListsSection() {
   );
 }
 
+// ── Contact Messages Section ────────────────────────────────────────────────
+function ContactMessagesSection({ onMessagesUpdated }: { onMessagesUpdated?: () => void }) {
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
+  const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const loadMessages = useCallback(async () => {
+    setLoading(true);
+    try {
+      const all = await storageService.getContactMessages();
+      setMessages(all);
+    } catch {
+      setMessages([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadMessages();
+  }, [loadMessages]);
+
+  const handleToggleStatus = async (msg: ContactMessage) => {
+    const nextStatus: 'unread' | 'read' = msg.status === 'read' ? 'unread' : 'read';
+    try {
+      await storageService.updateContactMessageStatus(msg.id, nextStatus);
+      setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, status: nextStatus } : m));
+      if (selectedMessage?.id === msg.id) {
+        setSelectedMessage(prev => prev ? { ...prev, status: nextStatus } : null);
+      }
+      onMessagesUpdated?.();
+    } catch {
+      setStatusMsg({ type: 'error', text: 'Durum güncellenirken hata oluştu.' });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Bu iletişim mesajını silmek istediğinize emin misiniz?')) return;
+    try {
+      await storageService.deleteContactMessage(id);
+      setMessages(prev => prev.filter(m => m.id !== id));
+      if (selectedMessage?.id === id) {
+        setSelectedMessage(null);
+      }
+      setStatusMsg({ type: 'success', text: 'Mesaj silindi.' });
+      onMessagesUpdated?.();
+    } catch {
+      setStatusMsg({ type: 'error', text: 'Mesaj silinirken hata oluştu.' });
+    }
+  };
+
+  const unreadCount = messages.filter(m => m.status === 'unread').length;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
+        <div className="flex items-center gap-2">
+          <Mail className="w-4 h-4 text-theatre-curtain" />
+          <h2 className="font-serif font-bold text-base text-text-primary">
+            Gelen İletişim Mesajları
+          </h2>
+          <span className="font-mono text-xs text-text-tertiary">
+            ({messages.length} mesaj{unreadCount > 0 ? `, ${unreadCount} okunmamış` : ''})
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={loadMessages}
+          className="text-xs font-mono text-theatre-curtain hover:underline cursor-pointer"
+        >
+          Yenile
+        </button>
+      </div>
+
+      {statusMsg && (
+        <div className={`p-3 rounded-sm text-xs font-mono flex items-center justify-between gap-2 border ${
+          statusMsg.type === 'success'
+            ? 'bg-green-500/10 border-green-500/30 text-green-800 dark:text-green-400'
+            : 'bg-red-500/10 border-red-500/30 text-red-800 dark:text-red-400'
+        }`}>
+          <span>{statusMsg.text}</span>
+          <button type="button" onClick={() => setStatusMsg(null)} className="text-text-tertiary hover:text-text-primary">✕</button>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="p-8 text-center text-xs font-mono text-text-tertiary">Mesajlar yükleniyor...</div>
+      ) : messages.length === 0 ? (
+        <div className="p-8 bg-layer-01 border border-border-subtle rounded-sm text-center space-y-2">
+          <Mail className="w-8 h-8 text-text-tertiary mx-auto opacity-50" />
+          <div className="font-serif font-semibold text-text-primary text-sm">
+            Henüz hiç iletişim mesajı bulunmuyor.
+          </div>
+          <p className="text-xs text-text-tertiary font-mono">
+            Kullanıcılar iletişim sayfasından mesaj gönderdiklerinde burada listelenecektir.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+          {/* Messages List */}
+          <div className={`${selectedMessage ? 'md:col-span-5' : 'md:col-span-12'} space-y-2.5`}>
+            {messages.map((msg) => {
+              const isSelected = selectedMessage?.id === msg.id;
+              const isUnread = msg.status === 'unread';
+              return (
+                <div
+                  key={msg.id}
+                  onClick={() => {
+                    setSelectedMessage(msg);
+                    if (isUnread) {
+                      handleToggleStatus(msg);
+                    }
+                  }}
+                  className={`p-3.5 border rounded-sm transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-layer-02 border-theatre-curtain shadow-xs'
+                      : isUnread
+                      ? 'bg-layer-01 border-theatre-curtain/40 font-medium'
+                      : 'bg-canvas hover:bg-layer-01 border-border-subtle opacity-85'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {isUnread && (
+                        <span className="w-2 h-2 rounded-full bg-theatre-curtain shrink-0" title="Okunmadı" />
+                      )}
+                      <span className="text-xs font-semibold text-text-primary truncate">
+                        {msg.name}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono text-text-tertiary shrink-0">
+                      {new Date(msg.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <div className="text-[11px] font-mono text-text-tertiary truncate mb-1">
+                    {msg.email}
+                  </div>
+                  <p className="text-xs text-text-secondary line-clamp-2 leading-relaxed">
+                    {msg.message}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Message Detail View */}
+          {selectedMessage && (
+            <div className="md:col-span-7 bg-layer-01 border border-border-subtle rounded-sm p-5 space-y-4 sticky top-20">
+              <div className="flex items-start justify-between gap-4 border-b border-border-subtle pb-4">
+                <div>
+                  <h3 className="font-serif font-bold text-lg text-text-primary">
+                    {selectedMessage.name}
+                  </h3>
+                  <a
+                    href={`mailto:${selectedMessage.email}?subject=Tiyatronot İletişim Yanıtı`}
+                    className="text-xs font-mono text-theatre-curtain hover:underline inline-block mt-0.5"
+                  >
+                    {selectedMessage.email}
+                  </a>
+                  <div className="text-[10px] font-mono text-text-tertiary mt-1">
+                    Tarih: {new Date(selectedMessage.createdAt).toLocaleString('tr-TR')}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedMessage(null)}
+                  className="p-1 text-text-tertiary hover:text-text-primary rounded-xs hover:bg-layer-02 transition-colors cursor-pointer"
+                  title="Kapat"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Message Content */}
+              <div className="p-4 bg-canvas border border-border-subtle rounded-sm text-xs text-text-primary font-sans leading-relaxed whitespace-pre-wrap">
+                {selectedMessage.message}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border-subtle">
+                <a
+                  href={`mailto:${selectedMessage.email}?subject=Re: Tiyatronot İletişim`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white text-xs font-semibold rounded-xs transition-colors cursor-pointer"
+                >
+                  <Send className="w-3 h-3" />
+                  <span>E-Posta ile Yanıtla</span>
+                </a>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleStatus(selectedMessage)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-layer-02 hover:bg-layer-02/80 text-text-secondary hover:text-text-primary text-xs font-mono rounded-xs border border-border-subtle transition-colors cursor-pointer"
+                  >
+                    {selectedMessage.status === 'read' ? 'Okunmadı Yap' : 'Okundu Yap'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(selectedMessage.id)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-red-600 hover:bg-red-500/10 text-xs font-mono rounded-xs border border-red-500/20 transition-colors cursor-pointer"
+                    title="Mesajı Sil"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Sil</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Overhauled Simple Admin Page ─────────────────────────────────────────────
 export const AdminPage: React.FC = () => {
   const { user, role } = useAuth();
-  const [activeTab, setActiveTab] = useState<'submissions' | 'plays' | 'lists' | 'puzzles'>('submissions');
+  const [activeTab, setActiveTab] = useState<'submissions' | 'plays' | 'lists' | 'puzzles' | 'messages'>('submissions');
   const [pendingCount, setPendingCount] = useState(0);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
-  const fetchPendingCount = useCallback(async () => {
+  const fetchCounts = useCallback(async () => {
     try {
       const pending = await storageService.getPlaySubmissions('pending');
       setPendingCount(pending.length);
     } catch {
       setPendingCount(0);
     }
+
+    try {
+      const messages = await storageService.getContactMessages();
+      setUnreadMessagesCount(messages.filter(m => m.status === 'unread').length);
+    } catch {
+      setUnreadMessagesCount(0);
+    }
   }, []);
 
   useEffect(() => {
     if (role === 'admin') {
-      fetchPendingCount();
+      fetchCounts();
     }
-  }, [role, fetchPendingCount]);
+  }, [role, fetchCounts]);
 
   if (role !== 'admin') {
     return <AccessDenied />;
@@ -2059,12 +2295,30 @@ export const AdminPage: React.FC = () => {
           <Puzzle className="w-3.5 h-3.5" />
           <span>Bulmacalar</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('messages')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-semibold border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
+            activeTab === 'messages'
+              ? 'border-theatre-curtain text-theatre-curtain'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          <Mail className="w-3.5 h-3.5" />
+          <span>İletişim Mesajları</span>
+          {unreadMessagesCount > 0 && (
+            <span className="bg-theatre-curtain text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full font-mono">
+              {unreadMessagesCount}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Tab Content */}
       <div className="pt-2">
         {activeTab === 'submissions' && (
-          <SubmissionsSection onPlayApproved={fetchPendingCount} />
+          <SubmissionsSection onPlayApproved={fetchCounts} />
         )}
         {activeTab === 'plays' && (
           <PublishedPlaysSection />
@@ -2074,6 +2328,9 @@ export const AdminPage: React.FC = () => {
         )}
         {activeTab === 'puzzles' && (
           <PuzzlesManagementSection />
+        )}
+        {activeTab === 'messages' && (
+          <ContactMessagesSection onMessagesUpdated={fetchCounts} />
         )}
       </div>
     </div>

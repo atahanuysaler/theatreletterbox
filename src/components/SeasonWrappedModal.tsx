@@ -1,4 +1,5 @@
-import React, { useRef, useState, useMemo } from 'react';
+import React, { useRef, useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Download, Sparkles, Award, Star, Theater, MapPin, Clock, Calendar, Share2, Check } from 'lucide-react';
 import type { Play, ReviewEntry, UserProfile } from '../types';
 
@@ -98,6 +99,31 @@ export const SeasonWrappedModal: React.FC<SeasonWrappedModalProps> = ({
       totalHours,
     };
   }, [seenPlays, reviews]);
+
+  // Lock background body scrolling when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  // Close modal on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -254,11 +280,19 @@ export const SeasonWrappedModal: React.FC<SeasonWrappedModalProps> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay/80 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-lg bg-canvas border border-border-strong rounded-md shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+  const modalContent = (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      {/* Full-screen Backdrop Scrim with dark shadow and blur that covers top header */}
+      <div
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity animate-fade-in cursor-pointer"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Modal Dialog Card */}
+      <div className="relative z-10 w-full max-w-lg bg-canvas border border-border-strong rounded-md shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-auto animate-fade-in">
         {/* Modal Top Bar */}
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border-subtle bg-layer-01/60">
+        <div className="sticky top-0 z-10 flex items-center justify-between p-4 sm:p-5 border-b border-border-subtle bg-layer-01/95 backdrop-blur-sm shadow-xs">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-theatre-curtain" />
             <h2 className="font-serif font-bold text-lg text-text-primary">
@@ -399,6 +433,10 @@ export const SeasonWrappedModal: React.FC<SeasonWrappedModalProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined'
+    ? createPortal(modalContent, document.body)
+    : modalContent;
 };
 
 export default SeasonWrappedModal;
