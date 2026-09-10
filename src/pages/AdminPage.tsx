@@ -244,6 +244,26 @@ function PublishedPlaysSection() {
   const [currentPage, setCurrentPage] = useState(1);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Play Edit / Create Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPlay, setEditingPlay] = useState<Play | null>(null);
+  const [formTitle, setFormTitle] = useState('');
+  const [formOriginalTitle, setFormOriginalTitle] = useState('');
+  const [formPlaywright, setFormPlaywright] = useState('');
+  const [formDirector, setFormDirector] = useState('');
+  const [formCompany, setFormCompany] = useState('');
+  const [formVenue, setFormVenue] = useState('');
+  const [formYear, setFormYear] = useState<number>(new Date().getFullYear());
+  const [formDuration, setFormDuration] = useState<number>(90);
+  const [formHasIntermission, setFormHasIntermission] = useState<boolean>(false);
+  const [formGenre, setFormGenre] = useState('Dram');
+  const [formPosterUrl, setFormPosterUrl] = useState('');
+  const [formCast, setFormCast] = useState('');
+  const [formSynopsis, setFormSynopsis] = useState('');
+  const [formTags, setFormTags] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   const PAGE_SIZE = 10;
 
   const loadPlays = useCallback(async () => {
@@ -260,14 +280,122 @@ function PublishedPlaysSection() {
     loadPlays();
   }, [loadPlays]);
 
+  const handleOpenCreate = () => {
+    setEditingPlay(null);
+    setFormTitle('');
+    setFormOriginalTitle('');
+    setFormPlaywright('');
+    setFormDirector('');
+    setFormCompany('');
+    setFormVenue('');
+    setFormYear(new Date().getFullYear());
+    setFormDuration(90);
+    setFormHasIntermission(false);
+    setFormGenre('Dram');
+    setFormPosterUrl('');
+    setFormCast('');
+    setFormSynopsis('');
+    setFormTags('');
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (play: Play) => {
+    setEditingPlay(play);
+    setFormTitle(play.title || '');
+    setFormOriginalTitle(play.originalTitle || '');
+    setFormPlaywright(play.playwright || '');
+    setFormDirector(play.director || '');
+    setFormCompany(play.company || '');
+    setFormVenue(play.venue || '');
+    setFormYear(play.year || new Date().getFullYear());
+    setFormDuration(play.duration || 90);
+    setFormHasIntermission(Boolean(play.hasIntermission));
+    setFormGenre(play.genre || 'Dram');
+    setFormPosterUrl(play.posterUrl || '');
+    setFormCast(Array.isArray(play.cast) ? play.cast.join(', ') : '');
+    setFormSynopsis(play.synopsis || '');
+    setFormTags(Array.isArray(play.tags) ? play.tags.join(', ') : '');
+    setIsModalOpen(true);
+  };
+
+  const handleSavePlay = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formTitle.trim() || !formPlaywright.trim() || !formCompany.trim()) {
+      alert('Lütfen zorunlu alanları (Oyun Adı, Yazar, Topluluk) doldurun.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const castArray = formCast
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      const tagsArray = formTags
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      if (editingPlay) {
+        // Update existing play
+        await storageService.updatePlay(editingPlay.id, {
+          title: formTitle.trim(),
+          originalTitle: formOriginalTitle.trim() || formTitle.trim(),
+          playwright: formPlaywright.trim(),
+          director: formDirector.trim(),
+          company: formCompany.trim(),
+          venue: formVenue.trim() || 'Sahne',
+          year: Number(formYear) || new Date().getFullYear(),
+          duration: Number(formDuration) || 90,
+          hasIntermission: formHasIntermission,
+          genre: formGenre.trim() || 'Dram',
+          posterUrl: formPosterUrl.trim() || editingPlay.posterUrl,
+          cast: castArray,
+          synopsis: formSynopsis.trim(),
+          tags: tagsArray
+        });
+        setStatusMsg({ type: 'success', text: `"${formTitle.trim()}" oyunu başarıyla güncellendi.` });
+      } else {
+        // Create new play
+        await storageService.createPlay({
+          title: formTitle.trim(),
+          originalTitle: formOriginalTitle.trim() || formTitle.trim(),
+          playwright: formPlaywright.trim(),
+          director: formDirector.trim(),
+          company: formCompany.trim(),
+          venue: formVenue.trim() || 'Sahne',
+          year: Number(formYear) || new Date().getFullYear(),
+          duration: Number(formDuration) || 90,
+          hasIntermission: formHasIntermission,
+          genre: formGenre.trim() || 'Dram',
+          posterUrl: formPosterUrl.trim() || 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=800&q=80',
+          cast: castArray,
+          synopsis: formSynopsis.trim(),
+          tags: tagsArray
+        });
+        setStatusMsg({ type: 'success', text: `"${formTitle.trim()}" oyunu kataloğa başarıyla eklendi.` });
+      }
+
+      setIsModalOpen(false);
+      await loadPlays();
+    } catch (err) {
+      console.error('[PublishedPlaysSection] Save error:', err);
+      setStatusMsg({ type: 'error', text: 'Oyun kaydedilirken bir hata oluştu.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleDelete = async (play: Play) => {
     if (!window.confirm(`"${play.title}" oyununu katalogdan silmek istediğinize emin misiniz?`)) return;
     setDeletingId(play.id);
     try {
       await storageService.deletePlay(play.id);
+      setStatusMsg({ type: 'success', text: `"${play.title}" oyunu katalogdan silindi.` });
       await loadPlays();
     } catch {
-      alert('Silme sırasında bir hata oluştu.');
+      setStatusMsg({ type: 'error', text: 'Silme sırasında bir hata oluştu.' });
     } finally {
       setDeletingId(null);
     }
@@ -285,6 +413,33 @@ function PublishedPlaysSection() {
 
   return (
     <div className="space-y-4">
+      {/* Alert message if any */}
+      {statusMsg && (
+        <div
+          className={`p-3 rounded-sm text-xs font-mono flex items-center justify-between ${
+            statusMsg.type === 'success'
+              ? 'bg-green-50 text-green-800 border border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-900'
+              : 'bg-red-50 text-red-800 border border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {statusMsg.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-green-600" />
+            ) : (
+              <AlertTriangle className="w-4 h-4 text-red-600" />
+            )}
+            <span>{statusMsg.text}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setStatusMsg(null)}
+            className="p-1 text-text-tertiary hover:text-text-primary"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border-subtle">
         <div className="flex items-center gap-2">
           <BookOpen className="w-4 h-4 text-theatre-curtain" />
@@ -296,19 +451,31 @@ function PublishedPlaysSection() {
           </span>
         </div>
 
-        {/* Quick Search */}
-        <div className="relative w-full sm:w-64">
-          <Search className="w-3.5 h-3.5 text-text-tertiary absolute left-2.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={search}
-            onChange={e => {
-              setSearch(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder="Katalogda ara..."
-            className="w-full bg-canvas border border-border-strong pl-8 pr-3 py-1.5 text-xs font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain"
-          />
+        <div className="flex items-center gap-2">
+          {/* Quick Search */}
+          <div className="relative w-full sm:w-60">
+            <Search className="w-3.5 h-3.5 text-text-tertiary absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Katalogda ara..."
+              className="w-full bg-canvas border border-border-strong pl-8 pr-3 py-1.5 text-xs font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain rounded-sm"
+            />
+          </div>
+
+          {/* New Play Button */}
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white text-xs font-semibold rounded-sm transition-colors cursor-pointer shrink-0 shadow-xs"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Yeni Oyun Ekle</span>
+          </button>
         </div>
       </div>
 
@@ -325,19 +492,31 @@ function PublishedPlaysSection() {
                 className="p-3 hover:bg-canvas transition-colors flex items-center justify-between gap-3"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  {play.posterUrl && (
+                  {play.posterUrl ? (
                     <img
                       src={play.posterUrl}
                       alt=""
-                      className="w-8 h-11 object-cover rounded-xs border border-border-subtle flex-shrink-0"
+                      className="w-9 h-12 object-cover rounded-xs border border-border-subtle flex-shrink-0"
                     />
+                  ) : (
+                    <div className="w-9 h-12 bg-layer-02 border border-border-subtle rounded-xs flex items-center justify-center text-text-tertiary flex-shrink-0 font-mono text-[10px]">
+                      Afiş
+                    </div>
                   )}
                   <div className="min-w-0">
-                    <div className="font-serif font-semibold text-xs sm:text-sm text-text-primary truncate">
-                      {play.title} <span className="font-mono text-xs text-text-tertiary font-normal">({play.year})</span>
+                    <div className="font-serif font-semibold text-xs sm:text-sm text-text-primary truncate flex items-center gap-2">
+                      <span>{play.title}</span>
+                      <span className="font-mono text-xs text-text-tertiary font-normal">({play.year})</span>
+                      {play.genre && (
+                        <span className="text-[10px] font-mono px-1.5 py-0.2 bg-layer-02 text-text-secondary border border-border-subtle rounded-xs">
+                          {play.genre}
+                        </span>
+                      )}
                     </div>
-                    <div className="text-[11px] font-mono text-text-secondary truncate">
-                      {play.playwright} · {play.company}
+                    <div className="text-[11px] font-mono text-text-secondary truncate mt-0.5">
+                      <span>Yazar: <strong>{play.playwright}</strong></span>
+                      {play.director && <span> · Yönetmen: {play.director}</span>}
+                      <span> · Topluluk: {play.company}</span>
                     </div>
                   </div>
                 </div>
@@ -346,11 +525,21 @@ function PublishedPlaysSection() {
                   <span className="hidden sm:inline text-[11px] font-mono text-theatre-curtain font-semibold">
                     ★ {play.rating?.toFixed(1) ?? '—'}
                   </span>
+                  {/* Edit Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(play)}
+                    className="p-1.5 text-text-tertiary hover:text-theatre-curtain transition-colors cursor-pointer rounded-xs hover:bg-layer-02"
+                    title="Oyunu Düzenle"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                  {/* Delete Button */}
                   <button
                     type="button"
                     disabled={deletingId === play.id}
                     onClick={() => handleDelete(play)}
-                    className="p-1.5 text-text-tertiary hover:text-red-600 transition-colors disabled:opacity-40 cursor-pointer"
+                    className="p-1.5 text-text-tertiary hover:text-red-600 transition-colors disabled:opacity-40 cursor-pointer rounded-xs hover:bg-layer-02"
                     title="Oyunu Sil"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -394,6 +583,262 @@ function PublishedPlaysSection() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Play Edit & Create Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-canvas border border-border-strong rounded-md shadow-modal w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-5 py-3.5 border-b border-border-subtle flex items-center justify-between bg-layer-01">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-theatre-curtain" />
+                <h3 className="font-serif font-bold text-sm sm:text-base text-text-primary">
+                  {editingPlay ? `Oyunu Düzenle: ${editingPlay.title}` : 'Yeni Oyun Ekle'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="p-1 text-text-tertiary hover:text-text-primary rounded cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSavePlay} className="flex-1 overflow-y-auto p-5 space-y-4 text-xs font-mono">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-text-secondary uppercase">
+                    Oyun Adı *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formTitle}
+                    onChange={e => setFormTitle(e.target.value)}
+                    placeholder="Örn. Lüküs Hayat"
+                    className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-text-secondary uppercase">
+                    Orijinal Başlık
+                  </label>
+                  <input
+                    type="text"
+                    value={formOriginalTitle}
+                    onChange={e => setFormOriginalTitle(e.target.value)}
+                    placeholder="Varsa orijinal dildeki adı..."
+                    className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-text-secondary uppercase">
+                    Yazar *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formPlaywright}
+                    onChange={e => setFormPlaywright(e.target.value)}
+                    placeholder="Örn. Haldun Taner"
+                    className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-text-secondary uppercase">
+                    Yönetmen
+                  </label>
+                  <input
+                    type="text"
+                    value={formDirector}
+                    onChange={e => setFormDirector(e.target.value)}
+                    placeholder="Örn. Muhsin Ertuğrul"
+                    className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-text-secondary uppercase">
+                    Topluluk / Tiyatro Ekibi *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formCompany}
+                    onChange={e => setFormCompany(e.target.value)}
+                    placeholder="Örn. Şehir Tiyatroları, Moda Sahnesi..."
+                    className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-text-secondary uppercase">
+                    Sahne / Mekân
+                  </label>
+                  <input
+                    type="text"
+                    value={formVenue}
+                    onChange={e => setFormVenue(e.target.value)}
+                    placeholder="Örn. Harbiye Muhsin Ertuğrul Sahnesi"
+                    className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-text-secondary uppercase">
+                    Prömiyer Yılı
+                  </label>
+                  <input
+                    type="number"
+                    value={formYear}
+                    onChange={e => setFormYear(Number(e.target.value))}
+                    className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-text-secondary uppercase">
+                    Süre (Dk)
+                  </label>
+                  <input
+                    type="number"
+                    value={formDuration}
+                    onChange={e => setFormDuration(Number(e.target.value))}
+                    className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-text-secondary uppercase">
+                    Perde Durumu
+                  </label>
+                  <select
+                    value={formHasIntermission ? 'true' : 'false'}
+                    onChange={e => setFormHasIntermission(e.target.value === 'true')}
+                    className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
+                  >
+                    <option value="false">Tek Perde</option>
+                    <option value="true">2 Perde (Aralı)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-text-secondary uppercase">
+                    Tür
+                  </label>
+                  <input
+                    type="text"
+                    value={formGenre}
+                    onChange={e => setFormGenre(e.target.value)}
+                    placeholder="Örn. Dram, Komedi, Müzikal, Absürt..."
+                    className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-text-secondary uppercase">
+                    Afiş Görsel URL'si
+                  </label>
+                  <input
+                    type="url"
+                    value={formPosterUrl}
+                    onChange={e => setFormPosterUrl(e.target.value)}
+                    placeholder="https://images.unsplash.com/..."
+                    className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
+                  />
+                </div>
+              </div>
+
+              {/* Poster Preview if valid URL */}
+              {formPosterUrl && (
+                <div className="p-2 bg-layer-01 border border-border-subtle rounded-sm flex items-center gap-3">
+                  <img
+                    src={formPosterUrl}
+                    alt="Afiş Önizleme"
+                    className="w-12 h-16 object-cover rounded-xs border border-border-subtle"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                  <div className="text-[11px] text-text-secondary">
+                    <span className="font-semibold text-text-primary">Afiş Önizleme:</span> Görsel bağlantısı geçerli.
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <label className="font-semibold text-text-secondary uppercase">
+                  Oyuncu Kadrosu (Virgülle ayırarak giriniz)
+                </label>
+                <input
+                  type="text"
+                  value={formCast}
+                  onChange={e => setFormCast(e.target.value)}
+                  placeholder="Örn. Haluk Bilginer, Zerrin Tekindor, Şener Şen..."
+                  className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-text-secondary uppercase">
+                  Oyun Özeti & Konusu
+                </label>
+                <textarea
+                  rows={4}
+                  value={formSynopsis}
+                  onChange={e => setFormSynopsis(e.target.value)}
+                  placeholder="Oyunun konusu ve sahneleme notları..."
+                  className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain resize-none font-sans"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-text-secondary uppercase">
+                  Etiketler (Virgülle ayırarak giriniz)
+                </label>
+                <input
+                  type="text"
+                  value={formTags}
+                  onChange={e => setFormTags(e.target.value)}
+                  placeholder="Örn. Klasik, Ödüllü, Tek Kişilik, Kadıköy..."
+                  className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
+                />
+              </div>
+
+              {/* Modal Footer */}
+              <div className="pt-3 border-t border-border-subtle flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 border border-border-subtle bg-canvas hover:bg-layer-01 text-text-secondary rounded-sm font-semibold transition-colors cursor-pointer"
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="px-5 py-2 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white rounded-sm font-semibold transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
+                >
+                  {saving ? 'Kaydediliyor...' : editingPlay ? 'Değişiklikleri Kaydet' : 'Oyunu Ekle'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

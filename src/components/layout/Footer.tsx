@@ -21,19 +21,7 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* Simple Clean Navigation */}
-          <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-mono" aria-label="Altbilgi Gezintisi">
-            <Link to="/" className="hover:text-theatre-curtain transition-colors">
-              Oyun Kataloğu
-            </Link>
-            <Link to="/izlediklerim" className="hover:text-theatre-curtain transition-colors">
-              İzlediklerim
-            </Link>
-            <Link to="/bulmacalar" className="hover:text-theatre-curtain transition-colors">
-              Bulmacalar
-            </Link>
-            <Link to="/oyun-ekle" className="hover:text-theatre-curtain transition-colors">
-              Oyun Ekle
-            </Link>
+          <nav className="flex items-center justify-center text-xs font-mono" aria-label="Altbilgi Gezintisi">
             <Link to="/iletisim" className="hover:text-theatre-curtain transition-colors">
               İletişim
             </Link>
