@@ -50,6 +50,8 @@ export const App: React.FC = () => {
               <Route path="/liderler" element={<LeaderboardPage />} />
               <Route path="/oyun/:id" element={<PlayDetailPage onOpenLogModal={handleOpenLogModal} />} />
               <Route path="/profil" element={<ProfilePage onOpenDailyQuote={handleOpenDailyQuote} />} />
+              <Route path="/profil/:userId" element={<ProfilePage onOpenDailyQuote={handleOpenDailyQuote} />} />
+              <Route path="/kullanici/:userId" element={<ProfilePage onOpenDailyQuote={handleOpenDailyQuote} />} />
               <Route path="/bulmacalar" element={<BulmacalarPage onOpenDailyQuote={handleOpenDailyQuote} />} />
               <Route path="/iletisim" element={<ContactPage />} />
               <Route path="/oyun-ekle" element={<AddPlayPage />} />

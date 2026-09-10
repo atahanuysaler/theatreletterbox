@@ -116,7 +116,17 @@ export const TicketStub: React.FC<TicketStubProps> = ({
                 </Link>
               )}
               <div className="flex items-center gap-2 text-xs font-mono text-text-secondary mt-0.5">
-                <span className="font-semibold text-text-primary">{review.userName}</span>
+                {review.userId ? (
+                  <Link
+                    to={`/profil/${review.userId}`}
+                    className="font-semibold text-text-primary hover:text-theatre-curtain hover:underline transition-colors flex items-center gap-1 cursor-pointer"
+                    title={`${review.userName} profilini ve notlarını görüntüle`}
+                  >
+                    <span>{review.userName}</span>
+                  </Link>
+                ) : (
+                  <span className="font-semibold text-text-primary">{review.userName}</span>
+                )}
                 <span>·</span>
                 <span className="text-text-tertiary">Seyirci Günlüğü</span>
               </div>

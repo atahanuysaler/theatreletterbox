@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { Trophy, Medal, Crown } from 'lucide-react';
 import { storageService } from '../services/storage';
 import { useAuth } from '../context/AuthContext';
@@ -149,10 +150,14 @@ export const LeaderboardPage: React.FC = () => {
 
                     {/* User */}
                     <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
+                      <Link
+                        to={`/profil/${entry.uid}`}
+                        className="flex items-center gap-2 group cursor-pointer"
+                        title={`${entry.displayName} profilini incele`}
+                      >
                         <Avatar user={entry} />
                         <div>
-                          <div className="font-semibold text-text-primary flex items-center gap-1">
+                          <div className="font-semibold text-text-primary group-hover:text-theatre-curtain group-hover:underline transition-colors flex items-center gap-1">
                             {entry.displayName}
                             {isCurrentUser && (
                               <span className="text-[9px] font-mono bg-theatre-curtain text-white px-1 py-0.5 rounded-sm">SEN</span>
@@ -160,7 +165,7 @@ export const LeaderboardPage: React.FC = () => {
                           </div>
                           <div className="text-[10px] text-text-tertiary sm:hidden">{entry.level}</div>
                         </div>
-                      </div>
+                      </Link>
                     </td>
 
                     {/* Level */}

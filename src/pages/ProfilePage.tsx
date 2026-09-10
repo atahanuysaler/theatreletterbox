@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { 
   Award, 
   CheckCircle2, 
@@ -16,14 +16,15 @@ import {
   Calendar,
   MessageSquare,
   ArrowRight,
+  ArrowLeft,
   Sparkles,
   Bookmark,
   Trash2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { storageService } from '../services/storage';
-import { getTierProgress, TIERS } from '../services/gamification';
-import type { Play, ReviewEntry, Badge } from '../types';
+import { getTierProgress, calculateLevel, TIERS } from '../services/gamification';
+import type { Play, ReviewEntry, Badge, UserProfile } from '../types';
 import TicketStub from '../components/TicketStub';
 import SocialShareModal from '../components/SocialShareModal';
 import SeasonWrappedModal from '../components/SeasonWrappedModal';
@@ -44,15 +45,24 @@ const BADGE_ICONS: Record<string, React.ReactNode> = {
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, initialTab }) => {
   const { user, role, loginWithGoogle, logout, updateProfile } = useAuth();
+  const { userId } = useParams<{ userId?: string }>();
   const [searchParams] = useSearchParams();
   const queryTab = searchParams.get('tab') as ProfileTabType | null;
+
+  // Determine if viewing own profile or another user's public profile
+  const isOwnProfile = !userId || (!!user && user.uid === userId);
 
   const [plays, setPlays] = useState<Play[]>([]);
   const [reviews, setReviews] = useState<ReviewEntry[]>([]);
   const [allBadges, setAllBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Target user profile state when viewing another user's public profile
+  const [targetUser, setTargetUser] = useState<UserProfile | null>(null);
+  const [targetUserLoading, setTargetUserLoading] = useState<boolean>(!isOwnProfile);
+
   const [activeTab, setActiveTab] = useState<ProfileTabType>(
-    initialTab || queryTab || 'pasaport'
+    initialTab || queryTab || (!isOwnProfile ? 'notlar' : 'pasaport')
   );
 
   useEffect(() => {
@@ -60,8 +70,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
       setActiveTab(initialTab);
     } else if (queryTab) {
       setActiveTab(queryTab);
+    } else if (!isOwnProfile) {
+      setActiveTab('notlar');
     }
-  }, [initialTab, queryTab]);
+  }, [initialTab, queryTab, isOwnProfile]);
+
   const [shareReview, setShareReview] = useState<ReviewEntry | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isWrappedOpen, setIsWrappedOpen] = useState(false);
@@ -82,6 +95,54 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
     return () => { isMounted = false; };
   }, []);
 
+  // Fetch or synthesize target user's profile when visiting another user's page
+  useEffect(() => {
+    if (isOwnProfile) {
+      setTargetUser(user ?? null);
+      setTargetUserLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    setTargetUserLoading(true);
+
+    const targetUid = userId!;
+    storageService.getUserProfile(targetUid).then((profile) => {
+      if (!isMounted) return;
+      if (profile) {
+        setTargetUser(profile);
+      } else {
+        // Graceful fallback: construct profile if user has public reviews
+        const matchingReviews = reviews.filter(r => r.userId === targetUid);
+        if (matchingReviews.length > 0) {
+          const firstRev = matchingReviews[0];
+          const calculatedXp = matchingReviews.length * 10;
+          setTargetUser({
+            uid: targetUid,
+            email: '',
+            displayName: firstRev.userName || 'Tiyatrosever',
+            photoURL: firstRev.userAvatar || '',
+            role: 'user',
+            xp: calculatedXp,
+            level: calculateLevel(calculatedXp),
+            seenPlayIds: Array.from(new Set(matchingReviews.map(r => r.playId))),
+            watchlistPlayIds: [],
+            badges: [],
+            createdAt: firstRev.createdAt || new Date().toISOString()
+          });
+        } else {
+          setTargetUser(null);
+        }
+      }
+      setTargetUserLoading(false);
+    }).catch(err => {
+      console.error('[ProfilePage] Failed to fetch user profile:', err);
+      if (isMounted) setTargetUserLoading(false);
+    });
+
+    return () => { isMounted = false; };
+  }, [userId, isOwnProfile, user, reviews]);
+
   const handleDeleteReview = async (reviewId: string) => {
     if (!window.confirm('Bu notu silmek istediğinden emin misin?')) return;
     try {
@@ -93,31 +154,33 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
     }
   };
 
-  const xp = user?.xp ?? 0;
-  const level = user?.level ?? 'Fuaye Meraklısı';
+  const activeProfile = isOwnProfile ? user : targetUser;
+  const xp = activeProfile?.xp ?? 0;
+  const level = activeProfile?.level ?? 'Fuaye Meraklısı';
   const tierProgress = getTierProgress(xp);
 
   const seenPlays = useMemo(() => {
-    if (!user?.seenPlayIds) return [];
-    return plays.filter(p => user.seenPlayIds.includes(p.id));
-  }, [plays, user?.seenPlayIds]);
+    if (!activeProfile?.seenPlayIds) return [];
+    return plays.filter(p => activeProfile.seenPlayIds.includes(p.id));
+  }, [plays, activeProfile?.seenPlayIds]);
 
   const watchlistPlays = useMemo(() => {
-    const list = user?.watchlistPlayIds;
+    const list = activeProfile?.watchlistPlayIds;
     if (!list) return [];
     return plays.filter(p => list.includes(p.id));
-  }, [plays, user?.watchlistPlayIds]);
+  }, [plays, activeProfile?.watchlistPlayIds]);
 
   const userReviews = useMemo(() => {
-    if (!user?.uid) return [];
-    return reviews.filter(r => r.userId === user.uid);
-  }, [reviews, user?.uid]);
+    if (!activeProfile?.uid) return [];
+    return reviews.filter(r => r.userId === activeProfile.uid);
+  }, [reviews, activeProfile?.uid]);
 
   const unlockedBadgeIds = useMemo(() => {
-    return new Set(user?.badges || []);
-  }, [user?.badges]);
+    return new Set(activeProfile?.badges || []);
+  }, [activeProfile?.badges]);
 
-  if (!user) {
+  // If user is trying to view their own profile but is not logged in
+  if (isOwnProfile && !user) {
     return (
       <div className="max-w-md mx-auto px-4 py-20 text-center space-y-6">
         <Theater className="w-12 h-12 text-theatre-curtain mx-auto opacity-80" />
@@ -139,9 +202,55 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
     );
   }
 
+  // Loading state when looking up another user
+  if (!isOwnProfile && targetUserLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center space-y-4">
+        <div className="w-16 h-16 bg-layer-01 border border-border-subtle rounded-sm mx-auto animate-pulse" />
+        <div className="h-6 bg-layer-01 rounded w-48 mx-auto animate-pulse" />
+        <div className="h-4 bg-layer-01 rounded w-32 mx-auto animate-pulse" />
+        <p className="text-xs font-mono text-text-tertiary">Tiyatrosever profili ve notları yükleniyor...</p>
+      </div>
+    );
+  }
 
-  const initials = user.displayName
-    ? user.displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+  // Target user not found
+  if (!isOwnProfile && !targetUserLoading && !activeProfile) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
+        <Theater className="w-12 h-12 text-text-tertiary mx-auto opacity-60" />
+        <h2 className="font-serif font-bold text-xl text-text-primary">
+          Kullanıcı Bulunamadı
+        </h2>
+        <p className="text-xs text-text-secondary">
+          Aradığınız tiyatrosever profili mevcut değil veya henüz herkese açık bir içerik paylaşmamış.
+        </p>
+        <div className="pt-2 flex justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-layer-01 hover:bg-layer-02 border border-border-subtle text-text-primary text-xs font-semibold rounded-md transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Geri Dön</span>
+          </button>
+          <Link
+            to="/liderler"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-theatre-curtain text-white text-xs font-semibold rounded-md hover:bg-theatre-curtain-hover transition-colors"
+          >
+            <span>Sahne Liderleri</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!activeProfile) {
+    return null;
+  }
+
+  const initials = activeProfile.displayName
+    ? activeProfile.displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     : 'TN';
 
   return (
@@ -150,10 +259,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
       <div className="bg-canvas border border-border-subtle rounded-sm p-6 sm:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            {user.photoURL ? (
+            {activeProfile.photoURL ? (
               <img
-                src={user.photoURL}
-                alt={user.displayName}
+                src={activeProfile.photoURL}
+                alt={activeProfile.displayName}
                 className="w-16 h-16 rounded-sm object-cover border border-border-subtle shadow-sm"
               />
             ) : (
@@ -164,22 +273,33 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="font-serif font-bold text-2xl text-text-primary">
-                  {user.displayName}
+                  {activeProfile.displayName}
                 </h1>
-                {role === 'admin' && (
+                {activeProfile.role === 'admin' && (
                   <span className="bg-theatre-curtain text-white text-[10px] font-mono px-2 py-0.5 rounded-sm uppercase font-bold tracking-wider">
                     Admin
                   </span>
                 )}
+                {!isOwnProfile && (
+                  <span className="text-[10px] font-mono text-text-tertiary bg-layer-01 px-2 py-0.5 rounded-sm border border-border-subtle">
+                    Tiyatrosever Profili
+                  </span>
+                )}
               </div>
-              <p className="text-xs text-text-secondary font-mono">{user.email}</p>
+              {isOwnProfile && activeProfile.email ? (
+                <p className="text-xs text-text-secondary font-mono">{activeProfile.email}</p>
+              ) : (
+                <p className="text-xs text-text-secondary font-mono">
+                  @{activeProfile.displayName.toLowerCase().replace(/[^a-z0-9ğüşıöç]/g, '') || 'tiyatrosever'}
+                </p>
+              )}
               <div className="flex items-center gap-2 pt-0.5">
                 <span className="inline-flex items-center gap-1 text-xs font-semibold text-theatre-curtain bg-layer-01 px-2.5 py-0.5 rounded-sm border border-border-subtle">
                   <Award className="w-3.5 h-3.5 text-stage-spotlight" />
                   <span>{level}</span>
                 </span>
                 <span className="text-[11px] font-mono text-text-tertiary">
-                  Katılım: {new Date(user.createdAt || Date.now()).toLocaleDateString('tr-TR')}
+                  Katılım: {new Date(activeProfile.createdAt || Date.now()).toLocaleDateString('tr-TR')}
                 </span>
               </div>
             </div>
@@ -187,6 +307,18 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
 
           {/* Quick Action Buttons */}
           <div className="flex flex-wrap items-center gap-2">
+            {!isOwnProfile && (
+              <button
+                type="button"
+                onClick={() => window.history.back()}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-layer-01 hover:bg-layer-02 border border-border-subtle rounded-md text-xs font-semibold text-text-primary transition-colors cursor-pointer shadow-xs"
+                title="Geri Dön"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 text-theatre-curtain" />
+                <span>Geri Dön</span>
+              </button>
+            )}
+
             {/* Sezon Özeti (Theatre Wrapped) */}
             <button
               type="button"
@@ -198,7 +330,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
               <span>Sezon Özeti 🎟️</span>
             </button>
 
-            {role === 'admin' && (
+            {isOwnProfile && role === 'admin' && (
               <Link
                 to="/admin"
                 className="inline-flex items-center gap-1.5 px-3 py-2 bg-layer-01 hover:bg-layer-02 border border-border-subtle rounded-md text-xs font-semibold text-text-primary transition-colors cursor-pointer"
@@ -207,15 +339,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
                 <span>Yönetici Paneli</span>
               </Link>
             )}
-            <button
-              type="button"
-              onClick={() => logout()}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-canvas hover:bg-layer-01 border border-border-subtle rounded-md text-xs font-medium text-text-secondary hover:text-theatre-curtain transition-colors cursor-pointer"
-              title="Oturumu Kapat"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Çıkış Yap</span>
-            </button>
+            {isOwnProfile && (
+              <button
+                type="button"
+                onClick={() => logout()}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-canvas hover:bg-layer-01 border border-border-subtle rounded-md text-xs font-medium text-text-secondary hover:text-theatre-curtain transition-colors cursor-pointer"
+                title="Oturumu Kapat"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Çıkış Yap</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -268,7 +402,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
               : 'text-text-secondary hover:text-text-primary'
           }`}
         >
-          Tiyatro Pasaportu ({unlockedBadgeIds.size} / {allBadges.length || 4} Mühür)
+          {isOwnProfile ? 'Tiyatro Pasaportu' : 'Pasaport'} ({unlockedBadgeIds.size} / {allBadges.length || 4} Mühür)
         </button>
         <button
           type="button"
@@ -279,7 +413,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
               : 'text-text-secondary hover:text-text-primary'
           }`}
         >
-          İzlediklerim ({seenPlays.length})
+          {isOwnProfile ? 'İzlediklerim' : 'İzlediği Oyunlar'} ({seenPlays.length})
         </button>
         <button
           type="button"
@@ -290,7 +424,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
               : 'text-text-secondary hover:text-text-primary'
           }`}
         >
-          İzlemek İstediklerim ({watchlistPlays.length})
+          {isOwnProfile ? 'İzlemek İstediklerim' : 'İzleme Listesi'} ({watchlistPlays.length})
         </button>
         <button
           type="button"
@@ -301,7 +435,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
               : 'text-text-secondary hover:text-text-primary'
           }`}
         >
-          Tiyatro Notlarım ({userReviews.length})
+          {isOwnProfile ? 'Tiyatro Notlarım' : 'Seyir Notları'} ({userReviews.length})
         </button>
       </div>
 
@@ -318,13 +452,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
                   Her mühür tiyatro yolculuğundaki bir kilometre taşını temsil eder ve özel XP bonusu kazandırır.
                 </p>
               </div>
-              <Link
-                to="/izlediklerim"
-                className="text-xs font-mono text-theatre-curtain hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <span>Oyun İşaretle</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+              {isOwnProfile && (
+                <Link
+                  to="/izlediklerim"
+                  className="text-xs font-mono text-theatre-curtain hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Oyun İşaretle</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              )}
             </div>
 
             {/* Stamp Seals Grid */}
@@ -456,17 +592,21 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
             <div className="bg-canvas border border-dashed border-border-subtle p-10 text-center space-y-3 rounded-sm">
               <Theater className="w-10 h-10 text-text-tertiary mx-auto opacity-60" />
               <h3 className="font-serif font-bold text-base text-text-primary">
-                Henüz izlediğin bir oyunu işaretlemedin
+                {isOwnProfile ? 'Henüz izlediğin bir oyunu işaretlemedin' : 'Henüz izlenen oyun bulunmuyor'}
               </h3>
               <p className="text-xs text-text-secondary max-w-sm mx-auto">
-                Kişisel tiyatro hafızanı oluşturmak ve her oyun için +10 XP kazanmak için İzlediklerim sayfasına göz at.
+                {isOwnProfile
+                  ? 'Kişisel tiyatro hafızanı oluşturmak ve her oyun için +10 XP kazanmak için İzlediklerim sayfasına göz at.'
+                  : 'Bu tiyatrosever henüz izlediği oyunları kaydetmemiş.'}
               </p>
-              <Link
-                to="/izlediklerim"
-                className="inline-flex items-center gap-1.5 bg-theatre-curtain text-white px-4 py-2 text-xs font-semibold rounded-md hover:bg-theatre-curtain-hover transition-colors"
-              >
-                <span>İzlediklerimi İşaretle</span>
-              </Link>
+              {isOwnProfile && (
+                <Link
+                  to="/izlediklerim"
+                  className="inline-flex items-center gap-1.5 bg-theatre-curtain text-white px-4 py-2 text-xs font-semibold rounded-md hover:bg-theatre-curtain-hover transition-colors"
+                >
+                  <span>İzlediklerimi İşaretle</span>
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -504,48 +644,60 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
                       <p className="text-xs text-text-secondary font-mono truncate">{play.playwright}</p>
                       <p className="text-[11px] text-text-tertiary font-mono truncate">{play.venue}</p>
                     </div>
-                    <div className="flex items-center gap-2 pt-2 border-t border-border-subtle/50 mt-1">
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (!user) return;
-                          try {
-                            const res = await storageService.toggleSeenPlay(user.uid, play.id);
-                            const updatedWatchlist = await storageService.toggleWatchlistPlay(user.uid, play.id);
-                            await updateProfile({
-                              seenPlayIds: res.seen ? [...(user.seenPlayIds || []), play.id] : user.seenPlayIds,
-                              watchlistPlayIds: updatedWatchlist,
-                              xp: res.newXp,
-                              level: res.newLevel
-                            });
-                          } catch (err) {
-                            console.error(err);
-                          }
-                        }}
-                        className="inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-1 bg-success-mint/10 text-success-mint hover:bg-success-mint/20 border border-success-mint/30 rounded-md transition-colors cursor-pointer"
-                        title="İzlendi olarak işaretle"
-                      >
-                        <CheckCircle2 className="w-3 h-3" />
-                        <span>İzledim</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (!user) return;
-                          try {
-                            const updatedWatchlist = await storageService.toggleWatchlistPlay(user.uid, play.id);
-                            await updateProfile({ watchlistPlayIds: updatedWatchlist });
-                          } catch (err) {
-                            console.error(err);
-                          }
-                        }}
-                        className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-1 bg-layer-01 hover:bg-layer-02 text-text-tertiary hover:text-theatre-curtain border border-border-subtle rounded-md transition-colors cursor-pointer ml-auto"
-                        title="Listeden Kaldır"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        <span>Kaldır</span>
-                      </button>
-                    </div>
+                    {isOwnProfile ? (
+                      <div className="flex items-center gap-2 pt-2 border-t border-border-subtle/50 mt-1">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!user) return;
+                            try {
+                              const res = await storageService.toggleSeenPlay(user.uid, play.id);
+                              const updatedWatchlist = await storageService.toggleWatchlistPlay(user.uid, play.id);
+                              await updateProfile({
+                                seenPlayIds: res.seen ? [...(user.seenPlayIds || []), play.id] : user.seenPlayIds,
+                                watchlistPlayIds: updatedWatchlist,
+                                xp: res.newXp,
+                                level: res.newLevel
+                              });
+                            } catch (err) {
+                              console.error(err);
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-1 bg-success-mint/10 text-success-mint hover:bg-success-mint/20 border border-success-mint/30 rounded-md transition-colors cursor-pointer"
+                          title="İzlendi olarak işaretle"
+                        >
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>İzledim</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!user) return;
+                            try {
+                              const updatedWatchlist = await storageService.toggleWatchlistPlay(user.uid, play.id);
+                              await updateProfile({ watchlistPlayIds: updatedWatchlist });
+                            } catch (err) {
+                              console.error(err);
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-1 bg-layer-01 hover:bg-layer-02 text-text-tertiary hover:text-theatre-curtain border border-border-subtle rounded-md transition-colors cursor-pointer ml-auto"
+                          title="Listeden Kaldır"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>Kaldır</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="pt-2 border-t border-border-subtle/50 mt-1">
+                        <Link
+                          to={`/oyun/${play.id}`}
+                          className="text-[11px] font-mono text-theatre-curtain hover:underline inline-flex items-center gap-1"
+                        >
+                          <span>Oyunu İncele</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -554,17 +706,21 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
             <div className="bg-canvas border border-dashed border-border-subtle p-10 text-center space-y-3 rounded-md">
               <Bookmark className="w-10 h-10 text-text-tertiary mx-auto opacity-60" />
               <h3 className="font-serif font-bold text-base text-text-primary">
-                İzlemek istediğin oyunlar listen henüz boş
+                {isOwnProfile ? 'İzlemek istediğin oyunlar listen henüz boş' : 'İzleme listesi henüz boş'}
               </h3>
               <p className="text-xs text-text-secondary max-w-sm mx-auto">
-                Oyun kataloğundan veya küratörlü listelerden merak ettiğin oyunları "İzlemek İstiyorum" olarak kaydedebilirsin.
+                {isOwnProfile
+                  ? 'Oyun kataloğundan veya küratörlü listelerden merak ettiğin oyunları "İzlemek İstiyorum" olarak kaydedebilirsin.'
+                  : 'Bu tiyatrosever henüz izleme listesine oyun eklememiş.'}
               </p>
-              <Link
-                to="/"
-                className="inline-flex items-center gap-1.5 bg-theatre-curtain text-white px-4 py-2 text-xs font-semibold rounded-md hover:bg-theatre-curtain-hover transition-colors"
-              >
-                <span>Oyun Kataloğuna Git</span>
-              </Link>
+              {isOwnProfile && (
+                <Link
+                  to="/"
+                  className="inline-flex items-center gap-1.5 bg-theatre-curtain text-white px-4 py-2 text-xs font-semibold rounded-md hover:bg-theatre-curtain-hover transition-colors"
+                >
+                  <span>Oyun Kataloğuna Git</span>
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -584,7 +740,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
                     setShareReview(r);
                     setIsShareOpen(true);
                   }}
-                  onDelete={() => handleDeleteReview(rev.id)}
+                  onDelete={
+                    isOwnProfile || role === 'admin'
+                      ? () => handleDeleteReview(rev.id)
+                      : undefined
+                  }
                 />
               ))}
             </div>
@@ -592,10 +752,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
             <div className="bg-canvas border border-dashed border-border-subtle p-10 text-center space-y-3 rounded-sm">
               <MessageSquare className="w-10 h-10 text-text-tertiary mx-auto opacity-60" />
               <h3 className="font-serif font-bold text-base text-text-primary">
-                Henüz bir tiyatro notu yazmadın
+                {isOwnProfile ? 'Henüz bir tiyatro notu yazmadın' : 'Henüz bir seyir notu bulunmuyor'}
               </h3>
               <p className="text-xs text-text-secondary max-w-sm mx-auto">
-                İzlediğin oyunlara yıldız puanı ver, sahne notları tut ve "Dramaturg Kalemi" rozetini kazan.
+                {isOwnProfile
+                  ? 'İzlediğin oyunlara yıldız puanı ver, sahne notları tut ve "Dramaturg Kalemi" rozetini kazan.'
+                  : 'Bu tiyatrosever henüz bir tiyatro notu paylaşmamış.'}
               </p>
             </div>
           )}
@@ -634,11 +796,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
       )}
 
       {/* Theatre Wrapped Modal */}
-      {isWrappedOpen && user && (
+      {isWrappedOpen && activeProfile && (
         <SeasonWrappedModal
           isOpen={isWrappedOpen}
           onClose={() => setIsWrappedOpen(false)}
-          user={user}
+          user={activeProfile}
           seenPlays={seenPlays}
           reviews={userReviews}
         />
