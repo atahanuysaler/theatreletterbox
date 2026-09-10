@@ -74,14 +74,23 @@ npm run posters:missing
 ```
 *(Or `npm run scrape:plays -- --missing-posters`)*
 
+### 8. Scrape Missing Post-2020 Plays Only
+Scrapes all undiscovered plays from tiyatrolar.com.tr premiered after 2020 (2021+), skipping duplicates, optimizing posters, and writing to Firestore:
+```bash
+npm run scrape:recent
+```
+*(Or `node scripts/scrape-plays.mjs --source=all --limit=all --after-2020`)*
+
 ---
 
 ## ⚙️ Configuration & Options
 
 | Flag | Default | Description |
 |---|---|---|
-| `--limit=N` | `20` | Number of **NEW** plays to discover and scrape |
-| `--source=sahnedekiler` | `sahnedekiler` | `sahnedekiler` (currently playing) or `sitemap` (entire catalog) |
+| `--limit=N` | `20` | Number of **NEW** plays to discover and scrape (`all` for unlimited) |
+| `--source=sahnedekiler` | `sahnedekiler` | `sahnedekiler` (currently playing), `sitemap`, or `all` (multi-source) |
+| `--after-2020` | `false` | Filter to keep only plays premiered after 2020 (>= 2021) |
+| `--after-year=YYYY` | - | Filter to keep only plays premiered after specified year |
 | `--plays=slug1,slug2` | - | Comma-separated list of play slugs or URLs |
 | `--delay=MS` | `600` | Polite delay between HTTP requests in milliseconds |
 | `--output=FILE` | `scraped-plays.json` | Path where scraped data is saved as JSON |

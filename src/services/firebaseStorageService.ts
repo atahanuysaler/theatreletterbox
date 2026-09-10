@@ -53,13 +53,15 @@ export class FirebaseStorageService implements IStorageService {
   }
 
   private cachedPlays: Play[] | null = null;
-  private readonly PLAYS_CACHE_KEY = 'tiyatronot_plays_cache';
+  private readonly PLAYS_CACHE_KEY = 'tiyatronot_plays_cache_v3';
   private readonly PLAYS_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
   private invalidatePlaysCache(): void {
     this.cachedPlays = null;
     try {
       sessionStorage.removeItem(this.PLAYS_CACHE_KEY);
+      sessionStorage.removeItem('tiyatronot_plays_cache');
+      sessionStorage.removeItem('tiyatronot_plays_cache_v2');
     } catch {}
   }
 
@@ -70,6 +72,8 @@ export class FirebaseStorageService implements IStorageService {
         return this.cachedPlays;
       }
       try {
+        sessionStorage.removeItem('tiyatronot_plays_cache');
+        sessionStorage.removeItem('tiyatronot_plays_cache_v2');
         const cached = sessionStorage.getItem(this.PLAYS_CACHE_KEY);
         if (cached) {
           const { data, timestamp } = JSON.parse(cached);
@@ -83,24 +87,59 @@ export class FirebaseStorageService implements IStorageService {
       }
     }
 
-    const snap = await getDocs(collection(this.getDb(), 'plays'));
-    const plays = snap.docs.map(d => ({ ...d.data(), id: d.id } as Play));
-    this.cachedPlays = plays;
-
     try {
-      sessionStorage.setItem(this.PLAYS_CACHE_KEY, JSON.stringify({ data: plays, timestamp: Date.now() }));
-    } catch {
-      // Ignore quota errors
+      const snap = await getDocs(collection(this.getDb(), 'plays'));
+      const plays = snap.docs.map(d => ({ ...d.data(), id: d.id } as Play));
+      if (plays.length > 0) {
+        this.cachedPlays = plays;
+        try {
+          sessionStorage.setItem(this.PLAYS_CACHE_KEY, JSON.stringify({ data: plays, timestamp: Date.now() }));
+        } catch {
+          // Ignore quota errors
+        }
+        return plays;
+      }
+    } catch (err) {
+      console.warn('[FirebaseStorage] Firestore getDocs failed (possible quota limit or offline):', err);
     }
 
-    return plays;
+    // Resilient fallback: load static JSON dataset if Firestore daily quota is reached
+    try {
+      const res = await fetch('/data/plays.json');
+      if (res.ok) {
+        const staticPlays = await res.json();
+        if (Array.isArray(staticPlays) && staticPlays.length > 0) {
+          console.info(`[FirebaseStorage] Serving ${staticPlays.length} plays from static backup /data/plays.json`);
+          this.cachedPlays = staticPlays;
+          try {
+            sessionStorage.setItem(this.PLAYS_CACHE_KEY, JSON.stringify({ data: staticPlays, timestamp: Date.now() }));
+          } catch {}
+          return staticPlays;
+        }
+      }
+    } catch (fallbackErr) {
+      console.error('[FirebaseStorage] Fallback to /data/plays.json failed:', fallbackErr);
+    }
+
+    return this.cachedPlays || [];
   }
 
   async getPlayById(id: string): Promise<Play | null> {
-    const docRef = doc(this.getDb(), 'plays', id);
-    const snap = await getDoc(docRef);
-    if (!snap.exists()) return null;
-    return { ...snap.data(), id: snap.id } as Play;
+    if (this.cachedPlays && this.cachedPlays.length > 0) {
+      const found = this.cachedPlays.find(p => p.id === id);
+      if (found) return found;
+    }
+    try {
+      const docRef = doc(this.getDb(), 'plays', id);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        return { ...snap.data(), id: snap.id } as Play;
+      }
+    } catch (err) {
+      console.warn(`[FirebaseStorage] Failed to fetch play '${id}' from Firestore:`, err);
+    }
+    const allPlays = await this.getPlays();
+    return allPlays.find(p => p.id === id) || null;
   }
 
   async createPlay(playData: Omit<Play, 'id' | 'rating' | 'reviewCount'>): Promise<Play> {

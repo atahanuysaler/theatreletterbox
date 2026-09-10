@@ -1117,7 +1117,12 @@ async function main() {
       const mergedList = Array.from(existingLocalMap.values());
       if (!options.dryRun) {
         writeFileSync(options.output, JSON.stringify(mergedList, null, 2), 'utf-8');
-        console.log(`\n💾 Saved ${mergedList.length} total plays (added ${newPlaysScraped.length} new) to: ${path.relative(rootDir, options.output)}`);
+        const publicDataPath = path.join(rootDir, 'public', 'data', 'plays.json');
+        try {
+          mkdirSync(path.dirname(publicDataPath), { recursive: true });
+          writeFileSync(publicDataPath, JSON.stringify(mergedList), 'utf-8');
+        } catch {}
+        console.log(`\n💾 Saved ${mergedList.length} total plays (added ${newPlaysScraped.length} new) to: ${path.relative(rootDir, options.output)} & public/data/plays.json`);
       }
     }
   }
