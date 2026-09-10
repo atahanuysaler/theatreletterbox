@@ -22,7 +22,7 @@ interface CatalogPageProps {
   onOpenDailyQuote?: () => void;
 }
 
-const PAGE_SIZE = 40;
+const PAGE_SIZE = 36;
 
 export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpenDailyQuote }) => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -276,7 +276,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
     sortBy,
   ]);
 
-  // Pagination calculations: 40 plays per page
+  // Pagination calculations: 36 plays per page
   const totalPages = Math.max(1, Math.ceil(filteredPlays.length / PAGE_SIZE));
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
@@ -480,7 +480,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
               ))}
             </div>
 
-            {/* Pagination Bar (40 Plays Per Page) */}
+            {/* Pagination Bar (36 Plays Per Page) */}
             {totalPages > 1 && (
               <div className="border-t border-border-subtle pt-6 pb-2 flex flex-col sm:flex-row items-center justify-between gap-4">
                 {/* Results count indicator */}
