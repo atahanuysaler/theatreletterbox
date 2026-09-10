@@ -93,6 +93,25 @@ assert.notStrictEqual(sig1, sig2, 'Different stagings of the same play must have
 // Duplicate staging must match
 assert.strictEqual(sig1, sig3, 'Identical productions must have the same signature');
 
-console.log('  ✅ Production signature test verified: multiple stagings of the same title are kept, duplicates are detected.');
+// 4. Testing extractPosterUrl
+const { extractPosterUrl } = await import('../scripts/scrape-plays.mjs');
+
+// 4a. og:image
+const htmlWithOg = `<html><head><meta property="og:image" content="https://tiyatrolar.com.tr/files/activity/t/test/image/test.jpg"></head></html>`;
+assert.strictEqual(extractPosterUrl(htmlWithOg), 'https://tiyatrolar.com.tr/files/activity/t/test/image/test.jpg');
+
+// 4b. og:image with no-img placeholder should be rejected
+const htmlWithNoImg = `<html><head><meta property="og:image" content="https://tiyatrolar.com.tr/files/img/no-img/activity/no-img.jpg?v=2"></head></html>`;
+assert.strictEqual(extractPosterUrl(htmlWithNoImg), '');
+
+// 4c. figure with direct img
+const htmlWithFigImg = `<html><body><figure class="widget only-img"><img src="/files/activity/k/karanlik/image/karanlik.jpg" /></figure></body></html>`;
+assert.strictEqual(extractPosterUrl(htmlWithFigImg), 'https://tiyatrolar.com.tr/files/activity/k/karanlik/image/karanlik.jpg');
+
+// 4d. figure with invalid feedback link should not be matched
+const htmlWithFeedback = `<html><body><figure class="widget only-img"></figure><a href="#feedback1">Geri Bildirim</a></body></html>`;
+assert.strictEqual(extractPosterUrl(htmlWithFeedback), '');
+
+console.log('  ✅ extractPosterUrl verified: og:image, direct img in figure, and no-img/feedback rejections pass.');
 
 console.log('🎉 All parser and deduplication tests passed successfully!\n');

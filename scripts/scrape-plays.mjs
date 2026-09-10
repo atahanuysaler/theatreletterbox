@@ -71,6 +71,7 @@ const options = {
   dryRun: false,
   injectOnly: false,
   syncPosters: false,
+  missingPosters: false,
   downloadImages: true,
   force: false,
   serviceAccount: null,
@@ -82,6 +83,10 @@ for (const arg of args) {
   else if (arg === '--dry-run') options.dryRun = true;
   else if (arg === '--inject-only') options.injectOnly = true;
   else if (arg === '--sync-posters') options.syncPosters = true;
+  else if (arg === '--missing-posters' || arg === '--missing-only') {
+    options.missingPosters = true;
+    options.syncPosters = true;
+  }
   else if (arg === '--no-images') options.downloadImages = false;
   else if (arg === '--force') options.force = true;
   else if (arg === '--no-limit') options.limit = Infinity;
@@ -128,6 +133,9 @@ Examples:
   # Download all posters & thumbnails to public/posters/ and update Firestore:
   node scripts/scrape-plays.mjs --sync-posters
 
+  # Re-scrape and download only missing posters:
+  node scripts/scrape-plays.mjs --missing-posters
+
 Options:
   --source=sahnedekiler|sitemap   Discovery source (default: sahnedekiler)
   --plays=slug1,slug2             Scrape specific play slugs
@@ -138,6 +146,7 @@ Options:
   --dry-run                       Scrape only, do not write to Firestore
   --inject-only                   Only inject existing JSON file into Firestore
   --sync-posters                  Download & optimize all posters/thumbnails locally
+  --missing-posters               Only scan and re-fetch missing posters from tiyatrolar.com.tr
   --no-images                     Disable local image downloading during scraping
   --help                          Show this help message
 `);
@@ -319,6 +328,54 @@ export function getProductionSignature(play) {
   return `${normTitle}::${stagingSignature}`;
 }
 
+// ─── POSTER URL EXTRACTION ────────────────────────────────────────────────────
+
+export function extractPosterUrl(html) {
+  if (!html) return '';
+
+  // 1. og:image meta property (canonical image on tiyatrolar.com.tr)
+  const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+                  html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+  if (ogMatch) {
+    const ogUrl = ogMatch[1].trim();
+    if (ogUrl && !ogUrl.includes('no-img') && !ogUrl.includes('#') && ogUrl.startsWith('http')) {
+      return ogUrl;
+    }
+  }
+
+  // 2. figure.only-img with img src
+  const figImgMatch = html.match(/<figure[^>]*class=["'][^"']*only-img[^"']*["'][^>]*>[\s\S]*?<img[^>]+src=["']([^"']+)["']/i);
+  if (figImgMatch) {
+    let u = figImgMatch[1].trim();
+    if (u && !u.includes('no-img') && !u.includes('#')) {
+      if (!u.startsWith('http')) u = 'https://tiyatrolar.com.tr' + (u.startsWith('/') ? '' : '/') + u;
+      return u;
+    }
+  }
+
+  // 3. figure.only-img with a href to image
+  const figAMatch = html.match(/<figure[^>]*class=["'][^"']*only-img[^"']*["'][^>]*>\s*<a[^>]+href=["']([^"']+\.(?:jpg|jpeg|png|webp|avif))["']/i);
+  if (figAMatch) {
+    let u = figAMatch[1].trim();
+    if (u && !u.includes('no-img') && !u.includes('#')) {
+      if (!u.startsWith('http')) u = 'https://tiyatrolar.com.tr' + (u.startsWith('/') ? '' : '/') + u;
+      return u;
+    }
+  }
+
+  // 4. img.first-image
+  const firstImgMatch = html.match(/<img class="first-image"[^>]+src=["']([^"']+)["']/i);
+  if (firstImgMatch) {
+    let u = firstImgMatch[1].trim();
+    if (u && !u.includes('no-img') && !u.includes('#')) {
+      if (!u.startsWith('http')) u = 'https://tiyatrolar.com.tr' + (u.startsWith('/') ? '' : '/') + u;
+      return u;
+    }
+  }
+
+  return '';
+}
+
 // ─── PLAY DETAIL PARSER ───────────────────────────────────────────────────────
 
 export function parsePlayHtml(html, slug) {
@@ -329,16 +386,7 @@ export function parsePlayHtml(html, slug) {
   const title = titleMatch ? cleanText(titleMatch[1]) : slug;
 
   // 2. Poster
-  const posterMatch = html.match(/<img class="first-image"[^>]+src="([^">]+)"/) ||
-                      html.match(/<figure class="widget only-img">[\s\S]*?<a[^>]+href="([^">]+)"/);
-  let posterUrl = posterMatch ? posterMatch[1].trim() : '';
-  if (posterUrl && !posterUrl.startsWith('http')) {
-    posterUrl = 'https://tiyatrolar.com.tr' + (posterUrl.startsWith('/') ? '' : '/') + posterUrl;
-  }
-  // Fallback high-res theatre poster if none found
-  if (!posterUrl) {
-    posterUrl = 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=800&q=80';
-  }
+  let posterUrl = extractPosterUrl(html);
 
   // 3. Venue
   const venueMatch = html.match(/<i class="ico-pin"><\/i>\s*<a[^>]*>([\s\S]*?)<\/a>/);
@@ -651,16 +699,29 @@ async function syncAllPosters(adminDb, options) {
 
   ensurePosterDirs();
 
+  const playsWithMissingPosters = plays.filter(p => {
+    const fullFilePath = path.join(POSTERS_FULL_DIR, `${p.id}.jpg`);
+    const thumbFilePath = path.join(POSTERS_THUMB_DIR, `${p.id}.webp`);
+    return !existsSync(fullFilePath) || !existsSync(thumbFilePath);
+  });
+
+  console.log(`🔍 Status: ${plays.length - playsWithMissingPosters.length} plays have posters on disk, ${playsWithMissingPosters.length} missing.`);
+
+  const targetPlays = options.missingPosters ? playsWithMissingPosters : plays;
+  if (options.missingPosters) {
+    console.log(`🎯 Focusing exclusively on ${targetPlays.length} plays with missing posters.\n`);
+  }
+
   let downloadedCount = 0;
   let skippedCount = 0;
   let failedCount = 0;
   const updatedPlays = [];
 
   const CONCURRENCY = 6;
-  const total = plays.length;
+  const total = targetPlays.length;
 
   for (let i = 0; i < total; i += CONCURRENCY) {
-    const chunk = plays.slice(i, i + CONCURRENCY);
+    const chunk = targetPlays.slice(i, i + CONCURRENCY);
     await Promise.all(chunk.map(async (play, idxInChunk) => {
       const globalIdx = i + idxInChunk + 1;
       const fullFilePath = path.join(POSTERS_FULL_DIR, `${play.id}.jpg`);
@@ -685,10 +746,28 @@ async function syncAllPosters(adminDb, options) {
         return;
       }
 
-      // Remote URL to download
-      const remoteUrl = play.posterUrl && play.posterUrl.startsWith('http') ? play.posterUrl : null;
+      // Check remote URL or re-fetch from tiyatrolar.com.tr
+      let remoteUrl = play.posterUrl && play.posterUrl.startsWith('http') ? play.posterUrl : null;
       if (!remoteUrl) {
-        skippedCount++;
+        try {
+          const html = await fetchWithRetry(`https://tiyatrolar.com.tr/tiyatro/${play.id}`);
+          if (html) {
+            const scrapedUrl = extractPosterUrl(html);
+            if (scrapedUrl) {
+              remoteUrl = scrapedUrl;
+            }
+          }
+        } catch {}
+      }
+
+      if (!remoteUrl) {
+        // Source has no poster -> clear to empty string so editorial card renders cleanly
+        let changed = false;
+        if (play.posterUrl !== '') { play.posterUrl = ''; changed = true; }
+        if (play.thumbnailUrl !== '') { play.thumbnailUrl = ''; changed = true; }
+        if (changed) updatedPlays.push(play);
+        failedCount++;
+        console.log(`  [${globalIdx}/${total}] ⚪ ${play.id}: No poster on tiyatrolar.com.tr (editorial card active)`);
         return;
       }
 
@@ -709,8 +788,8 @@ async function syncAllPosters(adminDb, options) {
       }
     }));
 
-    // Auto-save JSON every 60 plays to avoid data loss
-    if (i % 60 === 0 && updatedPlays.length > 0) {
+    // Auto-save JSON periodically to avoid data loss
+    if (i % 30 === 0 && updatedPlays.length > 0) {
       writeFileSync(options.output, JSON.stringify(plays, null, 2), 'utf-8');
     }
   }

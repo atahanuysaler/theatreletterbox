@@ -12,6 +12,7 @@
     "test:scrape": "node tests/scrape-plays.test.mjs",
     "scrape:plays": "node scripts/scrape-plays.mjs",
     "posters:sync": "node scripts/scrape-plays.mjs --sync-posters",
+    "posters:missing": "node scripts/scrape-plays.mjs --missing-posters",
     "okf:sync": "node scripts/sync-okf.mjs",
     "okf:watch": "node scripts/sync-okf.mjs --watch"
   },

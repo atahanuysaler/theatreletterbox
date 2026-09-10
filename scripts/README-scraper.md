@@ -67,6 +67,13 @@ npm run posters:sync
 ```
 *(Or `npm run scrape:plays -- --sync-posters`)*
 
+### 7. Re-scrape & Download Missing Posters Only
+Scans for plays without local posters, re-fetches their details from tiyatrolar.com.tr, downloads them, and updates Firestore:
+```bash
+npm run posters:missing
+```
+*(Or `npm run scrape:plays -- --missing-posters`)*
+
 ---
 
 ## ⚙️ Configuration & Options
@@ -82,6 +89,7 @@ npm run posters:sync
 | `--dry-run` | `false` | Run scraping/sync only, do not write to Firestore |
 | `--inject-only` | `false` | Inject plays from JSON file (skips already injected plays) |
 | `--sync-posters` | `false` | Download & generate local posters (`public/posters/full`) and thumbnails (`public/posters/thumbnails`) |
+| `--missing-posters` | `false` | Scan and re-fetch missing posters from tiyatrolar.com.tr only |
 | `--no-images` | `false` | Disable local image downloading during scraping |
 
 ---
