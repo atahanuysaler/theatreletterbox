@@ -60,6 +60,13 @@ node scripts/scrape-plays.mjs --plays=kel-diva,amadeus,intihar-dukkani
 node scripts/scrape-plays.mjs --source=sitemap --limit=50
 ```
 
+### 6. Synchronize Posters & Thumbnails Locally
+Downloads and optimizes all play posters to `public/posters/` and updates Firestore:
+```bash
+npm run posters:sync
+```
+*(Or `npm run scrape:plays -- --sync-posters`)*
+
 ---
 
 ## ⚙️ Configuration & Options
@@ -72,8 +79,10 @@ node scripts/scrape-plays.mjs --source=sitemap --limit=50
 | `--delay=MS` | `600` | Polite delay between HTTP requests in milliseconds |
 | `--output=FILE` | `scraped-plays.json` | Path where scraped data is saved as JSON |
 | `--force` | `false` | Disable deduplication and force overwrite existing plays |
-| `--dry-run` | `false` | Run scraping only, do not write to Firestore |
+| `--dry-run` | `false` | Run scraping/sync only, do not write to Firestore |
 | `--inject-only` | `false` | Inject plays from JSON file (skips already injected plays) |
+| `--sync-posters` | `false` | Download & generate local posters (`public/posters/full`) and thumbnails (`public/posters/thumbnails`) |
+| `--no-images` | `false` | Disable local image downloading during scraping |
 
 ---
 

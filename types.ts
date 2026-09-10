@@ -52,6 +52,7 @@ export interface Play {
   genre: string;
   venue: string;
   posterUrl: string;
+  thumbnailUrl?: string;
   synopsis: string;
   rating: number;
   reviewCount: number;

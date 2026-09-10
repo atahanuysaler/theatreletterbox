@@ -44,9 +44,9 @@ export const PlayCard: React.FC<PlayCardProps> = ({
     >
       {/* 2:3 Vertical Poster Container */}
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-layer-01 border-b border-[#E0E0E0] select-none">
-        {!imageError && play.posterUrl ? (
+        {!imageError && (play.thumbnailUrl || play.posterUrl) ? (
           <img
-            src={play.posterUrl}
+            src={play.thumbnailUrl || play.posterUrl}
             alt={play.title}
             className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
             loading="lazy"

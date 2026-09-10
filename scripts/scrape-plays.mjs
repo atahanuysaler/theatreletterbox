@@ -20,7 +20,7 @@
  *   --help                    Display help message
  */
 
-import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
@@ -70,6 +70,8 @@ const options = {
   output: path.join(rootDir, 'scraped-plays.json'),
   dryRun: false,
   injectOnly: false,
+  syncPosters: false,
+  downloadImages: true,
   force: false,
   serviceAccount: null,
   help: false,
@@ -79,6 +81,8 @@ for (const arg of args) {
   if (arg === '--help' || arg === '-h') options.help = true;
   else if (arg === '--dry-run') options.dryRun = true;
   else if (arg === '--inject-only') options.injectOnly = true;
+  else if (arg === '--sync-posters') options.syncPosters = true;
+  else if (arg === '--no-images') options.downloadImages = false;
   else if (arg === '--force') options.force = true;
   else if (arg === '--no-limit') options.limit = Infinity;
   else if (arg.startsWith('--source=')) options.source = arg.split('=')[1].toLowerCase();
@@ -121,6 +125,9 @@ Examples:
   # Inject an already scraped JSON file (skips existing plays automatically):
   node scripts/scrape-plays.mjs --inject-only
 
+  # Download all posters & thumbnails to public/posters/ and update Firestore:
+  node scripts/scrape-plays.mjs --sync-posters
+
 Options:
   --source=sahnedekiler|sitemap   Discovery source (default: sahnedekiler)
   --plays=slug1,slug2             Scrape specific play slugs
@@ -130,6 +137,8 @@ Options:
   --force                         Force re-scrape/overwrite existing plays (default: skips duplicates)
   --dry-run                       Scrape only, do not write to Firestore
   --inject-only                   Only inject existing JSON file into Firestore
+  --sync-posters                  Download & optimize all posters/thumbnails locally
+  --no-images                     Disable local image downloading during scraping
   --help                          Show this help message
 `);
   process.exit(0);
@@ -164,6 +173,107 @@ async function fetchWithRetry(url, retries = 3) {
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+// ─── IMAGE PROCESSING & STORAGE HELPERS ───────────────────────────────────────
+
+export const POSTERS_FULL_DIR = path.join(rootDir, 'public', 'posters', 'full');
+export const POSTERS_THUMB_DIR = path.join(rootDir, 'public', 'posters', 'thumbnails');
+
+export function ensurePosterDirs() {
+  if (!existsSync(POSTERS_FULL_DIR)) mkdirSync(POSTERS_FULL_DIR, { recursive: true });
+  if (!existsSync(POSTERS_THUMB_DIR)) mkdirSync(POSTERS_THUMB_DIR, { recursive: true });
+}
+
+let sharpInstance = null;
+async function getSharp() {
+  if (!sharpInstance) {
+    const s = await import('sharp');
+    sharpInstance = s.default || s;
+  }
+  return sharpInstance;
+}
+
+/**
+ * Downloads a poster from a remote URL, optimizes the full image (max 800px width),
+ * and generates a responsive WebP thumbnail (320px width).
+ * Both files are stored in public/posters/...
+ */
+export async function downloadAndOptimizePoster(url, id, retries = 3) {
+  if (!id) return { posterUrl: url || '', thumbnailUrl: '' };
+
+  ensurePosterDirs();
+  const fullFilePath = path.join(POSTERS_FULL_DIR, `${id}.jpg`);
+  const thumbFilePath = path.join(POSTERS_THUMB_DIR, `${id}.webp`);
+  const localFullUrl = `/posters/full/${id}.jpg`;
+  const localThumbUrl = `/posters/thumbnails/${id}.webp`;
+
+  // If both local files exist, skip download
+  if (existsSync(fullFilePath) && existsSync(thumbFilePath)) {
+    return { posterUrl: localFullUrl, thumbnailUrl: localThumbUrl, skipped: true };
+  }
+
+  // Not a remote URL
+  if (!url || !url.startsWith('http') || url.includes('#feedback') || url.endsWith('#')) {
+    return {
+      posterUrl: url || (existsSync(fullFilePath) ? localFullUrl : ''),
+      thumbnailUrl: existsSync(thumbFilePath) ? localThumbUrl : '',
+    };
+  }
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const res = await fetch(url, {
+        signal: AbortSignal.timeout(8000),
+        headers: {
+          'User-Agent': USER_AGENT,
+          'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+          'Referer': 'https://tiyatrolar.com.tr/',
+        },
+      });
+
+      if (!res.ok) {
+        if (res.status === 404) return { posterUrl: url, thumbnailUrl: '' };
+        await sleep(500 * (attempt + 1));
+        continue;
+      }
+
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('text/html')) {
+        return { posterUrl: url, thumbnailUrl: '', error: 'Returned HTML page' };
+      }
+
+      const arrayBuf = await res.arrayBuffer();
+      const buffer = Buffer.from(arrayBuf);
+      if (buffer.length < 200 || buffer[0] === 0x3c) { // '<' indicates HTML error page
+        return { posterUrl: url, thumbnailUrl: '', error: 'HTML error page returned' };
+      }
+
+      const sharp = await getSharp();
+
+      // 1. Full image (max width 800px, quality 85)
+      await sharp(buffer)
+        .resize({ width: 800, withoutEnlargement: true })
+        .jpeg({ quality: 85, mozjpeg: true })
+        .toFile(fullFilePath);
+
+      // 2. Card thumbnail (width 320px, webp quality 80)
+      await sharp(buffer)
+        .resize({ width: 320, withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toFile(thumbFilePath);
+
+      return { posterUrl: localFullUrl, thumbnailUrl: localThumbUrl, skipped: false };
+    } catch (err) {
+      if (attempt === retries - 1) {
+        return { posterUrl: url, thumbnailUrl: '', error: err.message };
+      }
+      await sleep(1000 * (attempt + 1));
+    }
+  }
+
+  return { posterUrl: url, thumbnailUrl: '' };
+}
+
 
 // ─── HTML TEXT UTILS ──────────────────────────────────────────────────────────
 
@@ -522,6 +632,177 @@ function findServiceAccountKey() {
   return null;
 }
 
+// ─── POSTERS SYNCHRONIZATION ──────────────────────────────────────────────────
+
+async function syncAllPosters(adminDb, options) {
+  console.log(`=======================================================`);
+  console.log(`🖼️  Syncing Posters & Thumbnails Locally to public/posters/`);
+  console.log(`=======================================================`);
+  console.log(`💾 Source: ${path.relative(rootDir, options.output)}`);
+  console.log(`⚙️  Mode: ${options.dryRun ? 'Dry-Run (Download & JSON update only)' : 'Full Sync (Disk + Firestore)'}\n`);
+
+  if (!existsSync(options.output)) {
+    console.error(`❌ Output file '${options.output}' not found. Run scraping first.`);
+    return;
+  }
+
+  const plays = JSON.parse(readFileSync(options.output, 'utf-8'));
+  console.log(`📦 Loaded ${plays.length} plays from ${path.basename(options.output)}.`);
+
+  ensurePosterDirs();
+
+  let downloadedCount = 0;
+  let skippedCount = 0;
+  let failedCount = 0;
+  const updatedPlays = [];
+
+  const CONCURRENCY = 6;
+  const total = plays.length;
+
+  for (let i = 0; i < total; i += CONCURRENCY) {
+    const chunk = plays.slice(i, i + CONCURRENCY);
+    await Promise.all(chunk.map(async (play, idxInChunk) => {
+      const globalIdx = i + idxInChunk + 1;
+      const fullFilePath = path.join(POSTERS_FULL_DIR, `${play.id}.jpg`);
+      const thumbFilePath = path.join(POSTERS_THUMB_DIR, `${play.id}.webp`);
+
+      const fullExists = existsSync(fullFilePath);
+      const thumbExists = existsSync(thumbFilePath);
+
+      // Already on disk
+      if (fullExists && thumbExists) {
+        let changed = false;
+        if (play.posterUrl !== `/posters/full/${play.id}.jpg`) {
+          play.posterUrl = `/posters/full/${play.id}.jpg`;
+          changed = true;
+        }
+        if (play.thumbnailUrl !== `/posters/thumbnails/${play.id}.webp`) {
+          play.thumbnailUrl = `/posters/thumbnails/${play.id}.webp`;
+          changed = true;
+        }
+        if (changed) updatedPlays.push(play);
+        skippedCount++;
+        return;
+      }
+
+      // Remote URL to download
+      const remoteUrl = play.posterUrl && play.posterUrl.startsWith('http') ? play.posterUrl : null;
+      if (!remoteUrl) {
+        skippedCount++;
+        return;
+      }
+
+      const res = await downloadAndOptimizePoster(remoteUrl, play.id);
+      if (res.posterUrl && res.posterUrl.startsWith('/posters/')) {
+        play.posterUrl = res.posterUrl;
+        play.thumbnailUrl = res.thumbnailUrl;
+        updatedPlays.push(play);
+        downloadedCount++;
+        console.log(`  [${globalIdx}/${total}] ✅ ${play.id}`);
+      } else {
+        // Source has no valid image or broken link -> clear to empty string so editorial card renders cleanly
+        play.posterUrl = '';
+        play.thumbnailUrl = '';
+        updatedPlays.push(play);
+        failedCount++;
+        console.log(`  [${globalIdx}/${total}] ⚠️ ${play.id}: No valid image (${res.error || 'cleared'})`);
+      }
+    }));
+
+    // Auto-save JSON every 60 plays to avoid data loss
+    if (i % 60 === 0 && updatedPlays.length > 0) {
+      writeFileSync(options.output, JSON.stringify(plays, null, 2), 'utf-8');
+    }
+  }
+
+  // Ensure absolute cleanliness for all plays (no tiyatrolar links anywhere)
+  for (const play of plays) {
+    const fullExists = existsSync(path.join(POSTERS_FULL_DIR, `${play.id}.jpg`));
+    const thumbExists = existsSync(path.join(POSTERS_THUMB_DIR, `${play.id}.webp`));
+    if (fullExists && thumbExists) {
+      play.posterUrl = `/posters/full/${play.id}.jpg`;
+      play.thumbnailUrl = `/posters/thumbnails/${play.id}.webp`;
+    } else {
+      play.posterUrl = '';
+      play.thumbnailUrl = '';
+    }
+  }
+
+  // Final JSON save
+  writeFileSync(options.output, JSON.stringify(plays, null, 2), 'utf-8');
+  console.log(`\n💾 Saved updated poster URLs to ${path.basename(options.output)}.`);
+  console.log(`   ✅ Downloaded & Generated: ${downloadedCount}`);
+  console.log(`   ⏭️  Already on disk:        ${skippedCount}`);
+  if (failedCount > 0) console.log(`   ⚠️ Cleared (no image):     ${failedCount}`);
+
+  // Push updates to Firestore if adminDb is available and not in dry-run
+  if (options.dryRun) {
+    console.log(`\n🛑 Dry-run mode: Firestore update skipped.`);
+    return;
+  }
+
+  if (adminDb) {
+    console.log(`\n🔍 Verifying all play documents in Firestore to eliminate external image links...`);
+    const snap = await adminDb.collection('plays').select('posterUrl', 'thumbnailUrl').get();
+    const localPlayMap = new Map(plays.map(p => [p.id, p]));
+
+    const firestoreUpdates = [];
+    snap.docs.forEach(doc => {
+      const remoteData = doc.data();
+      const localPlay = localPlayMap.get(doc.id);
+      if (!localPlay) return;
+
+      const targetPoster = localPlay.posterUrl || '';
+      const targetThumb = localPlay.thumbnailUrl || '';
+
+      const currentPoster = remoteData.posterUrl || '';
+      const currentThumb = remoteData.thumbnailUrl || '';
+
+      if (currentPoster !== targetPoster || currentThumb !== targetThumb || currentPoster.includes('tiyatrolar.com.tr')) {
+        firestoreUpdates.push({
+          id: doc.id,
+          posterUrl: targetPoster,
+          thumbnailUrl: targetThumb,
+        });
+      }
+    });
+
+    console.log(`🚀 Found ${firestoreUpdates.length} play document(s) in Firestore needing update.`);
+
+    if (firestoreUpdates.length > 0) {
+      const BATCH_SIZE = 400;
+      const totalBatches = Math.ceil(firestoreUpdates.length / BATCH_SIZE);
+      let committed = 0;
+
+      for (let i = 0; i < firestoreUpdates.length; i += BATCH_SIZE) {
+        const batchChunk = firestoreUpdates.slice(i, i + BATCH_SIZE);
+        const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
+        process.stdout.write(`  Committing batch [${batchNumber}/${totalBatches}] (${batchChunk.length} plays)... `);
+        const batch = adminDb.batch();
+        for (const item of batchChunk) {
+          const ref = adminDb.collection('plays').doc(item.id);
+          batch.set(ref, {
+            posterUrl: item.posterUrl,
+            thumbnailUrl: item.thumbnailUrl,
+          }, { merge: true });
+        }
+        try {
+          await batch.commit();
+          committed += batchChunk.length;
+          console.log(`✅ (${committed}/${firestoreUpdates.length} updated)`);
+        } catch (err) {
+          console.log(`❌ Batch commit failed: ${err.message}`);
+        }
+      }
+      console.log(`\n🎉 Firestore sync complete! Zero documents link to tiyatrolar.com.tr.\n`);
+    } else {
+      console.log(`✨ All Firestore plays are already 100% synchronized! Zero tiyatrolar links remain.\n`);
+    }
+  } else {
+    console.log(`\nℹ️  Admin SDK not initialized. Firestore documents were not updated.`);
+  }
+}
+
 // ─── MAIN EXECUTION ───────────────────────────────────────────────────────────
 
 async function main() {
@@ -553,6 +834,12 @@ async function main() {
     } catch (err) {
       console.warn(`⚠️ Failed to initialize Firebase Admin SDK from ${keyPath}: ${err.message}`);
     }
+  }
+
+  // Handle poster synchronization mode (--sync-posters)
+  if (options.syncPosters) {
+    await syncAllPosters(adminDb, options);
+    return;
   }
 
   // Step 1: Pre-fetch existing plays & production signatures from Firestore
@@ -626,6 +913,14 @@ async function main() {
               continue;
             }
             if (sig) existingSignatures.add(sig);
+
+            // Download & optimize local poster and thumbnail unless disabled
+            if (options.downloadImages && play.posterUrl && play.posterUrl.startsWith('http')) {
+              const imgRes = await downloadAndOptimizePoster(play.posterUrl, play.id);
+              if (imgRes.posterUrl) play.posterUrl = imgRes.posterUrl;
+              if (imgRes.thumbnailUrl) play.thumbnailUrl = imgRes.thumbnailUrl;
+            }
+
             newPlaysScraped.push(play);
             console.log(`✅ "${play.title}" (${play.genre || 'Tiyatro'}, ${play.cast.length} cast)`);
 
