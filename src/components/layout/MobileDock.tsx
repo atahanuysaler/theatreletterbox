@@ -49,7 +49,7 @@ export const MobileDock: React.FC<MobileDockProps> = ({ onOpenLogModal }) => {
           <div className="w-10 h-10 -mt-3 bg-theatre-curtain text-white rounded-sm flex items-center justify-center shadow-md group-hover:bg-theatre-curtain-hover group-active:scale-95 transition-all">
             <StickyNote className="w-5 h-5" strokeWidth={2} />
           </div>
-          <span className="text-[10px] font-medium text-text-secondary mt-0.5">Not Ekle</span>
+          <span className="text-[10px] font-medium text-text-secondary mt-0.5">Not Al</span>
         </button>
 
         {/* 4. Liderler */}
