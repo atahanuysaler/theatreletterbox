@@ -11,7 +11,9 @@
     "test:e2e": "node tests/e2e/runner.js",
     "test:scrape": "node tests/scrape-plays.test.mjs",
     "scrape:plays": "node scripts/scrape-plays.mjs",
-    "posters:sync": "node scripts/scrape-plays.mjs --sync-posters"
+    "posters:sync": "node scripts/scrape-plays.mjs --sync-posters",
+    "okf:sync": "node scripts/sync-okf.mjs",
+    "okf:watch": "node scripts/sync-okf.mjs --watch"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.3",
