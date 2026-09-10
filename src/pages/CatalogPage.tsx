@@ -22,7 +22,22 @@ interface CatalogPageProps {
   onOpenDailyQuote?: () => void;
 }
 
-const PAGE_SIZE = 36;
+/**
+ * Calculates page size dynamically based on responsive columns
+ * so that the last row is always full (target ~30 plays):
+ * - xl (>=1280px): 5 columns -> 6 rows * 5 = 30
+ * - lg (1024px - 1279px): 4 columns -> 8 rows * 4 = 32
+ * - md (768px - 1023px): 3 columns -> 10 rows * 3 = 30
+ * - sm / mobile (<768px): 2 columns -> 15 rows * 2 = 30
+ */
+const getResponsivePageSize = (): number => {
+  if (typeof window === 'undefined') return 30;
+  const width = window.innerWidth;
+  if (width >= 1280) return 30;
+  if (width >= 1024) return 32;
+  if (width >= 768) return 30;
+  return 30;
+};
 
 export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpenDailyQuote }) => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -44,9 +59,21 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
   const [selectedCrewMember, setSelectedCrewMember] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('rating');
 
-  // Pagination State
+  // Pagination State - dynamic page size based on screen columns so rows are always full
+  const [pageSize, setPageSize] = useState<number>(getResponsivePageSize);
   const [currentPage, setCurrentPage] = useState(1);
   const catalogGridRef = useRef<HTMLDivElement>(null);
+
+  // Update page size on screen resize
+  useEffect(() => {
+    const handleResize = () => {
+      const newSize = getResponsivePageSize();
+      setPageSize((prev) => (prev !== newSize ? newSize : prev));
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Sync searchQuery when URL ?q= updates from navigation
   useEffect(() => {
@@ -276,14 +303,14 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
     sortBy,
   ]);
 
-  // Pagination calculations: 36 plays per page
-  const totalPages = Math.max(1, Math.ceil(filteredPlays.length / PAGE_SIZE));
+  // Pagination calculations: dynamic plays per page based on screen size
+  const totalPages = Math.max(1, Math.ceil(filteredPlays.length / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
   const displayedPlays = useMemo(() => {
-    const startIndex = (safeCurrentPage - 1) * PAGE_SIZE;
-    return filteredPlays.slice(startIndex, startIndex + PAGE_SIZE);
-  }, [filteredPlays, safeCurrentPage]);
+    const startIndex = (safeCurrentPage - 1) * pageSize;
+    return filteredPlays.slice(startIndex, startIndex + pageSize);
+  }, [filteredPlays, safeCurrentPage, pageSize]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages && newPage !== safeCurrentPage) {
@@ -480,14 +507,14 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
               ))}
             </div>
 
-            {/* Pagination Bar (36 Plays Per Page) */}
+            {/* Pagination Bar (Responsive Page Size) */}
             {totalPages > 1 && (
               <div className="border-t border-border-subtle pt-6 pb-2 flex flex-col sm:flex-row items-center justify-between gap-4">
                 {/* Results count indicator */}
                 <div className="text-xs font-mono text-text-secondary">
                   Toplam <strong className="text-text-primary">{filteredPlays.length}</strong> oyun arasından{' '}
                   <strong className="text-text-primary">
-                    {(safeCurrentPage - 1) * PAGE_SIZE + 1} - {Math.min(safeCurrentPage * PAGE_SIZE, filteredPlays.length)}
+                    {(safeCurrentPage - 1) * pageSize + 1} - {Math.min(safeCurrentPage * pageSize, filteredPlays.length)}
                   </strong>{' '}
                   arası gösteriliyor (Sayfa {safeCurrentPage} / {totalPages})
                 </div>
