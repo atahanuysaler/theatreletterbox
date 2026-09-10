@@ -72,6 +72,7 @@ const options = {
   injectOnly: false,
   syncPosters: false,
   missingPosters: false,
+  afterYear: null,
   downloadImages: true,
   force: false,
   serviceAccount: null,
@@ -87,6 +88,9 @@ for (const arg of args) {
     options.missingPosters = true;
     options.syncPosters = true;
   }
+  else if (arg === '--after-2020') options.afterYear = 2020;
+  else if (arg.startsWith('--after-year=')) options.afterYear = parseInt(arg.split('=')[1], 10);
+  else if (arg.startsWith('--min-year=')) options.afterYear = parseInt(arg.split('=')[1], 10) - 1;
   else if (arg === '--no-images') options.downloadImages = false;
   else if (arg === '--force') options.force = true;
   else if (arg === '--no-limit') options.limit = Infinity;
@@ -518,7 +522,7 @@ export function parsePlayHtml(html, slug) {
 // ─── PLAY DISCOVERY ───────────────────────────────────────────────────────────
 
 async function discoverPlays(source, limit, existingIds = new Set(), force = false) {
-  console.log(`🔍 Discovering plays using source: '${source}' (target: ${limit} new plays)...`);
+  console.log(`🔍 Discovering plays using source: '${source}' (target: ${limit === Infinity ? 'ALL' : limit} new plays)...`);
 
   if (source === 'custom') {
     const customSlugs = options.plays.filter(slug => force || !existingIds.has(slug));
@@ -526,52 +530,116 @@ async function discoverPlays(source, limit, existingIds = new Set(), force = fal
   }
 
   const slugs = [];
+  const seenSlugs = new Set();
   let skippedDuplicates = 0;
 
-  if (source === 'sahnedekiler') {
-    const html = await fetchWithRetry('https://tiyatrolar.com.tr/sahnedekiler');
-    if (html) {
-      const matches = html.matchAll(/href="https:\/\/tiyatrolar\.com\.tr\/tiyatro\/([^"#?]+)"/g);
-      for (const m of matches) {
-        const slug = m[1].trim();
-        if (!slug) continue;
-        if (!force && existingIds.has(slug)) {
-          skippedDuplicates++;
-          continue;
-        }
-        if (!slugs.includes(slug)) {
-          slugs.push(slug);
+  function addSlug(slug) {
+    if (!slug) return false;
+    const clean = slug.trim().replace(/^https?:\/\/[^/]+\/tiyatro\//, '').split('?')[0].split('#')[0];
+    if (!clean || seenSlugs.has(clean)) return false;
+    seenSlugs.add(clean);
+    if (!force && existingIds.has(clean)) {
+      skippedDuplicates++;
+      return false;
+    }
+    slugs.push(clean);
+    return true;
+  }
+
+  // 1. Source: sahnedekiler (currently running / active on stage)
+  if (source === 'sahnedekiler' || source === 'all') {
+    console.log(`  🎭 Fetching active plays from sahnedekiler...`);
+    const initialHtml = await fetchWithRetry('https://tiyatrolar.com.tr/sahnedekiler');
+    if (initialHtml) {
+      for (const m of initialHtml.matchAll(/href=["']https:\/\/tiyatrolar\.com\.tr\/tiyatro\/([^"'#?]+)["']/g)) {
+        addSlug(m[1]);
+        if (slugs.length >= limit) break;
+      }
+    }
+
+    // Paginate through all active plays via ajax
+    let offset = 21;
+    while (slugs.length < limit && offset <= 1500) {
+      try {
+        const form = new URLSearchParams();
+        form.append('offset', String(offset));
+        form.append('activity_type_id', '1');
+        const res = await fetch('https://tiyatrolar.com.tr/frontend/load_more_activity_via_ajax/', {
+          method: 'POST',
+          headers: {
+            'User-Agent': USER_AGENT,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+          },
+          body: form.toString(),
+          signal: AbortSignal.timeout(8000),
+        });
+        if (!res.ok) break;
+        const json = await res.json();
+        if (!json.html || json.html.trim().length === 0) break;
+        let addedInChunk = 0;
+        for (const m of json.html.matchAll(/href=["']https:\/\/tiyatrolar\.com\.tr\/tiyatro\/([^"'#?]+)["']/g)) {
+          if (addSlug(m[1])) addedInChunk++;
           if (slugs.length >= limit) break;
         }
+        if (addedInChunk === 0 && offset > 600) break;
+        offset += 21;
+      } catch (err) {
+        break;
+      }
+    }
+    console.log(`  👉 Discovered ${slugs.length} candidate plays from sahnedekiler.`);
+  }
+
+  // 2. Source: sitemap (catalog)
+  if (source === 'sitemap' || source === 'all' || slugs.length < limit) {
+    if (source === 'sitemap') {
+      slugs.length = 0;
+      seenSlugs.clear();
+    }
+    console.log(`  🌐 Searching sitemap.xml for catalog plays...`);
+    const sitemapXml = await fetchWithRetry('https://tiyatrolar.com.tr/sitemap.xml');
+    if (sitemapXml) {
+      for (const m of sitemapXml.matchAll(/https:\/\/tiyatrolar\.com\.tr\/tiyatro\/([^<#?]+)/g)) {
+        addSlug(m[1]);
+        if (slugs.length >= limit) break;
       }
     }
   }
 
-  if (source === 'sitemap' || slugs.length < limit) {
-    if (source === 'sitemap') slugs.length = 0; // reset if explicitly asked
-    console.log(`  🌐 Searching sitemap.xml for new plays...`);
-    const sitemapXml = await fetchWithRetry('https://tiyatrolar.com.tr/sitemap.xml');
-    if (sitemapXml) {
-      const matches = sitemapXml.matchAll(/https:\/\/tiyatrolar\.com\.tr\/tiyatro\/([^<#?]+)/g);
-      for (const m of matches) {
-        const slug = m[1].trim();
-        if (!slug) continue;
-        if (!force && existingIds.has(slug)) {
-          skippedDuplicates++;
-          continue;
+  // 3. Source: curated lists / festivals (if source is all or sitemap)
+  if ((source === 'all' || source === 'sitemap') && slugs.length < limit) {
+    const listUrls = [
+      'https://tiyatrolar.com.tr/liste/26-istanbul-tiyatro-festivali-yerli-oyunlari',
+      'https://tiyatrolar.com.tr/liste/25-istanbul-tiyatro-festivali-yerli-oyunlari',
+      'https://tiyatrolar.com.tr/liste/24-istanbul-tiyatro-festivali-yerli-oyunlari-1',
+      'https://tiyatrolar.com.tr/liste/23-istanbul-tiyatro-festivali-yerli-oyunlari-2',
+      'https://tiyatrolar.com.tr/liste/22-istanbul-tiyatro-festivali-yerli-oyunlari',
+      'https://tiyatrolar.com.tr/liste/21-istanbul-tiyatro-festivali-oyunlari',
+      'https://tiyatrolar.com.tr/liste/bir-oyun-bircok-ekip',
+      'https://tiyatrolar.com.tr/liste/oyun-yazarlarimiz',
+      'https://tiyatrolar.com.tr/haber/28-afife-tiyatro-odulleri-sahiplerini-buldu',
+      'https://tiyatrolar.com.tr/haber/27-afife-tiyatro-odulleri-2025in-en-iyileri-aciklandi',
+      'https://tiyatrolar.com.tr/haber/26-sadri-alisik-tiyatro-sinema-oyuncu-odulleri-aciklandi'
+    ];
+    for (const lu of listUrls) {
+      if (slugs.length >= limit) break;
+      try {
+        const lHtml = await fetchWithRetry(lu);
+        if (lHtml) {
+          for (const m of lHtml.matchAll(/href=["']https:\/\/tiyatrolar\.com\.tr\/tiyatro\/([^"'#?]+)["']/g)) {
+            addSlug(m[1]);
+            if (slugs.length >= limit) break;
+          }
         }
-        if (!slugs.includes(slug)) {
-          slugs.push(slug);
-          if (slugs.length >= limit) break;
-        }
-      }
+      } catch {}
     }
   }
 
   if (skippedDuplicates > 0) {
     console.log(`  ⏭️  Skipped ${skippedDuplicates} play(s) already in your database.`);
   }
-  console.log(`  ✨ Found ${slugs.length} new play slug(s) to scrape.\n`);
+  console.log(`  ✨ Found ${slugs.length} new candidate play slug(s) to inspect.\n`);
   return slugs.slice(0, limit);
 }
 
@@ -971,61 +1039,86 @@ async function main() {
     }
 
     if (slugs.length > 0) {
-      console.log(`📥 Scraping play details (${slugs.length} new plays)...`);
-      let idx = 1;
-      for (const slug of slugs) {
-        const url = `https://tiyatrolar.com.tr/tiyatro/${slug}`;
-        process.stdout.write(`  [${idx}/${slugs.length}] Scraping ${slug}... `);
-        
-        try {
-          const html = await fetchWithRetry(url);
-          if (!html) {
-            console.log(`❌ Not found (404)`);
-            continue;
-          }
+      console.log(`📥 Scraping play details (${slugs.length} candidate plays)...`);
+      if (options.afterYear) {
+        console.log(`📅 Year Filter: Only keeping plays premiered AFTER ${options.afterYear} (>= ${options.afterYear + 1}).`);
+      }
 
-          const play = parsePlayHtml(html, slug);
-          if (play && play.title) {
+      const CONCURRENCY = 6;
+      let skippedYearCount = 0;
+      let skippedSignatureCount = 0;
+
+      for (let i = 0; i < slugs.length; i += CONCURRENCY) {
+        const chunk = slugs.slice(i, i + CONCURRENCY);
+        await Promise.all(chunk.map(async (slug) => {
+          const url = `https://tiyatrolar.com.tr/tiyatro/${slug}`;
+          try {
+            const html = await fetchWithRetry(url);
+            if (!html) return;
+
+            const play = parsePlayHtml(html, slug);
+            if (!play || !play.title) return;
+
+            // Filter by premier year
+            if (options.afterYear && play.year <= options.afterYear) {
+              skippedYearCount++;
+              return;
+            }
+
+            // Deduplication: check production signature
             const sig = getProductionSignature(play);
             if (!options.force && existingSignatures.has(sig)) {
-              console.log(`⏭️  Duplicate production signature for "${play.title}" (${play.company || 'Bağımsız'}, Yön: ${play.director || '-'}) - skipped.`);
-              continue;
+              skippedSignatureCount++;
+              console.log(`  ⏭️  Duplicate staging: "${play.title}" (${play.company || 'Bağımsız'}) - skipped.`);
+              return;
             }
             if (sig) existingSignatures.add(sig);
 
             // Download & optimize local poster and thumbnail unless disabled
             if (options.downloadImages && play.posterUrl && play.posterUrl.startsWith('http')) {
               const imgRes = await downloadAndOptimizePoster(play.posterUrl, play.id);
-              if (imgRes.posterUrl) play.posterUrl = imgRes.posterUrl;
-              if (imgRes.thumbnailUrl) play.thumbnailUrl = imgRes.thumbnailUrl;
+              if (imgRes.posterUrl && imgRes.posterUrl.startsWith('/posters/')) {
+                play.posterUrl = imgRes.posterUrl;
+                play.thumbnailUrl = imgRes.thumbnailUrl;
+              } else {
+                play.posterUrl = '';
+                play.thumbnailUrl = '';
+              }
+            } else {
+              play.posterUrl = '';
+              play.thumbnailUrl = '';
             }
 
             newPlaysScraped.push(play);
-            console.log(`✅ "${play.title}" (${play.genre || 'Tiyatro'}, ${play.cast.length} cast)`);
-
-            // Periodic auto-flush every 10 plays to prevent loss during long scrapes
-            if (newPlaysScraped.length % 10 === 0) {
-              for (const p of newPlaysScraped) existingLocalMap.set(p.id, p);
-              writeFileSync(options.output, JSON.stringify(Array.from(existingLocalMap.values()), null, 2), 'utf-8');
-            }
-          } else {
-            console.log(`⚠️ Incomplete data`);
+            existingLocalMap.set(play.id, play);
+            console.log(`  [${newPlaysScraped.length}] ✅ "${play.title}" (${play.year}, ${play.company || 'Bağımsız'}, ${play.cast.length} cast)`);
+          } catch (err) {
+            console.log(`  ❌ ${slug}: ${err.message}`);
           }
-        } catch (err) {
-          console.log(`❌ Error: ${err.message}`);
+        }));
+
+        // Periodic auto-flush every 20 candidate plays
+        if (!options.dryRun && newPlaysScraped.length > 0 && i % 20 === 0) {
+          writeFileSync(options.output, JSON.stringify(Array.from(existingLocalMap.values()), null, 2), 'utf-8');
         }
 
-        idx++;
         if (options.delay > 0) await sleep(options.delay);
       }
+
+      console.log(`\n📊 Scraping Summary:`);
+      console.log(`   ✅ New plays accepted: ${newPlaysScraped.length}`);
+      if (options.afterYear) console.log(`   ⏭️  Skipped older plays (<= ${options.afterYear}): ${skippedYearCount}`);
+      console.log(`   ⏭️  Skipped duplicate staging signatures: ${skippedSignatureCount}`);
 
       // Final merge
       for (const play of newPlaysScraped) {
         existingLocalMap.set(play.id, play);
       }
       const mergedList = Array.from(existingLocalMap.values());
-      writeFileSync(options.output, JSON.stringify(mergedList, null, 2), 'utf-8');
-      console.log(`\n💾 Saved ${mergedList.length} total plays (added ${newPlaysScraped.length} new) to: ${path.relative(rootDir, options.output)}`);
+      if (!options.dryRun) {
+        writeFileSync(options.output, JSON.stringify(mergedList, null, 2), 'utf-8');
+        console.log(`\n💾 Saved ${mergedList.length} total plays (added ${newPlaysScraped.length} new) to: ${path.relative(rootDir, options.output)}`);
+      }
     }
   }
 

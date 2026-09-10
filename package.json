@@ -11,6 +11,7 @@
     "test:e2e": "node tests/e2e/runner.js",
     "test:scrape": "node tests/scrape-plays.test.mjs",
     "scrape:plays": "node scripts/scrape-plays.mjs",
+    "scrape:recent": "node scripts/scrape-plays.mjs --source=all --limit=all --after-2020",
     "posters:sync": "node scripts/scrape-plays.mjs --sync-posters",
     "posters:missing": "node scripts/scrape-plays.mjs --missing-posters",
     "okf:sync": "node scripts/sync-okf.mjs",
