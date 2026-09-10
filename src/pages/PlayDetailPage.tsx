@@ -69,6 +69,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
     };
 
 
+    setImageError(false);
     loadPlayData();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return () => {
@@ -197,12 +198,19 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
         <div className="flex flex-col md:flex-row gap-5 sm:gap-8 items-center md:items-start">
           {/* 2:3 Vertical Poster with Crisp Border */}
           <div className="w-48 sm:w-56 md:w-64 aspect-[2/3] bg-layer-01 border border-[#E0E0E0] rounded-sm overflow-hidden flex-shrink-0 relative shadow-card">
-            {!imageError && play.posterUrl ? (
+            {!imageError && (play.posterUrl || play.thumbnailUrl) ? (
               <img
-                src={play.posterUrl}
+                src={play.posterUrl || play.thumbnailUrl}
                 alt={play.title}
                 className="w-full h-full object-cover"
-                onError={() => setImageError(true)}
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (play.thumbnailUrl && target.src !== window.location.origin + play.thumbnailUrl) {
+                    target.src = play.thumbnailUrl;
+                  } else {
+                    setImageError(true);
+                  }
+                }}
               />
             ) : (
               <div className="w-full h-full flex flex-col justify-between p-4 bg-layer-01 text-center">
