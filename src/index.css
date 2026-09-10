@@ -132,6 +132,16 @@ html.dark,
   *, ::before, ::after {
     border-color: rgb(var(--color-border-subtle));
   }
+
+  /* Mobile App-like Touch Interaction & Tap Feedback */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  [role="button"] {
+    -webkit-touch-callout: none;
+  }
 }
 
 

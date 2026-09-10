@@ -23,7 +23,7 @@ export const MobileDock: React.FC<MobileDockProps> = ({ onOpenLogModal }) => {
 
   return (
     <nav 
-      className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-canvas/95 backdrop-blur-sm border-t border-border-subtle shadow-[0_-2px_10px_rgba(0,0,0,0.04)] pb-[env(safe-area-inset-bottom)]"
+      className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-canvas/95 backdrop-blur-sm border-t border-border-subtle shadow-[0_-2px_10px_rgba(0,0,0,0.04)] pb-[env(safe-area-inset-bottom)] select-none"
       aria-label="Mobil Alt Navigasyon"
     >
       <div className="grid grid-cols-5 h-16 items-center px-1 max-w-lg mx-auto">
