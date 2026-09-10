@@ -31,7 +31,7 @@ export interface IStorageService {
   readonly isDemoMode: boolean;
 
   // Plays CRUD
-  getPlays(): Promise<Play[]>;
+  getPlays(forceRefresh?: boolean): Promise<Play[]>;
   getPlayById(id: string): Promise<Play | null>;
   createPlay(play: Omit<Play, 'id' | 'rating' | 'reviewCount'>): Promise<Play>;
   updatePlay(id: string, updates: Partial<Play>): Promise<Play>;

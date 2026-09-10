@@ -47,6 +47,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
 
   // Plays and User State
   const [plays, setPlays] = useState<Play[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [seenPlayIds, setSeenPlayIds] = useState<string[]>([]);
   const [watchlistPlayIds, setWatchlistPlayIds] = useState<string[]>([]);
   const [feedbackToast, setFeedbackToast] = useState<string | null>(null);
@@ -109,6 +110,10 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
         }
       } catch (err) {
         console.error('[CatalogPage] Failed to load plays from storage:', err);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
     loadData();
@@ -491,7 +496,34 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
 
       {/* Expansive Full-Width Repertoire Grid */}
       <div ref={catalogGridRef} className="scroll-mt-6">
-        {displayedPlays.length > 0 ? (
+        {isLoading ? (
+          /* Skeleton Loading Cards Grid */
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+            {Array.from({ length: pageSize }).map((_, index) => (
+              <div
+                key={index}
+                className="bg-canvas border border-border-subtle rounded-sm overflow-hidden flex flex-col pointer-events-none animate-pulse"
+              >
+                {/* Skeleton Poster Container */}
+                <div className="relative aspect-[2/3] w-full bg-layer-01 border-b border-border-subtle flex items-center justify-center overflow-hidden">
+                  <Theater className="w-8 h-8 text-text-tertiary/20" />
+                  <div className="absolute top-2 right-2 w-9 h-5 bg-layer-02 rounded-sm" />
+                </div>
+                {/* Skeleton Meta Lines */}
+                <div className="p-3 flex-1 flex flex-col justify-between space-y-3">
+                  <div className="space-y-2">
+                    <div className="h-4 bg-layer-02 rounded-xs w-3/4" />
+                    <div className="h-3 bg-layer-01 rounded-xs w-1/2" />
+                    <div className="h-2.5 bg-layer-01 rounded-xs w-2/3" />
+                  </div>
+                  <div className="pt-2 border-t border-border-subtle flex justify-end">
+                    <div className="h-3 bg-layer-01 rounded-xs w-8" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : displayedPlays.length > 0 ? (
           <div className="space-y-8">
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
               {displayedPlays.map((play) => (

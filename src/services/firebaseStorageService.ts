@@ -52,10 +52,48 @@ export class FirebaseStorageService implements IStorageService {
     return db;
   }
 
+  private cachedPlays: Play[] | null = null;
+  private readonly PLAYS_CACHE_KEY = 'tiyatronot_plays_cache';
+  private readonly PLAYS_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+  private invalidatePlaysCache(): void {
+    this.cachedPlays = null;
+    try {
+      sessionStorage.removeItem(this.PLAYS_CACHE_KEY);
+    } catch {}
+  }
+
   // Plays CRUD
-  async getPlays(): Promise<Play[]> {
+  async getPlays(forceRefresh = false): Promise<Play[]> {
+    if (!forceRefresh) {
+      if (this.cachedPlays && this.cachedPlays.length > 0) {
+        return this.cachedPlays;
+      }
+      try {
+        const cached = sessionStorage.getItem(this.PLAYS_CACHE_KEY);
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached);
+          if (Array.isArray(data) && data.length > 0 && Date.now() - timestamp < this.PLAYS_CACHE_TTL) {
+            this.cachedPlays = data;
+            return data;
+          }
+        }
+      } catch {
+        // Fall back to network fetch
+      }
+    }
+
     const snap = await getDocs(collection(this.getDb(), 'plays'));
-    return snap.docs.map(d => ({ ...d.data(), id: d.id } as Play));
+    const plays = snap.docs.map(d => ({ ...d.data(), id: d.id } as Play));
+    this.cachedPlays = plays;
+
+    try {
+      sessionStorage.setItem(this.PLAYS_CACHE_KEY, JSON.stringify({ data: plays, timestamp: Date.now() }));
+    } catch {
+      // Ignore quota errors
+    }
+
+    return plays;
   }
 
   async getPlayById(id: string): Promise<Play | null> {
@@ -80,18 +118,21 @@ export class FirebaseStorageService implements IStorageService {
     };
 
     await setDoc(doc(this.getDb(), 'plays', slug), newPlay);
+    this.invalidatePlaysCache();
     return newPlay;
   }
 
   async updatePlay(id: string, updates: Partial<Play>): Promise<Play> {
     const docRef = doc(this.getDb(), 'plays', id);
     await updateDoc(docRef, updates as { [key: string]: any });
+    this.invalidatePlaysCache();
     const snap = await getDoc(docRef);
     return { ...snap.data(), id: snap.id } as Play;
   }
 
   async deletePlay(id: string): Promise<void> {
     await deleteDoc(doc(this.getDb(), 'plays', id));
+    this.invalidatePlaysCache();
   }
 
   // Reviews CRUD
