@@ -22,11 +22,20 @@ import {
   PlaySubmission,
   CuratedList,
   PuzzleGameConfig,
+  ActorDetectiveItem,
+  TriviaQuestionItem,
+  TheatreWordItem,
   ContactMessage
 } from '../types';
 import { IStorageService, SeenPlayResult, QuoteGuessResult } from './storage';
 import { calculateLevel, evaluateBadges, evaluateQuoteGuess } from './gamification';
-import { getDailyQuoteForDate, PUZZLE_GAMES } from '../data/puzzles';
+import { 
+  getDailyQuoteForDate, 
+  PUZZLE_GAMES, 
+  DEFAULT_ACTOR_DETECTIVE, 
+  DEFAULT_TRIVIA_QUESTIONS, 
+  DEFAULT_THEATRE_WORDS 
+} from '../data/puzzles';
 import { CURATED_LISTS } from '../data/curatedListsData';
 
 /**
@@ -426,13 +435,30 @@ export class FirebaseStorageService implements IStorageService {
     try {
       const quotes = await this.getQuotes();
       if (quotes.length > 0) {
-        return quotes[0];
+        const active = quotes.find(q => q.isToday);
+        return active || quotes[0];
       }
     } catch (err) {
       console.warn('[FirebaseStorage] Failed to fetch quotes from Firestore, using curated daily quote:', err);
     }
     const today = new Date().toISOString().slice(0, 10);
     return getDailyQuoteForDate(today);
+  }
+
+  async setActiveQuote(id: string): Promise<void> {
+    const quotes = await this.getQuotes();
+    await Promise.all(
+      quotes.map(async q => {
+        const isTarget = q.id === id;
+        if (q.isToday !== isTarget) {
+          try {
+            await updateDoc(doc(this.getDb(), 'dailyQuotes', q.id), { isToday: isTarget });
+          } catch {
+            await setDoc(doc(this.getDb(), 'dailyQuotes', q.id), { ...q, isToday: isTarget }, { merge: true });
+          }
+        }
+      })
+    );
   }
 
   async createQuote(quote: Omit<DailyQuote, 'id'>): Promise<DailyQuote> {
@@ -695,22 +721,56 @@ export class FirebaseStorageService implements IStorageService {
 
   // Puzzle Games CRUD
   async getPuzzleGames(): Promise<PuzzleGameConfig[]> {
+    let result: PuzzleGameConfig[] = [];
     try {
       const snap = await getDocs(collection(this.getDb(), 'puzzle_games'));
       if (!snap.empty) {
-        return snap.docs.map(d => ({ ...d.data(), id: d.id } as PuzzleGameConfig));
+        result = snap.docs.map(d => ({ ...d.data(), id: d.id } as PuzzleGameConfig));
       }
     } catch (err) {
       console.warn('[FirebaseStorage] Failed to fetch puzzle games from Firestore:', err);
     }
-    try {
-      const local = localStorage.getItem('tiyatronot_puzzle_games');
-      if (local) {
-        const parsed = JSON.parse(local);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+
+    if (result.length === 0) {
+      try {
+        const local = localStorage.getItem('tiyatronot_puzzle_games');
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) result = parsed;
+        }
+      } catch {}
+    }
+
+    if (result.length === 0) {
+      result = [...PUZZLE_GAMES];
+    }
+
+    // Sanitize: replace any legacy 'afis-dedektifi' with 'oyuncu-dedektifi'
+    let hasLegacy = false;
+    result = result.map(g => {
+      if (g.id === 'afis-dedektifi') {
+        hasLegacy = true;
+        const replacement = PUZZLE_GAMES.find(p => p.id === 'oyuncu-dedektifi')!;
+        return { ...replacement, status: g.status || 'active' };
       }
-    } catch {}
-    return PUZZLE_GAMES;
+      return g;
+    });
+
+    // Ensure all default puzzle types exist
+    PUZZLE_GAMES.forEach(defaultGame => {
+      if (!result.some(g => g.id === defaultGame.id)) {
+        result.push(defaultGame);
+        hasLegacy = true;
+      }
+    });
+
+    if (hasLegacy) {
+      try {
+        localStorage.setItem('tiyatronot_puzzle_games', JSON.stringify(result));
+      } catch {}
+    }
+
+    return result;
   }
 
   async getPuzzleGameById(id: string): Promise<PuzzleGameConfig | null> {
@@ -778,6 +838,236 @@ export class FirebaseStorageService implements IStorageService {
       const all = await this.getPuzzleGames();
       const filtered = all.filter(g => g.id !== id);
       localStorage.setItem('tiyatronot_puzzle_games', JSON.stringify(filtered));
+    } catch {}
+  }
+
+  // ── Actor Detective CRUD ──
+  async getActorDetectives(): Promise<ActorDetectiveItem[]> {
+    let list: ActorDetectiveItem[] = [];
+    try {
+      const snap = await getDocs(collection(this.getDb(), 'actor_detectives'));
+      if (!snap.empty) {
+        list = snap.docs.map(d => ({ ...d.data(), id: d.id } as ActorDetectiveItem));
+      }
+    } catch (err) {
+      console.warn('[FirebaseStorage] Failed to fetch actor detectives from Firestore:', err);
+    }
+    if (list.length === 0) {
+      try {
+        const local = localStorage.getItem('tiyatronot_actor_detectives');
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
+        }
+      } catch {}
+    }
+    if (list.length === 0) {
+      list = DEFAULT_ACTOR_DETECTIVE;
+    }
+    if (!list.some(a => a.isToday)) {
+      list[0] = { ...list[0], isToday: true };
+    }
+    return [...list].sort((a, b) => (b.isToday ? 1 : 0) - (a.isToday ? 1 : 0));
+  }
+
+  async getTodayActorDetective(): Promise<ActorDetectiveItem> {
+    const list = await this.getActorDetectives();
+    const active = list.find(a => a.isToday);
+    return active || list[0] || DEFAULT_ACTOR_DETECTIVE[0];
+  }
+
+  async setActiveActorDetective(id: string): Promise<void> {
+    const all = await this.getActorDetectives();
+    const updated = all.map(a => ({ ...a, isToday: a.id === id }));
+    localStorage.setItem('tiyatronot_actor_detectives', JSON.stringify(updated));
+    await Promise.all(
+      updated.map(async a => {
+        try {
+          await setDoc(doc(this.getDb(), 'actor_detectives', a.id), removeUndefined(a), { merge: true });
+        } catch {}
+      })
+    );
+  }
+
+  async createActorDetective(itemData: Omit<ActorDetectiveItem, 'id'>): Promise<ActorDetectiveItem> {
+    const id = `actor-${Date.now()}`;
+    const newItem: ActorDetectiveItem = { ...itemData, id };
+    try {
+      await setDoc(doc(this.getDb(), 'actor_detectives', id), removeUndefined(newItem));
+    } catch (err) {
+      console.warn('[FirebaseStorage] Could not write actor detective to Firestore:', err);
+    }
+    try {
+      const all = await this.getActorDetectives();
+      const updated = [...all, newItem];
+      localStorage.setItem('tiyatronot_actor_detectives', JSON.stringify(updated));
+    } catch {}
+    return newItem;
+  }
+
+  async deleteActorDetective(id: string): Promise<void> {
+    try {
+      await deleteDoc(doc(this.getDb(), 'actor_detectives', id));
+    } catch (err) {
+      console.warn('[FirebaseStorage] Could not delete actor detective from Firestore:', err);
+    }
+    try {
+      const all = await this.getActorDetectives();
+      const filtered = all.filter(a => a.id !== id);
+      localStorage.setItem('tiyatronot_actor_detectives', JSON.stringify(filtered));
+    } catch {}
+  }
+
+  // ── Trivia Questions CRUD ──
+  async getTriviaQuestions(): Promise<TriviaQuestionItem[]> {
+    let list: TriviaQuestionItem[] = [];
+    try {
+      const snap = await getDocs(collection(this.getDb(), 'trivia_questions'));
+      if (!snap.empty) {
+        list = snap.docs.map(d => ({ ...d.data(), id: d.id } as TriviaQuestionItem));
+      }
+    } catch (err) {
+      console.warn('[FirebaseStorage] Failed to fetch trivia questions from Firestore:', err);
+    }
+    if (list.length === 0) {
+      try {
+        const local = localStorage.getItem('tiyatronot_trivia_questions');
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
+        }
+      } catch {}
+    }
+    if (list.length === 0) {
+      list = DEFAULT_TRIVIA_QUESTIONS;
+    }
+    if (!list.some(t => t.isToday)) {
+      list[0] = { ...list[0], isToday: true };
+    }
+    return [...list].sort((a, b) => (b.isToday ? 1 : 0) - (a.isToday ? 1 : 0));
+  }
+
+  async getTodayTriviaQuestions(): Promise<TriviaQuestionItem[]> {
+    const list = await this.getTriviaQuestions();
+    return [...list].sort((a, b) => (b.isToday ? 1 : 0) - (a.isToday ? 1 : 0));
+  }
+
+  async setActiveTriviaQuestion(id: string): Promise<void> {
+    const all = await this.getTriviaQuestions();
+    const updated = all.map(t => ({ ...t, isToday: t.id === id }));
+    localStorage.setItem('tiyatronot_trivia_questions', JSON.stringify(updated));
+    await Promise.all(
+      updated.map(async t => {
+        try {
+          await setDoc(doc(this.getDb(), 'trivia_questions', t.id), removeUndefined(t), { merge: true });
+        } catch {}
+      })
+    );
+  }
+
+  async createTriviaQuestion(itemData: Omit<TriviaQuestionItem, 'id'>): Promise<TriviaQuestionItem> {
+    const id = `trivia-${Date.now()}`;
+    const newItem: TriviaQuestionItem = { ...itemData, id };
+    try {
+      await setDoc(doc(this.getDb(), 'trivia_questions', id), removeUndefined(newItem));
+    } catch (err) {
+      console.warn('[FirebaseStorage] Could not write trivia question to Firestore:', err);
+    }
+    try {
+      const all = await this.getTriviaQuestions();
+      const updated = [...all, newItem];
+      localStorage.setItem('tiyatronot_trivia_questions', JSON.stringify(updated));
+    } catch {}
+    return newItem;
+  }
+
+  async deleteTriviaQuestion(id: string): Promise<void> {
+    try {
+      await deleteDoc(doc(this.getDb(), 'trivia_questions', id));
+    } catch (err) {
+      console.warn('[FirebaseStorage] Could not delete trivia question from Firestore:', err);
+    }
+    try {
+      const all = await this.getTriviaQuestions();
+      const filtered = all.filter(t => t.id !== id);
+      localStorage.setItem('tiyatronot_trivia_questions', JSON.stringify(filtered));
+    } catch {}
+  }
+
+  // ── Theatre Words CRUD ──
+  async getTheatreWords(): Promise<TheatreWordItem[]> {
+    let list: TheatreWordItem[] = [];
+    try {
+      const snap = await getDocs(collection(this.getDb(), 'theatre_words'));
+      if (!snap.empty) {
+        list = snap.docs.map(d => ({ ...d.data(), id: d.id } as TheatreWordItem));
+      }
+    } catch (err) {
+      console.warn('[FirebaseStorage] Failed to fetch theatre words from Firestore:', err);
+    }
+    if (list.length === 0) {
+      try {
+        const local = localStorage.getItem('tiyatronot_theatre_words');
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
+        }
+      } catch {}
+    }
+    if (list.length === 0) {
+      list = DEFAULT_THEATRE_WORDS;
+    }
+    if (!list.some(w => w.isToday)) {
+      list[0] = { ...list[0], isToday: true };
+    }
+    return [...list].sort((a, b) => (b.isToday ? 1 : 0) - (a.isToday ? 1 : 0));
+  }
+
+  async getTodayTheatreWord(): Promise<TheatreWordItem> {
+    const list = await this.getTheatreWords();
+    const active = list.find(w => w.isToday);
+    return active || list[0] || DEFAULT_THEATRE_WORDS[0];
+  }
+
+  async setActiveTheatreWord(id: string): Promise<void> {
+    const all = await this.getTheatreWords();
+    const updated = all.map(w => ({ ...w, isToday: w.id === id }));
+    localStorage.setItem('tiyatronot_theatre_words', JSON.stringify(updated));
+    await Promise.all(
+      updated.map(async w => {
+        try {
+          await setDoc(doc(this.getDb(), 'theatre_words', w.id), removeUndefined(w), { merge: true });
+        } catch {}
+      })
+    );
+  }
+
+  async createTheatreWord(itemData: Omit<TheatreWordItem, 'id'>): Promise<TheatreWordItem> {
+    const id = `word-${Date.now()}`;
+    const newItem: TheatreWordItem = { ...itemData, id };
+    try {
+      await setDoc(doc(this.getDb(), 'theatre_words', id), removeUndefined(newItem));
+    } catch (err) {
+      console.warn('[FirebaseStorage] Could not write theatre word to Firestore:', err);
+    }
+    try {
+      const all = await this.getTheatreWords();
+      const updated = [...all, newItem];
+      localStorage.setItem('tiyatronot_theatre_words', JSON.stringify(updated));
+    } catch {}
+    return newItem;
+  }
+
+  async deleteTheatreWord(id: string): Promise<void> {
+    try {
+      await deleteDoc(doc(this.getDb(), 'theatre_words', id));
+    } catch (err) {
+      console.warn('[FirebaseStorage] Could not delete theatre word from Firestore:', err);
+    }
+    try {
+      const all = await this.getTheatreWords();
+      const filtered = all.filter(w => w.id !== id);
+      localStorage.setItem('tiyatronot_theatre_words', JSON.stringify(filtered));
     } catch {}
   }
 

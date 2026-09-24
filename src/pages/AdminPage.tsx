@@ -21,12 +21,29 @@ import {
   Puzzle,
   Mail,
   Send,
-  Edit2
+  Edit2,
+  Star,
+  Theater,
+  User,
+  HelpCircle,
+  Check
 } from 'lucide-react';
 import { storageService } from '../services/storage';
 import { useAuth } from '../context/AuthContext';
-import type { Play, DailyQuote, PlaySubmission, CuratedList, PuzzleGameConfig, ContactMessage } from '../types';
+import type { 
+  Play, 
+  DailyQuote, 
+  PlaySubmission, 
+  CuratedList, 
+  PuzzleGameConfig, 
+  ContactMessage, 
+  ReviewEntry,
+  ActorDetectiveItem,
+  TriviaQuestionItem,
+  TheatreWordItem
+} from '../types';
 import { normalizeSearchText } from '../utils/textUtils';
+import { PuzzlesManagementSection } from '../components/admin/PuzzlesManagementSection';
 
 // ── Access Denied ────────────────────────────────────────────────────────────
 function AccessDenied() {
@@ -852,661 +869,6 @@ function PublishedPlaysSection() {
   );
 }
 
-// ── Puzzles Management Section ───────────────────────────────────────────────
-function PuzzlesManagementSection() {
-  const [subTab, setSubTab] = useState<'games' | 'quotes'>('games');
-  const [games, setGames] = useState<PuzzleGameConfig[]>([]);
-  const [quotes, setQuotes] = useState<DailyQuote[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Puzzle Game Modal State
-  const [isGameModalOpen, setIsGameModalOpen] = useState(false);
-  const [editingGame, setEditingGame] = useState<PuzzleGameConfig | null>(null);
-  const [gameTitle, setGameTitle] = useState('');
-  const [gameSubtitle, setGameSubtitle] = useState('');
-  const [gameDescription, setGameDescription] = useState('');
-  const [gameCategory, setGameCategory] = useState<'daily' | 'trivia' | 'visual' | 'word'>('daily');
-  const [gameXpReward, setGameXpReward] = useState<number>(25);
-  const [gameStatus, setGameStatus] = useState<'active' | 'coming_soon'>('active');
-  const [gameBadge, setGameBadge] = useState('');
-  const [gameIcon, setGameIcon] = useState('🎭');
-  const [gameEstimatedTime, setGameEstimatedTime] = useState('2 dk');
-  const [gameSubmitting, setGameSubmitting] = useState(false);
-
-  // Quote Add Form State
-  const [showAddQuote, setShowAddQuote] = useState(false);
-  const [quoteText, setQuoteText] = useState('');
-  const [quotePlayTitle, setQuotePlayTitle] = useState('');
-  const [quoteCharacter, setQuoteCharacter] = useState('');
-  const [quotePlaywright, setQuotePlaywright] = useState('');
-  const [quoteHint, setQuoteHint] = useState('');
-  const [quoteSubmitting, setQuoteSubmitting] = useState(false);
-
-  const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [gList, qList] = await Promise.all([
-        storageService.getPuzzleGames(),
-        storageService.getQuotes()
-      ]);
-      setGames(gList);
-      setQuotes(qList);
-    } catch {
-      setGames([]);
-      setQuotes([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  // Open Game Modal
-  const handleOpenGameCreate = () => {
-    setEditingGame(null);
-    setGameTitle('');
-    setGameSubtitle('');
-    setGameDescription('');
-    setGameCategory('daily');
-    setGameXpReward(25);
-    setGameStatus('active');
-    setGameBadge('Yeni Bulmaca');
-    setGameIcon('🧩');
-    setGameEstimatedTime('2 dk');
-    setStatusMsg(null);
-    setIsGameModalOpen(true);
-  };
-
-  const handleOpenGameEdit = (game: PuzzleGameConfig) => {
-    setEditingGame(game);
-    setGameTitle(game.title);
-    setGameSubtitle(game.subtitle);
-    setGameDescription(game.description);
-    setGameCategory(game.category);
-    setGameXpReward(game.xpReward);
-    setGameStatus(game.status);
-    setGameBadge(game.badge || '');
-    setGameIcon(game.icon);
-    setGameEstimatedTime(game.estimatedTime);
-    setStatusMsg(null);
-    setIsGameModalOpen(true);
-  };
-
-  const handleToggleGameStatus = async (game: PuzzleGameConfig) => {
-    const newStatus = game.status === 'active' ? 'coming_soon' : 'active';
-    try {
-      await storageService.updatePuzzleGame(game.id, {
-        status: newStatus,
-        badge: newStatus === 'active' ? (game.badge === 'Çok Yakında' ? 'Aktif' : game.badge) : 'Çok Yakında'
-      });
-      setStatusMsg({
-        type: 'success',
-        text: `"${game.title}" durumu "${newStatus === 'active' ? 'Aktif' : 'Yakında'}" olarak güncellendi.`
-      });
-      await loadData();
-    } catch {
-      setStatusMsg({ type: 'error', text: 'Durum güncellenirken hata oluştu.' });
-    }
-  };
-
-  const handleSaveGame = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!gameTitle.trim() || !gameDescription.trim()) {
-      setStatusMsg({ type: 'error', text: 'Başlık ve açıklama alanları zorunludur.' });
-      return;
-    }
-    setGameSubmitting(true);
-    setStatusMsg(null);
-    try {
-      if (editingGame) {
-        await storageService.updatePuzzleGame(editingGame.id, {
-          title: gameTitle.trim(),
-          subtitle: gameSubtitle.trim(),
-          description: gameDescription.trim(),
-          category: gameCategory,
-          xpReward: Number(gameXpReward) || 20,
-          status: gameStatus,
-          badge: gameBadge.trim() || undefined,
-          icon: gameIcon.trim() || '🎭',
-          estimatedTime: gameEstimatedTime.trim() || '2 dk'
-        });
-        setStatusMsg({ type: 'success', text: `"${gameTitle}" bulmacası güncellendi.` });
-      } else {
-        await storageService.createPuzzleGame({
-          title: gameTitle.trim(),
-          subtitle: gameSubtitle.trim(),
-          description: gameDescription.trim(),
-          category: gameCategory,
-          xpReward: Number(gameXpReward) || 20,
-          status: gameStatus,
-          badge: gameBadge.trim() || undefined,
-          icon: gameIcon.trim() || '🎭',
-          estimatedTime: gameEstimatedTime.trim() || '2 dk'
-        });
-        setStatusMsg({ type: 'success', text: `"${gameTitle}" bulmacası başarıyla eklendi.` });
-      }
-      setIsGameModalOpen(false);
-      await loadData();
-    } catch {
-      setStatusMsg({ type: 'error', text: 'Bulmaca kaydedilirken hata oluştu.' });
-    } finally {
-      setGameSubmitting(false);
-    }
-  };
-
-  const handleDeleteGame = async (game: PuzzleGameConfig) => {
-    if (!window.confirm(`"${game.title}" bulmacasını silmek istediğinizden emin misiniz?`)) return;
-    try {
-      await storageService.deletePuzzleGame(game.id);
-      setStatusMsg({ type: 'success', text: `"${game.title}" bulmacası silindi.` });
-      await loadData();
-    } catch {
-      setStatusMsg({ type: 'error', text: 'Bulmaca silinirken hata oluştu.' });
-    }
-  };
-
-  // Quote Handlers
-  const handleAddQuote = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!quoteText.trim() || !quotePlayTitle.trim()) return;
-    setQuoteSubmitting(true);
-    try {
-      await storageService.createQuote({
-        quote: quoteText.trim(),
-        playTitle: quotePlayTitle.trim(),
-        character: quoteCharacter.trim(),
-        playwright: quotePlaywright.trim(),
-        hint: quoteHint.trim(),
-      });
-      setQuoteText('');
-      setQuotePlayTitle('');
-      setQuoteCharacter('');
-      setQuotePlaywright('');
-      setQuoteHint('');
-      setShowAddQuote(false);
-      setStatusMsg({ type: 'success', text: 'Replik havuzuna yeni replik eklendi.' });
-      await loadData();
-    } catch {
-      setStatusMsg({ type: 'error', text: 'Replik eklenirken hata oluştu.' });
-    } finally {
-      setQuoteSubmitting(false);
-    }
-  };
-
-  const handleDeleteQuote = async (id: string) => {
-    if (!window.confirm('Bu replik silinsin mi?')) return;
-    try {
-      await storageService.deleteQuote(id);
-      setStatusMsg({ type: 'success', text: 'Replik silindi.' });
-      await loadData();
-    } catch {
-      setStatusMsg({ type: 'error', text: 'Replik silinirken hata oluştu.' });
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Top Header & Sub-Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-border-subtle">
-        <div>
-          <div className="flex items-center gap-2">
-            <Puzzle className="w-4 h-4 text-theatre-curtain" />
-            <h2 className="font-serif font-bold text-base text-text-primary">
-              Bulmaca & Oyun Yönetimi
-            </h2>
-          </div>
-          <p className="text-xs text-text-secondary mt-1">
-            Sitede sergilenen tiyatro bulmaca modüllerini ve Günün Repliği soru havuzunu düzenleyin.
-          </p>
-        </div>
-
-        {/* Sub-tab pills */}
-        <div className="inline-flex items-center bg-layer-01 border border-border-subtle p-0.5 rounded-sm self-start sm:self-auto">
-          <button
-            type="button"
-            onClick={() => setSubTab('games')}
-            className={`px-3 py-1.5 text-xs font-mono rounded-xs transition-colors cursor-pointer ${
-              subTab === 'games'
-                ? 'bg-theatre-curtain text-white font-semibold shadow-xs'
-                : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            Bulmaca Modülleri ({games.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setSubTab('quotes')}
-            className={`px-3 py-1.5 text-xs font-mono rounded-xs transition-colors cursor-pointer ${
-              subTab === 'quotes'
-                ? 'bg-theatre-curtain text-white font-semibold shadow-xs'
-                : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            Replik Havuzu ({quotes.length})
-          </button>
-        </div>
-      </div>
-
-      {statusMsg && (
-        <div className={`p-3 text-xs font-mono rounded-sm border ${
-          statusMsg.type === 'success'
-            ? 'bg-success-mint/10 border-success-mint/30 text-success-mint'
-            : 'bg-red-500/10 border-red-500/30 text-red-600'
-        }`}>
-          {statusMsg.text}
-        </div>
-      )}
-
-      {/* ── SUB-TAB 1: PUZZLE GAMES ── */}
-      {subTab === 'games' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-text-tertiary">
-              Tüm oyunlar sitedeki /bulmacalar sayfasında listelenir.
-            </span>
-            <button
-              type="button"
-              onClick={handleOpenGameCreate}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white text-xs font-semibold rounded-sm transition-colors cursor-pointer shadow-xs"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Yeni Bulmaca Ekle</span>
-            </button>
-          </div>
-
-          {loading ? (
-            <div className="p-8 text-center text-xs font-mono text-text-tertiary">Yükleniyor...</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {games.map(game => {
-                const isActive = game.status === 'active';
-
-                return (
-                  <div
-                    key={game.id}
-                    className={`border rounded-sm p-4 flex flex-col justify-between space-y-3 transition-colors ${
-                      isActive
-                        ? 'bg-layer-01 border-border-subtle shadow-xs'
-                        : 'bg-layer-01/60 border-border-subtle/70 opacity-90'
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <div className="flex items-center gap-2.5">
-                          <span className="text-2xl">{game.icon}</span>
-                          <div>
-                            <h3 className="font-serif font-bold text-base text-text-primary leading-tight">
-                              {game.title}
-                            </h3>
-                            <span className="text-xs text-text-tertiary font-sans">
-                              {game.subtitle}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Status badge */}
-                        <span
-                          className={`text-[10px] font-mono px-2 py-0.5 rounded-sm font-semibold uppercase tracking-wider ${
-                            isActive
-                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                              : 'bg-layer-02 text-text-tertiary border border-border-subtle'
-                          }`}
-                        >
-                          {isActive ? 'Aktif' : 'Yakında'}
-                        </span>
-                      </div>
-
-                      <p className="text-xs text-text-secondary line-clamp-2 mt-1">
-                        {game.description}
-                      </p>
-                    </div>
-
-                    <div className="pt-3 border-t border-border-subtle/60 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2 font-mono text-text-tertiary text-[11px]">
-                        <span className="text-theatre-curtain font-bold">+{game.xpReward} XP</span>
-                        <span>·</span>
-                        <span>{game.estimatedTime}</span>
-                        <span>·</span>
-                        <span className="capitalize">{game.category}</span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        {/* Quick Toggle Status */}
-                        <button
-                          type="button"
-                          onClick={() => handleToggleGameStatus(game)}
-                          className={`px-2 py-1 text-[11px] font-mono rounded-sm border transition-colors cursor-pointer ${
-                            isActive
-                              ? 'bg-layer-02 text-text-secondary hover:text-amber-600 border-border-subtle'
-                              : 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/30 font-semibold'
-                          }`}
-                          title={isActive ? 'Hazırlanıyor yap' : 'Aktif yap'}
-                        >
-                          {isActive ? 'Pasife Al' : 'Aktif Et'}
-                        </button>
-
-                        {/* Edit Button */}
-                        <button
-                          type="button"
-                          onClick={() => handleOpenGameEdit(game)}
-                          className="p-1.5 text-text-secondary hover:text-theatre-curtain hover:bg-layer-02 rounded transition-colors cursor-pointer"
-                          title="Bulmacayı Düzenle"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Delete Button */}
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteGame(game)}
-                          className="p-1.5 text-text-secondary hover:text-red-600 hover:bg-layer-02 rounded transition-colors cursor-pointer"
-                          title="Bulmacayı Sil"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Puzzle Game Edit/Create Modal */}
-          {isGameModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-xs">
-              <div className="bg-canvas border border-border-strong rounded-md shadow-modal w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden animate-fade-in">
-                <div className="px-5 py-3.5 border-b border-border-subtle flex items-center justify-between bg-layer-01">
-                  <div className="flex items-center gap-2">
-                    <Puzzle className="w-4 h-4 text-theatre-curtain" />
-                    <h3 className="font-serif font-bold text-sm sm:text-base text-text-primary">
-                      {editingGame ? `Bulmacayı Düzenle: ${editingGame.title}` : 'Yeni Bulmaca Modülü'}
-                    </h3>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsGameModalOpen(false)}
-                    className="p-1 text-text-tertiary hover:text-text-primary rounded cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <form onSubmit={handleSaveGame} className="flex-1 overflow-y-auto p-5 space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="sm:col-span-2 space-y-1">
-                      <label className="text-xs font-mono font-semibold text-text-secondary uppercase">
-                        Bulmaca Başlığı *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={gameTitle}
-                        onChange={e => setGameTitle(e.target.value)}
-                        placeholder="Örn. Afiş Dedektifi"
-                        className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-xs font-mono text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono font-semibold text-text-secondary uppercase">
-                        İkon (Emoji)
-                      </label>
-                      <input
-                        type="text"
-                        value={gameIcon}
-                        onChange={e => setGameIcon(e.target.value)}
-                        placeholder="🎭, 🖼️, 💡..."
-                        className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-xs font-mono text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain text-center text-base"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono font-semibold text-text-secondary uppercase">
-                        Alt Başlık
-                      </label>
-                      <input
-                        type="text"
-                        value={gameSubtitle}
-                        onChange={e => setGameSubtitle(e.target.value)}
-                        placeholder="Örn. Görsel Sahne Tahmini"
-                        className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-xs font-mono text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono font-semibold text-text-secondary uppercase">
-                        Rozet Metni (Badge)
-                      </label>
-                      <input
-                        type="text"
-                        value={gameBadge}
-                        onChange={e => setGameBadge(e.target.value)}
-                        placeholder="Örn. Her Gün Yeni, Yakında"
-                        className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-xs font-mono text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-mono font-semibold text-text-secondary uppercase">
-                      Açıklama *
-                    </label>
-                    <textarea
-                      required
-                      rows={3}
-                      value={gameDescription}
-                      onChange={e => setGameDescription(e.target.value)}
-                      placeholder="Bulmacanın oynanış şekli ve amacı..."
-                      className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-xs font-sans text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain resize-none"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono font-semibold text-text-secondary uppercase">
-                        Durum
-                      </label>
-                      <select
-                        value={gameStatus}
-                        onChange={e => setGameStatus(e.target.value as 'active' | 'coming_soon')}
-                        className="w-full bg-layer-01 border border-border-strong px-2.5 py-2 text-xs font-mono text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain cursor-pointer"
-                      >
-                        <option value="active">Aktif (Oynanabilir)</option>
-                        <option value="coming_soon">Çok Yakında (Kilitli)</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono font-semibold text-text-secondary uppercase">
-                        Kategori
-                      </label>
-                      <select
-                        value={gameCategory}
-                        onChange={e => setGameCategory(e.target.value as any)}
-                        className="w-full bg-layer-01 border border-border-strong px-2.5 py-2 text-xs font-mono text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain cursor-pointer"
-                      >
-                        <option value="daily">Günlük (Daily)</option>
-                        <option value="trivia">Test (Trivia)</option>
-                        <option value="visual">Görsel (Visual)</option>
-                        <option value="word">Kelime (Word)</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono font-semibold text-text-secondary uppercase">
-                        XP Ödülü
-                      </label>
-                      <input
-                        type="number"
-                        min={5}
-                        max={100}
-                        value={gameXpReward}
-                        onChange={e => setGameXpReward(Number(e.target.value))}
-                        className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-xs font-mono text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-xs font-mono font-semibold text-text-secondary uppercase">
-                        Tahmini Süre
-                      </label>
-                      <input
-                        type="text"
-                        value={gameEstimatedTime}
-                        onChange={e => setGameEstimatedTime(e.target.value)}
-                        placeholder="2 dk"
-                        className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-xs font-mono text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-end gap-2 pt-3 border-t border-border-subtle">
-                    <button
-                      type="button"
-                      onClick={() => setIsGameModalOpen(false)}
-                      className="px-4 py-2 text-xs font-mono border border-border-subtle hover:bg-layer-01 text-text-secondary rounded-xs cursor-pointer"
-                    >
-                      İptal
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={gameSubmitting}
-                      className="px-5 py-2 text-xs font-semibold bg-theatre-curtain hover:bg-theatre-curtain-hover text-white rounded-xs transition-colors cursor-pointer disabled:opacity-50"
-                    >
-                      {gameSubmitting ? 'Kaydediliyor...' : editingGame ? 'Güncelle' : 'Bulmaca Ekle'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── SUB-TAB 2: QUOTES POOL ── */}
-      {subTab === 'quotes' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-border-subtle">
-            <span className="text-xs font-mono text-text-tertiary">
-              "Günün Repliği" bulmacasında günlere göre gösterilen replik havuzu ({quotes.length} replik).
-            </span>
-            <button
-              type="button"
-              onClick={() => setShowAddQuote(!showAddQuote)}
-              className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 bg-layer-01 hover:bg-layer-02 border border-border-subtle text-text-primary rounded-sm transition-colors cursor-pointer"
-            >
-              {showAddQuote ? <ChevronUp className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-              <span>{showAddQuote ? 'Kapat' : 'Yeni Replik Ekle'}</span>
-            </button>
-          </div>
-
-          {showAddQuote && (
-            <form onSubmit={handleAddQuote} className="p-4 bg-layer-01 border border-border-subtle space-y-3 rounded-sm">
-              <div className="space-y-1">
-                <label className="text-xs font-mono font-semibold text-text-secondary uppercase">Replik Metni *</label>
-                <textarea
-                  rows={2}
-                  required
-                  value={quoteText}
-                  onChange={e => setQuoteText(e.target.value)}
-                  placeholder="Replik metnini yazın..."
-                  className="w-full bg-canvas border border-border-strong p-2 text-xs font-serif text-text-primary focus:outline-none focus:border-theatre-curtain resize-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-mono font-semibold text-text-secondary uppercase">Oyun Adı *</label>
-                  <input
-                    type="text"
-                    required
-                    value={quotePlayTitle}
-                    onChange={e => setQuotePlayTitle(e.target.value)}
-                    placeholder="Örn. Keşanlı Ali Destanı"
-                    className="w-full bg-canvas border border-border-strong px-2.5 py-1.5 text-xs font-mono text-text-primary focus:outline-none focus:border-theatre-curtain"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-mono font-semibold text-text-secondary uppercase">Karakter</label>
-                  <input
-                    type="text"
-                    value={quoteCharacter}
-                    onChange={e => setQuoteCharacter(e.target.value)}
-                    placeholder="Örn. Zilha"
-                    className="w-full bg-canvas border border-border-strong px-2.5 py-1.5 text-xs font-mono text-text-primary focus:outline-none focus:border-theatre-curtain"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-mono font-semibold text-text-secondary uppercase">Yazar</label>
-                  <input
-                    type="text"
-                    value={quotePlaywright}
-                    onChange={e => setQuotePlaywright(e.target.value)}
-                    placeholder="Örn. Haldun Taner"
-                    className="w-full bg-canvas border border-border-strong px-2.5 py-1.5 text-xs font-mono text-text-primary focus:outline-none focus:border-theatre-curtain"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-mono font-semibold text-text-secondary uppercase">İpucu</label>
-                  <input
-                    type="text"
-                    value={quoteHint}
-                    onChange={e => setQuoteHint(e.target.value)}
-                    placeholder="Bulmaca için ipucu..."
-                    className="w-full bg-canvas border border-border-strong px-2.5 py-1.5 text-xs font-mono text-text-primary focus:outline-none focus:border-theatre-curtain"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={quoteSubmitting}
-                className="w-full bg-theatre-curtain text-white py-2 text-xs font-semibold hover:bg-theatre-curtain-hover transition-colors rounded-sm cursor-pointer"
-              >
-                {quoteSubmitting ? 'Ekleniyor...' : 'Repliği Kaydet'}
-              </button>
-            </form>
-          )}
-
-          {loading ? (
-            <div className="p-8 text-center text-xs font-mono text-text-tertiary">Yükleniyor...</div>
-          ) : quotes.length === 0 ? (
-            <div className="p-8 text-center text-xs font-mono text-text-tertiary">Kayıtlı replik yok.</div>
-          ) : (
-            <div className="border border-border-subtle divide-y divide-border-subtle bg-layer-01 rounded-sm overflow-hidden">
-              {quotes.map(q => (
-                <div key={q.id} className="p-3 flex items-start justify-between gap-3 hover:bg-canvas transition-colors">
-                  <div className="min-w-0">
-                    <p className="text-xs font-serif italic text-text-primary">
-                      "{q.quote}"
-                    </p>
-                    <div className="text-[10px] font-mono text-text-tertiary mt-1">
-                      <strong>{q.playTitle}</strong> {q.character ? `(${q.character})` : ''} · {q.playwright}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteQuote(q.id)}
-                    className="p-1.5 text-text-tertiary hover:text-red-600 transition-colors cursor-pointer shrink-0"
-                    title="Repliği Sil"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ── Curated Lists Section ────────────────────────────────────────────────────
 function CuratedListsSection() {
   const [lists, setLists] = useState<CuratedList[]>([]);
@@ -2179,12 +1541,220 @@ function ContactMessagesSection({ onMessagesUpdated }: { onMessagesUpdated?: () 
   );
 }
 
+// ── Reviews & Notes Management Section ──────────────────────────────────────
+function ReviewsManagementSection({ onReviewsUpdated }: { onReviewsUpdated?: () => void }) {
+  const [reviews, setReviews] = useState<ReviewEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const loadReviews = useCallback(async () => {
+    setLoading(true);
+    try {
+      const all = await storageService.getReviews();
+      setReviews(all);
+    } catch (err) {
+      console.error('[AdminPage] Error loading reviews:', err);
+      setReviews([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadReviews();
+  }, [loadReviews]);
+
+  const handleDeleteReview = async (review: ReviewEntry) => {
+    const confirmText = `"${review.userName}" kullanıcısının "${review.playTitle}" oyununa yazdığı notu silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz ve oyunun ortalama puanı yeniden hesaplanacaktır.`;
+    if (!window.confirm(confirmText)) return;
+
+    setDeletingId(review.id);
+    setStatusMsg(null);
+    try {
+      await storageService.deleteReview(review.id);
+      setReviews(prev => prev.filter(r => r.id !== review.id));
+      setStatusMsg({ type: 'success', text: `"${review.playTitle}" notu başarıyla silindi ve oyun puanı güncellendi.` });
+      window.dispatchEvent(new CustomEvent('tiyatronot:review-updated', { detail: { playId: review.playId } }));
+      onReviewsUpdated?.();
+    } catch (err) {
+      console.error('[AdminPage] Error deleting review:', err);
+      setStatusMsg({ type: 'error', text: 'Not silinirken bir hata oluştu.' });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const filteredReviews = reviews.filter(r => {
+    const q = normalizeSearchText(search);
+    if (!q) return true;
+    return (
+      normalizeSearchText(r.playTitle).includes(q) ||
+      normalizeSearchText(r.userName).includes(q) ||
+      normalizeSearchText(r.reviewText || '').includes(q)
+    );
+  });
+
+  return (
+    <div className="space-y-4">
+      {/* Header & Search */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border-subtle">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="w-4 h-4 text-theatre-curtain" />
+          <h2 className="font-serif font-bold text-base text-text-primary">
+            Kullanıcı Seyirci Notları Yönetimi
+          </h2>
+          <span className="text-xs font-mono text-text-tertiary">
+            ({filteredReviews.length} / {reviews.length} not)
+          </span>
+        </div>
+
+        {/* Search */}
+        <div className="relative w-full sm:w-72">
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-tertiary" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Oyun, kullanıcı veya not ara..."
+            className="w-full bg-layer-01 border border-border-subtle pl-8 pr-3 py-1.5 text-xs font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain rounded-sm"
+          />
+        </div>
+      </div>
+
+      {statusMsg && (
+        <div
+          className={`p-3 text-xs font-mono rounded-sm border flex items-center gap-2 ${
+            statusMsg.type === 'success'
+              ? 'bg-success-mint/10 border-success-mint/30 text-success-mint'
+              : 'bg-red-500/10 border-red-500/30 text-red-600'
+          }`}
+        >
+          {statusMsg.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+          ) : (
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+          )}
+          <span>{statusMsg.text}</span>
+          <button
+            type="button"
+            onClick={() => setStatusMsg(null)}
+            className="ml-auto text-text-tertiary hover:text-text-primary p-0.5 cursor-pointer"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="p-8 text-center text-xs font-mono text-text-tertiary">
+          Notlar yükleniyor...
+        </div>
+      ) : filteredReviews.length === 0 ? (
+        <div className="p-10 text-center bg-layer-01/60 border border-dashed border-border-subtle rounded-sm space-y-1.5">
+          <MessageSquare className="w-8 h-8 text-text-tertiary mx-auto opacity-40" />
+          <p className="font-serif italic text-sm text-text-secondary">
+            {search ? 'Aramanızla eşleşen seyirci notu bulunamadı.' : 'Henüz hiç kullanıcı notu bulunmuyor.'}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2.5">
+          {filteredReviews.map((rev) => (
+            <div
+              key={rev.id}
+              className="p-3.5 sm:p-4 bg-layer-01 border border-border-subtle rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-border-strong transition-colors"
+            >
+              {/* Play & Review Details */}
+              <div className="flex items-start gap-3 min-w-0 flex-1">
+                {rev.playPosterUrl ? (
+                  <img
+                    src={rev.playPosterUrl}
+                    alt=""
+                    className="w-10 h-14 object-cover rounded-xs border border-border-subtle shrink-0"
+                  />
+                ) : (
+                  <div className="w-10 h-14 bg-layer-02 rounded-xs flex items-center justify-center text-theatre-curtain shrink-0">
+                    <Theater className="w-5 h-5" />
+                  </div>
+                )}
+
+                <div className="min-w-0 space-y-1 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-serif font-bold text-sm text-text-primary">
+                      {rev.playTitle}
+                    </span>
+                    <span className="text-xs font-mono text-theatre-curtain font-semibold">
+                      @{rev.userName}
+                    </span>
+                    <span className="text-[10px] font-mono text-text-tertiary">
+                      {rev.performanceDate || rev.createdAt?.slice(0, 10)}
+                    </span>
+                  </div>
+
+                  {/* Ratings */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <div className="flex items-center gap-1 font-mono font-bold text-stage-spotlight">
+                      <Star className="w-3.5 h-3.5 fill-stage-spotlight text-stage-spotlight" />
+                      <span>{rev.rating.toFixed(1)}</span>
+                    </div>
+
+                    {rev.technicalRating && (
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-xs bg-blue-500/10 text-blue-500 font-semibold border border-blue-500/20">
+                        Teknik: {rev.technicalRating}★
+                      </span>
+                    )}
+
+                    {rev.performanceRating && (
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-xs bg-purple-500/10 text-purple-500 font-semibold border border-purple-500/20">
+                        Performans: {rev.performanceRating}★
+                      </span>
+                    )}
+
+                    {rev.hasSpoilers && (
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold border border-amber-500/20">
+                        Spoiler
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Review Text */}
+                  {rev.reviewText && (
+                    <p className="text-xs text-text-secondary font-sans italic line-clamp-2 pt-0.5">
+                      "{rev.reviewText}"
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Action: Delete Note */}
+              <div className="shrink-0 w-full sm:w-auto flex justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-border-subtle/50">
+                <button
+                  type="button"
+                  disabled={deletingId === rev.id}
+                  onClick={() => handleDeleteReview(rev)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-red-600 hover:text-white hover:bg-red-600 text-xs font-mono rounded-xs border border-red-500/30 transition-all cursor-pointer disabled:opacity-50"
+                  title="Bu kullanıcı notunu kalıcı olarak sil"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>{deletingId === rev.id ? 'Siliniyor...' : 'Notu Sil'}</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Overhauled Simple Admin Page ─────────────────────────────────────────────
 export const AdminPage: React.FC = () => {
   const { user, role } = useAuth();
-  const [activeTab, setActiveTab] = useState<'submissions' | 'plays' | 'lists' | 'puzzles' | 'messages'>('submissions');
+  const [activeTab, setActiveTab] = useState<'submissions' | 'plays' | 'lists' | 'puzzles' | 'messages' | 'reviews'>('submissions');
   const [pendingCount, setPendingCount] = useState(0);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [reviewsCount, setReviewsCount] = useState(0);
 
   const fetchCounts = useCallback(async () => {
     try {
@@ -2199,6 +1769,13 @@ export const AdminPage: React.FC = () => {
       setUnreadMessagesCount(messages.filter(m => m.status === 'unread').length);
     } catch {
       setUnreadMessagesCount(0);
+    }
+
+    try {
+      const allReviews = await storageService.getReviews();
+      setReviewsCount(allReviews.length);
+    } catch {
+      setReviewsCount(0);
     }
   }, []);
 
@@ -2272,6 +1849,24 @@ export const AdminPage: React.FC = () => {
 
         <button
           type="button"
+          onClick={() => setActiveTab('reviews')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-semibold border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
+            activeTab === 'reviews'
+              ? 'border-theatre-curtain text-theatre-curtain'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          <MessageSquare className="w-3.5 h-3.5" />
+          <span>Seyirci Notları</span>
+          {reviewsCount > 0 && (
+            <span className="bg-layer-02 text-text-secondary text-[10px] font-bold px-1.5 py-0.2 rounded-full font-mono">
+              {reviewsCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab('lists')}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-semibold border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
             activeTab === 'lists'
@@ -2322,6 +1917,9 @@ export const AdminPage: React.FC = () => {
         )}
         {activeTab === 'plays' && (
           <PublishedPlaysSection />
+        )}
+        {activeTab === 'reviews' && (
+          <ReviewsManagementSection onReviewsUpdated={fetchCounts} />
         )}
         {activeTab === 'lists' && (
           <CuratedListsSection />

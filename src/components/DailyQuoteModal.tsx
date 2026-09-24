@@ -21,6 +21,7 @@ const TODAY = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 const STORAGE_KEY = `tiyatronot_daily_${TODAY}`;
 
 interface SavedState {
+  quoteId?: string;
   attempts: AttemptRecord[];
   completed: boolean;
   won: boolean;
@@ -49,22 +50,30 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
     if (!isOpen) return;
     setLoading(true);
 
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const s: SavedState = JSON.parse(saved);
-        setAttempts(s.attempts ?? []);
-        setCompleted(s.completed ?? false);
-        setWon(s.won ?? false);
-        setStreak(s.streak ?? 0);
-        setRevealedHints(s.revealedHints ?? []);
-        setXpEarned(s.xpEarned ?? 0);
-      } catch { /* ignore */ }
-    }
-
     storageService.getTodayQuote().then((q) => {
       setQuote(q);
       setLoading(false);
+
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const s: SavedState = JSON.parse(saved);
+          if (s.quoteId === q.id) {
+            setAttempts(s.attempts ?? []);
+            setCompleted(s.completed ?? false);
+            setWon(s.won ?? false);
+            setStreak(s.streak ?? 0);
+            setRevealedHints(s.revealedHints ?? []);
+            setXpEarned(s.xpEarned ?? 0);
+          } else {
+            setAttempts([]);
+            setCompleted(false);
+            setWon(false);
+            setRevealedHints([]);
+            setXpEarned(0);
+          }
+        } catch { /* ignore */ }
+      }
       setTimeout(() => inputRef.current?.focus(), 150);
     }).catch(err => {
       console.error('[DailyQuoteModal] Load error:', err);
@@ -74,13 +83,14 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
 
   const saveState = useCallback((state: Partial<SavedState>) => {
     const existing: SavedState = {
+      quoteId: quote?.id,
       attempts, completed, won, streak, revealedHints, xpEarned,
       ...state,
     };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
     } catch { /* ignore */ }
-  }, [attempts, completed, won, streak, revealedHints, xpEarned]);
+  }, [quote?.id, attempts, completed, won, streak, revealedHints, xpEarned]);
 
   const handleSubmit = useCallback(async () => {
     const trimmedGuess = guess.trim();

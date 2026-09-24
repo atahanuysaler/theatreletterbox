@@ -36,6 +36,35 @@ export interface PuzzleGameConfig {
   badge?: string;
   icon: string;
   estimatedTime: string;
+  isFeatured?: boolean;
+}
+
+export interface ActorDetectiveItem {
+  id: string;
+  actorName: string;
+  title: string;
+  clues: string[];
+  famousPlays: string[];
+  hint?: string;
+  isToday?: boolean;
+}
+
+export interface TriviaQuestionItem {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+  isToday?: boolean;
+}
+
+export interface TheatreWordItem {
+  id: string;
+  word: string;
+  definition: string;
+  clue: string;
+  category?: string;
+  isToday?: boolean;
 }
 
 export interface Play {
@@ -68,10 +97,12 @@ export interface ReviewEntry {
   userName: string;
   userAvatar?: string;
   rating: number; // 0.5 - 5.0
+  technicalRating?: number; // 1 - 5 (Teknik Puan)
+  performanceRating?: number; // 1 - 5 (Performans Puanı)
   reviewText: string;
   performanceDate: string; // ISO or YYYY-MM-DD
-  sessionType: 'matine' | 'suare';
-  venue: string;
+  sessionType?: 'matine' | 'suare';
+  venue?: string;
   seatInfo?: string;
   hasSpoilers: boolean;
   likes: number;
@@ -85,6 +116,7 @@ export interface DailyQuote {
   character: string;
   playwright: string;
   hint: string;
+  isToday?: boolean;
 }
 
 export interface Badge {

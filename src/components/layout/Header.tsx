@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Plus,
   PlusCircle, 
@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuthSafe } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { Button, Avatar, Chip, Tooltip } from '@heroui/react';
 
 interface HeaderProps {
   onOpenLogModal?: () => void;
@@ -33,6 +34,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
   const [isVisible, setIsVisible] = useState(true);
   const isSidebarOpenRef = useRef(isSidebarOpen);
   const location = useLocation();
+  const navigate = useNavigate();
   const authContext = useAuthSafe();
   const user = authContext?.user;
   const { isDark, toggleTheme } = useTheme();
@@ -200,8 +202,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
               </span>
             </div>
 
-            {/* Right: Model 3 Segmented Action Pill Group & User Capsule (Hidden on mobile) */}
-            <div className="hidden sm:flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Right: Segmented Action Capsule & User Profile (Hidden on mobile) */}
+            <div className="hidden sm:flex items-center gap-2 sm:gap-2.5 shrink-0">
               {/* Segmented Action Capsule */}
               <div className="inline-flex items-center h-9 bg-layer-01 border border-border-subtle hover:border-border-strong rounded-lg p-0.5 shadow-xs transition-colors">
                 {/* Bulmacalar */}
@@ -219,6 +221,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
                 {/* Oyun Ekle */}
                 <Link
                   to="/oyun-ekle"
+                  onClick={async (e) => {
+                    if (!user) {
+                      e.preventDefault();
+                      try {
+                        await authContext?.loginWithGoogle();
+                        navigate('/oyun-ekle');
+                      } catch (err) {
+                        console.log('[Header] Google login cancelled:', err);
+                      }
+                    }
+                  }}
                   className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 h-full text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-layer-02/80 active:bg-layer-02 rounded-md transition-all cursor-pointer"
                   title="Yeni Oyun Öner / Ekle"
                 >
@@ -245,12 +258,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
                 <div className="flex items-center h-9 bg-layer-01 border border-border-subtle hover:border-border-strong rounded-lg p-0.5 shadow-xs transition-colors">
                   <Link
                     to="/profil"
-                    className="flex items-center gap-2 px-2 h-full hover:bg-layer-02/80 rounded-md transition-colors cursor-pointer"
+                    className="flex items-center gap-2 px-2 h-full hover:bg-layer-02/80 rounded-sm transition-colors cursor-pointer"
                     title={`${user.displayName} - Tiyatro Pasaportu`}
                   >
-                    <div className="w-6 h-6 rounded-full bg-theatre-curtain/15 text-theatre-curtain text-[11px] font-bold flex items-center justify-center font-mono flex-shrink-0 border border-theatre-curtain/25">
-                      {userInitials}
-                    </div>
+                    <Avatar
+                      name={userInitials}
+                      src={user.photoURL}
+                      size="sm"
+                      className="w-6 h-6 text-[10px] font-mono font-bold bg-theatre-curtain/15 text-theatre-curtain border border-theatre-curtain/30"
+                    />
                     <div className="hidden lg:flex flex-col text-left leading-none">
                       <span className="text-xs font-semibold text-text-primary truncate max-w-[90px]">
                         {user.displayName}
@@ -263,25 +279,29 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
 
                   <span className="w-px h-3.5 bg-border-subtle my-auto" />
 
-                  <button
-                    type="button"
-                    onClick={() => authContext?.logout()}
-                    className="px-2 h-full text-text-tertiary hover:text-theatre-curtain hover:bg-layer-02/80 rounded-md transition-colors cursor-pointer flex items-center justify-center"
-                    title="Çıkış Yap"
-                    aria-label="Oturumu Kapat"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                  </button>
+                  <Tooltip content="Oturumu Kapat">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      onPress={() => authContext?.logout()}
+                      className="h-7 w-7 min-w-7 text-text-tertiary hover:text-theatre-curtain rounded-sm"
+                      aria-label="Çıkış Yap"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                    </Button>
+                  </Tooltip>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => authContext?.loginWithGoogle()}
-                  className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-layer-01 hover:bg-layer-02 text-xs font-medium text-text-primary border border-border-subtle hover:border-border-strong rounded-lg shadow-xs transition-all cursor-pointer"
+                <Button
+                  size="sm"
+                  variant="bordered"
+                  onPress={() => authContext?.loginWithGoogle()}
+                  className="h-9 px-3.5 bg-layer-01 hover:bg-layer-02 text-xs font-mono font-semibold text-text-primary border-border-strong rounded-sm shadow-xs"
+                  startContent={<LogIn className="w-3.5 h-3.5 text-theatre-curtain" />}
                 >
-                  <LogIn className="w-3.5 h-3.5 text-theatre-curtain" />
-                  <span className="hidden sm:inline">Giriş Yap</span>
-                </button>
+                  Giriş Yap
+                </Button>
               )}
             </div>
           </div>
@@ -423,7 +443,20 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
               <NavLink
                 to="/oyun-ekle"
                 className={getSidebarNavLinkClass('mobile-only')}
-                onClick={() => setIsSidebarOpen(false)}
+                onClick={async (e) => {
+                  if (!user) {
+                    e.preventDefault();
+                    try {
+                      await authContext?.loginWithGoogle();
+                      setIsSidebarOpen(false);
+                      navigate('/oyun-ekle');
+                    } catch (err) {
+                      console.log('[Header] Google login cancelled:', err);
+                    }
+                  } else {
+                    setIsSidebarOpen(false);
+                  }
+                }}
               >
                 <BookOpen className="w-4 h-4 text-theatre-curtain" />
                 <span>Oyun Ekle</span>

@@ -11,7 +11,7 @@ interface ListsPageProps {
 }
 
 export const ListsPage: React.FC<ListsPageProps> = ({ onOpenLogModal }) => {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, loginWithGoogle } = useAuth();
   const [plays, setPlays] = useState<Play[]>([]);
   const [curatedLists, setCuratedLists] = useState<CuratedList[]>(CURATED_LISTS);
   const [loading, setLoading] = useState(true);
@@ -41,7 +41,11 @@ export const ListsPage: React.FC<ListsPageProps> = ({ onOpenLogModal }) => {
 
   const handleToggleSeen = async (playId: string) => {
     if (!user) {
-      alert('İzlediğin oyunları kaydetmek için lütfen giriş yap.');
+      try {
+        await loginWithGoogle();
+      } catch (err) {
+        console.log('[ListsPage] Google login cancelled:', err);
+      }
       return;
     }
     try {
@@ -62,7 +66,11 @@ export const ListsPage: React.FC<ListsPageProps> = ({ onOpenLogModal }) => {
 
   const handleToggleWatchlist = async (playId: string) => {
     if (!user) {
-      alert('İzleme listene eklemek için lütfen giriş yap.');
+      try {
+        await loginWithGoogle();
+      } catch (err) {
+        console.log('[ListsPage] Google login cancelled:', err);
+      }
       return;
     }
     try {

@@ -18,8 +18,11 @@
     "okf:watch": "node scripts/sync-okf.mjs --watch"
   },
   "dependencies": {
+    "@heroui/react": "^2.7.2",
+    "@heroui/theme": "^2.4.9",
     "canvas-confetti": "^1.9.3",
     "firebase": "^12.18.0",
+    "framer-motion": "^11.18.2",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

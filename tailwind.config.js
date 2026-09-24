@@ -1,9 +1,12 @@
+import { heroui } from "@heroui/react";
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -115,5 +118,28 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    heroui({
+      themes: {
+        light: {
+          colors: {
+            primary: {
+              DEFAULT: '#BA1B23',
+              foreground: '#FFFFFF',
+            },
+            focus: '#BA1B23',
+          },
+        },
+        dark: {
+          colors: {
+            primary: {
+              DEFAULT: '#BA1B23',
+              foreground: '#FFFFFF',
+            },
+            focus: '#BA1B23',
+          },
+        },
+      },
+    }),
+  ],
 };

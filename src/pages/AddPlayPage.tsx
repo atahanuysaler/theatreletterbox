@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, Theater, Sparkles, Send, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Theater, Sparkles, Send, Image as ImageIcon, LogIn } from 'lucide-react';
 import { storageService } from '../services/storage';
 import { useAuth } from '../context/AuthContext';
 
@@ -18,7 +18,7 @@ const GENRE_OPTIONS = [
 ];
 
 export const AddPlayPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, loginWithGoogle } = useAuth();
   const [title, setTitle] = useState('');
   const [originalTitle, setOriginalTitle] = useState('');
   const [playwright, setPlaywright] = useState('');
@@ -119,7 +119,27 @@ export const AddPlayPage: React.FC = () => {
         </p>
       </div>
 
-      {submitted ? (
+      {!user ? (
+        <div className="p-8 sm:p-12 bg-layer-01 border border-border-subtle rounded-sm text-center space-y-4">
+          <Theater className="w-12 h-12 text-theatre-curtain mx-auto opacity-80" />
+          <h2 className="font-serif font-bold text-xl text-text-primary">
+            Repertuara Oyun Eklemek İçin Giriş Yapın
+          </h2>
+          <p className="text-xs sm:text-sm text-text-secondary font-mono max-w-md mx-auto leading-relaxed">
+            Kataloğa yeni oyun önermek ve tiyatro hafızasına katkı sağlamak için Google hesabınızla giriş yapmalısınız.
+          </p>
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => loginWithGoogle()}
+              className="px-5 py-2.5 text-xs font-semibold bg-theatre-curtain hover:bg-theatre-curtain-hover text-white rounded-sm shadow-xs transition-colors cursor-pointer inline-flex items-center gap-2"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Google ile Giriş Yap</span>
+            </button>
+          </div>
+        </div>
+      ) : submitted ? (
         <div className="p-8 sm:p-12 bg-layer-01 border border-border-subtle rounded-sm text-center space-y-4">
           <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto" />
           <h2 className="font-serif font-bold text-xl text-text-primary">

@@ -11,7 +11,9 @@ import {
   Award, 
   Sparkles,
   Ticket,
-  Trash2
+  Trash2,
+  Edit3,
+  Theater
 } from 'lucide-react';
 import type { ReviewEntry } from '../types';
 
@@ -19,6 +21,7 @@ export interface TicketStubProps {
   review: ReviewEntry;
   showPlayTitle?: boolean;
   onShare?: (review: ReviewEntry) => void;
+  onEdit?: (review: ReviewEntry) => void;
   onDelete?: (reviewId: string) => void;
   className?: string;
 }
@@ -27,6 +30,7 @@ export const TicketStub: React.FC<TicketStubProps> = ({
   review,
   showPlayTitle = true,
   onShare,
+  onEdit,
   onDelete,
   className = '',
 }) => {
@@ -54,18 +58,20 @@ export const TicketStub: React.FC<TicketStubProps> = ({
             <span className="font-semibold text-text-secondary">{serialNumber}</span>
           </div>
 
-          {/* Matine / Suare Stamp (Authentic stamped seal look) */}
-          <div className="pt-1">
-            <div
-              className={`inline-block border-2 px-2.5 py-1 text-center font-mono font-black uppercase text-[11px] tracking-widest rounded-xs transform -rotate-2 ${
-                review.sessionType === 'matine'
-                  ? 'border-amber-600/80 text-amber-700 bg-amber-500/10'
-                  : 'border-theatre-curtain/80 text-theatre-curtain bg-theatre-curtain/10'
-              }`}
-            >
-              ★ {review.sessionType === 'matine' ? 'GÜNDÜZ MATİNESİ' : 'AKŞAM SUARESİ'} ★
+          {/* Matine / Suare Stamp (Authentic stamped seal look for legacy reviews) */}
+          {review.sessionType && (
+            <div className="pt-1">
+              <div
+                className={`inline-block border-2 px-2.5 py-1 text-center font-mono font-black uppercase text-[11px] tracking-widest rounded-xs transform -rotate-2 ${
+                  review.sessionType === 'matine'
+                    ? 'border-amber-600/80 text-amber-700 bg-amber-500/10'
+                    : 'border-theatre-curtain/80 text-theatre-curtain bg-theatre-curtain/10'
+                }`}
+              >
+                ★ {review.sessionType === 'matine' ? 'GÜNDÜZ MATİNESİ' : 'AKŞAM SUARESİ'} ★
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Performance Date & Venue */}
           <div className="space-y-1.5 text-xs">
@@ -73,21 +79,45 @@ export const TicketStub: React.FC<TicketStubProps> = ({
               <Calendar className="w-3.5 h-3.5 text-theatre-curtain flex-shrink-0" />
               <span>{review.performanceDate}</span>
             </div>
-            <div className="flex items-start gap-1.5 text-text-primary">
-              <MapPin className="w-3.5 h-3.5 text-theatre-curtain flex-shrink-0 mt-0.5" />
-              <span className="font-medium text-[11px] leading-tight line-clamp-2">
-                {review.venue}
-              </span>
-            </div>
+            {review.venue && (
+              <div className="flex items-start gap-1.5 text-text-primary">
+                <MapPin className="w-3.5 h-3.5 text-theatre-curtain flex-shrink-0 mt-0.5" />
+                <span className="font-medium text-[11px] leading-tight line-clamp-2">
+                  {review.venue}
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Seat / Sightline info */}
+          {/* Seat / Sightline info (Legacy reviews) */}
           {review.seatInfo && (
             <div className="bg-layer-01 border border-border-subtle p-2 rounded-xs">
               <div className="text-[10px] font-mono uppercase text-text-tertiary">Koltuk & Görüş</div>
               <div className="text-xs font-mono font-bold text-text-primary truncate">
                 {review.seatInfo}
               </div>
+            </div>
+          )}
+
+          {/* Technical & Performance Ratings Stamp */}
+          {(Boolean(review.technicalRating) || Boolean(review.performanceRating)) && (
+            <div className="bg-layer-01 border border-border-subtle p-2 rounded-xs space-y-1">
+              {review.technicalRating && (
+                <div className="flex items-center justify-between text-[11px] font-mono">
+                  <span className="text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-blue-500" /> Teknik
+                  </span>
+                  <span className="font-bold text-text-primary">★ {review.technicalRating}</span>
+                </div>
+              )}
+              {review.performanceRating && (
+                <div className="flex items-center justify-between text-[11px] font-mono">
+                  <span className="text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-1">
+                    <Theater className="w-3 h-3 text-purple-500" /> Performans
+                  </span>
+                  <span className="font-bold text-text-primary">★ {review.performanceRating}</span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -177,6 +207,25 @@ export const TicketStub: React.FC<TicketStubProps> = ({
               <p className="font-sans text-xs sm:text-sm text-text-primary leading-relaxed whitespace-pre-line">
                 {review.reviewText}
               </p>
+
+              {/* Technical & Performance Badges */}
+              {(Boolean(review.technicalRating) || Boolean(review.performanceRating)) && (
+                <div className="flex flex-wrap items-center gap-2 pt-1.5">
+                  {review.technicalRating && (
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[11px] font-mono font-semibold">
+                      <Sparkles className="w-3 h-3 text-blue-500" />
+                      <span>Teknik: {review.technicalRating} / 5</span>
+                    </div>
+                  )}
+                  {review.performanceRating && (
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 text-[11px] font-mono font-semibold">
+                      <Theater className="w-3 h-3 text-purple-500" />
+                      <span>Performans: {review.performanceRating} / 5</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {review.hasSpoilers && showSpoiler && (
                 <button
                   type="button"
@@ -204,10 +253,21 @@ export const TicketStub: React.FC<TicketStubProps> = ({
                 type="button"
                 onClick={() => onShare(review)}
                 className="inline-flex items-center gap-1.5 text-text-secondary hover:text-theatre-curtain px-2.5 py-1 rounded-sm bg-canvas border border-border-subtle hover:border-border-strong text-xs font-medium transition-colors cursor-pointer"
-                title="Bilet koçanı formatında hikaye oluştur"
+                title="Bilet koçanı formatında görsel kart oluştur"
               >
                 <Share2 className="w-3.5 h-3.5 text-theatre-curtain" />
                 <span>Bileti Paylaş</span>
+              </button>
+            )}
+            {onEdit && (
+              <button
+                type="button"
+                onClick={() => onEdit(review)}
+                className="inline-flex items-center gap-1 text-text-secondary hover:text-theatre-curtain px-2 py-1 rounded-sm bg-canvas border border-border-subtle hover:border-border-strong text-xs font-medium transition-colors cursor-pointer"
+                title="Bu notu düzenle"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Düzenle</span>
               </button>
             )}
             {onDelete && (

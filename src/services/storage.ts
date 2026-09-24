@@ -8,6 +8,9 @@ import {
   PlaySubmission,
   CuratedList,
   PuzzleGameConfig,
+  ActorDetectiveItem,
+  TriviaQuestionItem,
+  TheatreWordItem,
   ContactMessage
 } from '../types';
 import { firebaseStorageService } from './firebaseStorageService';
@@ -64,6 +67,7 @@ export interface IStorageService {
   getQuotes(): Promise<DailyQuote[]>;
   getQuoteById(id: string): Promise<DailyQuote | null>;
   getTodayQuote(): Promise<DailyQuote>;
+  setActiveQuote(id: string): Promise<void>;
   createQuote(quote: Omit<DailyQuote, 'id'>): Promise<DailyQuote>;
   updateQuote(id: string, updates: Partial<DailyQuote>): Promise<DailyQuote>;
   deleteQuote(id: string): Promise<void>;
@@ -88,6 +92,27 @@ export interface IStorageService {
   createPuzzleGame(game: Omit<PuzzleGameConfig, 'id'>): Promise<PuzzleGameConfig>;
   updatePuzzleGame(id: string, updates: Partial<PuzzleGameConfig>): Promise<PuzzleGameConfig>;
   deletePuzzleGame(id: string): Promise<void>;
+
+  // Actor Detective CRUD
+  getActorDetectives(): Promise<ActorDetectiveItem[]>;
+  getTodayActorDetective(): Promise<ActorDetectiveItem>;
+  setActiveActorDetective(id: string): Promise<void>;
+  createActorDetective(item: Omit<ActorDetectiveItem, 'id'>): Promise<ActorDetectiveItem>;
+  deleteActorDetective(id: string): Promise<void>;
+
+  // Trivia Questions CRUD
+  getTriviaQuestions(): Promise<TriviaQuestionItem[]>;
+  getTodayTriviaQuestions(): Promise<TriviaQuestionItem[]>;
+  setActiveTriviaQuestion(id: string): Promise<void>;
+  createTriviaQuestion(item: Omit<TriviaQuestionItem, 'id'>): Promise<TriviaQuestionItem>;
+  deleteTriviaQuestion(id: string): Promise<void>;
+
+  // Theatre Words CRUD
+  getTheatreWords(): Promise<TheatreWordItem[]>;
+  getTodayTheatreWord(): Promise<TheatreWordItem>;
+  setActiveTheatreWord(id: string): Promise<void>;
+  createTheatreWord(item: Omit<TheatreWordItem, 'id'>): Promise<TheatreWordItem>;
+  deleteTheatreWord(id: string): Promise<void>;
 
   // Contact Messages CRUD
   getContactMessages(): Promise<ContactMessage[]>;

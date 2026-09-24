@@ -125,8 +125,11 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
 
   const handleToggleWatchlist = async (playId: string) => {
     if (!activeUserId) {
-      setFeedbackToast('İzleme listesine eklemek için lütfen giriş yapın.');
-      setTimeout(() => setFeedbackToast(null), 3000);
+      try {
+        await authContext?.loginWithGoogle();
+      } catch (err) {
+        console.log('[CatalogPage] Google login cancelled or failed:', err);
+      }
       return;
     }
     const targetPlay = plays.find((p) => p.id === playId);
@@ -321,6 +324,15 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
 
   // Handle "İzledim" Toggle with Confetti & Storage Update
   const handleToggleSeen = async (playId: string) => {
+    if (!activeUserId) {
+      try {
+        await authContext?.loginWithGoogle();
+      } catch (err) {
+        console.log('[CatalogPage] Google login cancelled or failed:', err);
+      }
+      return;
+    }
+
     const isCurrentlySeen = seenPlayIds.includes(playId);
     const targetPlay = plays.find((p) => p.id === playId);
     const playTitle = targetPlay ? targetPlay.title : 'Oyun';
@@ -337,12 +349,6 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
     } else {
       setSeenPlayIds((prev) => prev.filter((id) => id !== playId));
       setFeedbackToast(`"${playTitle}" izlediklerim listesinden kaldırıldı.`);
-    }
-
-    if (!activeUserId) {
-      setFeedbackToast('Oyunları işaretlemek için lütfen giriş yapın.');
-      setTimeout(() => setFeedbackToast(null), 3000);
-      return;
     }
 
     try {
@@ -497,10 +503,10 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
             {Array.from({ length: pageSize }).map((_, index) => (
               <div
                 key={index}
-                className="bg-canvas border border-border-subtle rounded-sm overflow-hidden flex flex-col pointer-events-none animate-pulse"
+                className="bg-canvas dark:bg-[#181617] border border-border-subtle dark:border-[#382B2D] rounded-sm overflow-hidden flex flex-col pointer-events-none animate-pulse"
               >
                 {/* Skeleton Poster Container */}
-                <div className="relative aspect-[2/3] w-full bg-layer-01 border-b border-border-subtle flex items-center justify-center overflow-hidden">
+                <div className="relative aspect-[2/3] w-full bg-layer-01 dark:bg-[#151415] border-b border-border-subtle dark:border-[#382B2D] flex items-center justify-center overflow-hidden">
                   <Theater className="w-8 h-8 text-text-tertiary/20" />
                   <div className="absolute top-2 right-2 w-9 h-5 bg-layer-02 rounded-sm" />
                 </div>
@@ -511,7 +517,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onOpenLogModal, onOpen
                     <div className="h-3 bg-layer-01 rounded-xs w-1/2" />
                     <div className="h-2.5 bg-layer-01 rounded-xs w-2/3" />
                   </div>
-                  <div className="pt-2 border-t border-border-subtle flex justify-end">
+                  <div className="pt-2 border-t border-border-subtle dark:border-[#382B2D] flex justify-end">
                     <div className="h-3 bg-layer-01 rounded-xs w-8" />
                   </div>
                 </div>

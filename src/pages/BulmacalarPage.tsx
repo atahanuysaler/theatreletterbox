@@ -3,6 +3,9 @@ import { Sparkles, Trophy, Clock, ArrowRight, Lock } from 'lucide-react';
 import { PUZZLE_GAMES, PuzzleGameConfig } from '../data/puzzles';
 import { storageService } from '../services/storage';
 import { useAuthSafe } from '../context/AuthContext';
+import { OyuncuDedektifiModal } from '../components/OyuncuDedektifiModal';
+import { TriviaModal } from '../components/TriviaModal';
+import { WordPuzzleModal } from '../components/WordPuzzleModal';
 
 interface BulmacalarPageProps {
   onOpenDailyQuote?: () => void;
@@ -12,6 +15,11 @@ export const BulmacalarPage: React.FC<BulmacalarPageProps> = ({ onOpenDailyQuote
   const authContext = useAuthSafe();
   const user = authContext?.user;
   const [puzzleGames, setPuzzleGames] = useState<PuzzleGameConfig[]>(PUZZLE_GAMES);
+
+  // Modals for each game
+  const [isActorModalOpen, setIsActorModalOpen] = useState(false);
+  const [isTriviaModalOpen, setIsTriviaModalOpen] = useState(false);
+  const [isWordModalOpen, setIsWordModalOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -23,9 +31,27 @@ export const BulmacalarPage: React.FC<BulmacalarPageProps> = ({ onOpenDailyQuote
     return () => { isMounted = false; };
   }, []);
 
-  const handlePlayGame = (game: PuzzleGameConfig) => {
+  const featuredGame = puzzleGames.find((g) => g.isFeatured && g.status === 'active')
+    || puzzleGames.find((g) => g.status === 'active')
+    || puzzleGames[0];
+
+  const handlePlayGame = async (game: PuzzleGameConfig) => {
+    if (!user) {
+      try {
+        await authContext?.loginWithGoogle();
+      } catch (err) {
+        console.log('[BulmacalarPage] Google login cancelled:', err);
+      }
+      return;
+    }
     if (game.id === 'gunun-repligi' && onOpenDailyQuote) {
       onOpenDailyQuote();
+    } else if (game.id === 'oyuncu-dedektifi') {
+      setIsActorModalOpen(true);
+    } else if (game.id === 'sahne-trivia') {
+      setIsTriviaModalOpen(true);
+    } else if (game.id === 'tiyatro-sozlugu') {
+      setIsWordModalOpen(true);
     }
   };
 
@@ -65,48 +91,50 @@ export const BulmacalarPage: React.FC<BulmacalarPageProps> = ({ onOpenDailyQuote
       </div>
 
       {/* Daily Spotlight Game Banner */}
-      <div className="bg-gradient-to-br from-layer-01 via-layer-01 to-layer-02 border border-theatre-curtain/30 rounded-sm p-6 sm:p-8 mb-10 relative overflow-hidden shadow-sm">
-        <div className="absolute -right-8 -bottom-8 text-8xl opacity-10 select-none pointer-events-none">
-          🎭
-        </div>
-        <div className="relative z-10 max-w-2xl">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-theatre-curtain bg-theatre-curtain/10 px-2 py-0.5 rounded-sm">
-              Bugünün Öne Çıkanı
-            </span>
-            <span className="text-xs font-mono text-text-tertiary">
-              Her gece 00:00'da yenilenir
-            </span>
+      {featuredGame && (
+        <div className="bg-gradient-to-br from-layer-01 via-layer-01 to-layer-02 border border-theatre-curtain/30 rounded-sm p-6 sm:p-8 mb-10 relative overflow-hidden shadow-sm">
+          <div className="absolute -right-8 -bottom-8 text-8xl opacity-10 select-none pointer-events-none">
+            {featuredGame.icon || '🎭'}
           </div>
-          <h2 className="font-serif font-bold text-xl sm:text-3xl text-text-primary mb-2">
-            Günün Repliği
-          </h2>
-          <p className="text-text-secondary text-sm leading-relaxed mb-6">
-            Türk ve dünya tiyatrosunun kült sahnelerinden seçilen unutulmaz tiradı en az denemede bul. Her yanlış tahminde yeni bir ipucu kilidi açılır!
-          </p>
-          <div className="flex flex-wrap items-center gap-4">
-            <button
-              type="button"
-              onClick={onOpenDailyQuote}
-              className="inline-flex items-center gap-2 bg-theatre-curtain hover:bg-theatre-curtain-hover active:bg-theatre-curtain/90 text-text-inverse px-5 py-2.5 text-sm font-medium rounded-sm shadow transition-colors cursor-pointer"
-            >
-              <span>Hemen Oyna</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-            <div className="flex items-center gap-3 text-xs font-mono text-text-secondary">
-              <span className="inline-flex items-center gap-1">
-                <Trophy className="w-3.5 h-3.5 text-theatre-gold" />
-                <strong>+30 XP</strong> Ödül
+          <div className="relative z-10 max-w-2xl">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-theatre-curtain bg-theatre-curtain/10 px-2 py-0.5 rounded-sm">
+                Bugünün Öne Çıkanı
               </span>
-              <span>·</span>
-              <span className="inline-flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />
-                ~2 dk
+              <span className="text-xs font-mono text-text-tertiary">
+                Her gece 00:00'da yenilenir
               </span>
+            </div>
+            <h2 className="font-serif font-bold text-xl sm:text-3xl text-text-primary mb-2">
+              {featuredGame.title}
+            </h2>
+            <p className="text-text-secondary text-sm leading-relaxed mb-6">
+              {featuredGame.description}
+            </p>
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={() => handlePlayGame(featuredGame)}
+                className="inline-flex items-center gap-2 bg-theatre-curtain hover:bg-theatre-curtain-hover active:bg-theatre-curtain/90 text-text-inverse px-5 py-2.5 text-sm font-medium rounded-sm shadow transition-colors cursor-pointer"
+              >
+                <span>Hemen Oyna</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <div className="flex items-center gap-3 text-xs font-mono text-text-secondary">
+                <span className="inline-flex items-center gap-1">
+                  <Trophy className="w-3.5 h-3.5 text-theatre-gold" />
+                  <strong>+{featuredGame.xpReward} XP</strong> Ödül
+                </span>
+                <span>·</span>
+                <span className="inline-flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  ~{featuredGame.estimatedTime}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Grid of All Puzzles / Games */}
       <div>
@@ -197,6 +225,22 @@ export const BulmacalarPage: React.FC<BulmacalarPageProps> = ({ onOpenDailyQuote
           })}
         </div>
       </div>
+
+      {/* Interactive Game Modals */}
+      <OyuncuDedektifiModal
+        isOpen={isActorModalOpen}
+        onClose={() => setIsActorModalOpen(false)}
+      />
+
+      <TriviaModal
+        isOpen={isTriviaModalOpen}
+        onClose={() => setIsTriviaModalOpen(false)}
+      />
+
+      <WordPuzzleModal
+        isOpen={isWordModalOpen}
+        onClose={() => setIsWordModalOpen(false)}
+      />
     </div>
   );
 };

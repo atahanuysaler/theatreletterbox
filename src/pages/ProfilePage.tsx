@@ -28,6 +28,7 @@ import type { Play, ReviewEntry, Badge, UserProfile } from '../types';
 import TicketStub from '../components/TicketStub';
 import SocialShareModal from '../components/SocialShareModal';
 import SeasonWrappedModal from '../components/SeasonWrappedModal';
+import LogModal from '../components/LogModal';
 
 export type ProfileTabType = 'pasaport' | 'izlenenler' | 'izlemek-istediklerim' | 'notlar';
 
@@ -78,6 +79,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
   const [shareReview, setShareReview] = useState<ReviewEntry | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isWrappedOpen, setIsWrappedOpen] = useState(false);
+  const [editingReview, setEditingReview] = useState<ReviewEntry | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -740,6 +743,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
                     setShareReview(r);
                     setIsShareOpen(true);
                   }}
+                  onEdit={
+                    isOwnProfile || role === 'admin'
+                      ? () => {
+                          setEditingReview(rev);
+                          setIsEditModalOpen(true);
+                        }
+                      : undefined
+                  }
                   onDelete={
                     isOwnProfile || role === 'admin'
                       ? () => handleDeleteReview(rev.id)
@@ -785,12 +796,30 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
             hasIntermission: true,
             year: 2024,
             genre: 'Tiyatro',
-            venue: shareReview.venue,
+            venue: shareReview.venue || '',
             posterUrl: shareReview.playPosterUrl || '',
             synopsis: shareReview.reviewText,
             rating: shareReview.rating,
             reviewCount: 1,
             tags: []
+          }}
+        />
+      )}
+
+      {/* Edit Review Modal */}
+      {isEditModalOpen && editingReview && (
+        <LogModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingReview(null);
+          }}
+          reviewToEdit={editingReview}
+          onReviewSaved={(updated) => {
+            setReviews(prev => prev.map(r => r.id === updated.id ? updated : r));
+            if (shareReview?.id === updated.id) {
+              setShareReview(updated);
+            }
           }}
         />
       )}
