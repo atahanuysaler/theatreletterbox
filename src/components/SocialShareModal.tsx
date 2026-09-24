@@ -39,6 +39,58 @@ function renderStars(rating: number): string {
   return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(Math.max(0, 5 - full - (half ? 1 : 0)));
 }
 
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, font: string): string[] {
+  ctx.font = font;
+  const paragraphs = text.split('\n');
+  const lines: string[] = [];
+  for (const paragraph of paragraphs) {
+    const words = paragraph.split(' ').filter(Boolean);
+    if (words.length === 0) {
+      lines.push('');
+      continue;
+    }
+    let current = '';
+    for (const word of words) {
+      const test = current ? `${current} ${word}` : word;
+      if (ctx.measureText(test).width > maxWidth && current) {
+        lines.push(current);
+        current = word;
+      } else {
+        current = test;
+      }
+    }
+    if (current) lines.push(current);
+  }
+  return lines;
+}
+
+function getFittedLines(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxHeight: number,
+  idealFontSize = 32,
+  minFontSize = 15,
+  lineHeightRatio = 1.35,
+  fontFamily = 'serif',
+  fontStyle = 'italic'
+): { lines: string[]; fontSize: number; lineHeight: number } {
+  let fontSize = idealFontSize;
+  while (fontSize > minFontSize) {
+    const fontStr = `${fontStyle} ${fontSize}px ${fontFamily}`;
+    const lines = wrapText(ctx, text, maxWidth, fontStr);
+    const lineHeight = Math.round(fontSize * lineHeightRatio);
+    if (lines.length * lineHeight <= maxHeight) {
+      return { lines, fontSize, lineHeight };
+    }
+    fontSize -= 2;
+  }
+  const fontStr = `${fontStyle} ${minFontSize}px ${fontFamily}`;
+  const lines = wrapText(ctx, text, maxWidth, fontStr);
+  const lineHeight = Math.round(minFontSize * lineHeightRatio);
+  return { lines, fontSize: minFontSize, lineHeight };
+}
+
 export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   isOpen,
   onClose,
@@ -84,8 +136,10 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   const effectiveVenue = review?.venue || play.venue;
   const effectiveSession = review?.sessionType || 'suare';
   const effectiveSeat = review?.seatInfo;
-  const effectiveAuthor = review?.userName || 'Tiyatrosever';
   const serialNo = `IST-TN-${(review?.performanceDate || '2024').slice(0, 4)}-${(review?.id || play.id).slice(-4).toUpperCase()}`;
+  const displayedText = (maskSpoiler && review?.hasSpoilers)
+    ? '★ Perde Arkası: Sürpriz Bozan (Spoiler) Korumalı Not ★'
+    : customExcerpt.trim();
 
   // Palette color definitions for canvas
   const palettes = {
@@ -170,11 +224,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         tempImg.src = play.posterUrl;
       });
     }
-
-    const serialNo = `IST-TN-${(review?.performanceDate || '2024').slice(0, 4)}-${(review?.id || play.id).slice(-4).toUpperCase()}`;
-    const displayedText = (maskSpoiler && review?.hasSpoilers)
-      ? '★ PERDE ARKASI: SÜRPRİZ BOZAN (SPOILER) KORUMALI NOT ★'
-      : customExcerpt.trim();
 
     // ==========================================
     // 1. TICKET STUB FORMAT (BİLET KOÇANI)
@@ -344,25 +393,36 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
         // Review Quote / Note Excerpt
         if (showReviewText && displayedText) {
+          const availH = 1920 - curY - 180;
+          const { lines: quoteLines, fontSize: qSize, lineHeight: qLineH } = getFittedLines(
+            ctx,
+            `“${displayedText}”`,
+            860,
+            availH - 40,
+            32,
+            16
+          );
+          const boxH = Math.min(availH, Math.max(120, quoteLines.length * qLineH + 44));
+
           ctx.save();
           ctx.fillStyle = colorTheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(158, 27, 34, 0.05)';
-          ctx.fillRect(80, curY, 920, 220);
+          ctx.fillRect(80, curY, 920, boxH);
           ctx.strokeStyle = pal.accent;
           ctx.lineWidth = 4;
           ctx.beginPath();
           ctx.moveTo(80, curY);
-          ctx.lineTo(80, curY + 220);
+          ctx.lineTo(80, curY + boxH);
           ctx.stroke();
 
           ctx.fillStyle = pal.text;
-          ctx.font = 'italic 34px serif';
-          const quoteLines = wrapText(ctx, `"${displayedText.slice(0, 160)}${displayedText.length > 160 ? '…' : ''}"`, 870, 'italic 34px serif');
-          let qy = curY + 60;
-          for (const line of quoteLines.slice(0, 3)) {
+          ctx.font = `italic ${qSize}px serif`;
+          let qy = curY + 24 + qSize * 0.8;
+          for (const line of quoteLines) {
             ctx.fillText(line, 110, qy);
-            qy += 48;
+            qy += qLineH;
           }
           ctx.restore();
+          curY += boxH + 30;
         }
 
         // Barcode & Footer
@@ -459,14 +519,24 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ry += 60;
 
         if (showReviewText && displayedText) {
+          const availH = 1080 - ry - 90;
+          const { lines: quoteLines, fontSize: qSize, lineHeight: qLineH } = getFittedLines(
+            ctx,
+            `“${displayedText}”`,
+            rMaxW,
+            availH,
+            26,
+            16
+          );
+          ctx.save();
           ctx.fillStyle = pal.text;
-          ctx.font = 'italic 28px serif';
-          const quoteLines = wrapText(ctx, `"${displayedText.slice(0, 140)}${displayedText.length > 140 ? '…' : ''}"`, rMaxW, 'italic 28px serif');
-          for (const line of quoteLines.slice(0, 3)) {
+          ctx.font = `italic ${qSize}px serif`;
+          for (const line of quoteLines) {
             ctx.fillText(line, rx, ry);
-            ry += 40;
+            ry += qLineH;
           }
-          ry += 20;
+          ctx.restore();
+          ry += 15;
         }
 
         if (showAuthor && review?.userName) {
@@ -584,13 +654,23 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
         // Excerpt
         if (showReviewText && displayedText) {
+          const availH = 675 - ty - 75;
+          const { lines: quoteLines, fontSize: qSize, lineHeight: qLineH } = getFittedLines(
+            ctx,
+            `“${displayedText}”`,
+            rMaxW,
+            availH,
+            22,
+            14
+          );
+          ctx.save();
           ctx.fillStyle = pal.text;
-          ctx.font = 'italic 24px serif';
-          const quoteLines = wrapText(ctx, `"${displayedText.slice(0, 130)}${displayedText.length > 130 ? '…' : ''}"`, rMaxW, 'italic 24px serif');
-          for (const line of quoteLines.slice(0, 3)) {
+          ctx.font = `italic ${qSize}px serif`;
+          for (const line of quoteLines) {
             ctx.fillText(line, rx, ty);
-            ty += 34;
+            ty += qLineH;
           }
+          ctx.restore();
           ty += 15;
         }
 
@@ -636,13 +716,24 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
       // Quote Body
       ctx.fillStyle = pal.text;
-      const quoteFontSize = aspectRatio === '9:16' ? 48 : aspectRatio === '1:1' ? 40 : 36;
-      ctx.font = `italic ${quoteFontSize}px serif`;
-      const qLines = wrapText(ctx, displayedText, width - pad * 2 - 120, `italic ${quoteFontSize}px serif`);
-      let qy = pad + 240;
-      for (const ql of qLines.slice(0, 6)) {
+      const idealQuoteSize = aspectRatio === '9:16' ? 44 : aspectRatio === '1:1' ? 36 : 28;
+      let qy = pad + (aspectRatio === '9:16' ? 220 : 180);
+      const availH = height - pad - 190 - qy;
+      const { lines: qLines, fontSize: qSize, lineHeight: qLineH } = getFittedLines(
+        ctx,
+        displayedText,
+        width - pad * 2 - 120,
+        availH,
+        idealQuoteSize,
+        18,
+        1.35,
+        'serif',
+        'italic'
+      );
+      ctx.font = `italic ${qSize}px serif`;
+      for (const ql of qLines) {
         ctx.fillText(ql, pad + 60, qy);
-        qy += quoteFontSize * 1.4;
+        qy += qLineH;
       }
 
       // Attributions
@@ -679,80 +770,105 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
     // 3. POSTER FORMAT (AFİŞ ŞABLONU)
     // ==========================================
     if (aspectRatio === '9:16') {
+      const isLongText = displayedText.length > 250;
+      const isMedText = displayedText.length > 120;
+      const targetH = isLongText ? 700 : isMedText ? 820 : 1000;
+
       if (posterLoaded && img) {
-        const targetH = 1120;
         const scale = Math.max(1080 / img.naturalWidth, targetH / img.naturalHeight);
         const dw = img.naturalWidth * scale;
         const dh = img.naturalHeight * scale;
         ctx.drawImage(img, (1080 - dw) / 2, 10, dw, dh);
       } else {
-        const grad = ctx.createLinearGradient(0, 10, 0, 1130);
+        const grad = ctx.createLinearGradient(0, 10, 0, targetH + 10);
         grad.addColorStop(0, pal.surface);
         grad.addColorStop(1, pal.bg);
         ctx.fillStyle = grad;
-        ctx.fillRect(0, 10, 1080, 1120);
+        ctx.fillRect(0, 10, 1080, targetH);
 
         ctx.fillStyle = pal.subText;
         ctx.font = 'bold 90px serif';
         ctx.textAlign = 'center';
-        ctx.fillText('🎭 TIYATRONOT', 540, 560);
+        ctx.fillText('🎭 TIYATRONOT', 540, targetH / 2);
       }
 
       // Soft gradient fade
-      const overlayGrad = ctx.createLinearGradient(0, 850, 0, 1130);
+      const overlayGrad = ctx.createLinearGradient(0, targetH - 240, 0, targetH + 10);
       overlayGrad.addColorStop(0, 'rgba(0,0,0,0)');
       overlayGrad.addColorStop(1, pal.bg);
       ctx.fillStyle = overlayGrad;
-      ctx.fillRect(0, 850, 1080, 280);
+      ctx.fillRect(0, targetH - 240, 1080, 250);
 
-      const contentY = 1140;
+      const contentY = targetH + 10;
       ctx.fillStyle = pal.bg;
-      ctx.fillRect(0, contentY, 1080, 780);
+      ctx.fillRect(0, contentY, 1080, 1920 - contentY);
 
       // Title
       ctx.fillStyle = pal.text;
-      ctx.font = 'bold 62px serif';
+      ctx.font = 'bold 56px serif';
       ctx.textAlign = 'left';
-      const titleLines = wrapText(ctx, play.title, 960, 'bold 62px serif');
-      let ty = contentY + 65;
+      const titleLines = wrapText(ctx, play.title, 960, 'bold 56px serif');
+      let ty = contentY + 55;
       for (const line of titleLines.slice(0, 2)) {
         ctx.fillText(line, 60, ty);
-        ty += 74;
+        ty += 68;
       }
 
       ctx.fillStyle = pal.subText;
-      ctx.font = '32px monospace';
-      ctx.fillText(`${play.playwright} · ${play.company}`, 60, ty + 10);
-      ty += 60;
+      ctx.font = '28px monospace';
+      ctx.fillText(`${play.playwright} · ${play.company}`, 60, ty + 6);
+      ty += 54;
 
       // Rating Stars
       ctx.fillStyle = pal.star;
-      ctx.font = 'bold 58px sans-serif';
-      ctx.fillText(renderStars(effectiveRating), 60, ty + 45);
+      ctx.font = 'bold 54px sans-serif';
+      ctx.fillText(renderStars(effectiveRating), 60, ty + 42);
       ctx.fillStyle = pal.text;
-      ctx.font = 'bold 36px monospace';
-      ctx.fillText(`${effectiveRating.toFixed(1)} / 5.0`, 430, ty + 42);
-      ty += 90;
+      ctx.font = 'bold 34px monospace';
+      ctx.fillText(`${effectiveRating.toFixed(1)} / 5.0`, 430, ty + 38);
+      ty += 80;
 
-      // Review Excerpt
+      // Review Excerpt - WHOLE NOTE!
       if (showReviewText && displayedText) {
+        const availH = 1920 - ty - 165;
+        const { lines: qLines, fontSize, lineHeight } = getFittedLines(
+          ctx,
+          `“${displayedText}”`,
+          960,
+          availH - 40,
+          32,
+          18
+        );
+        const boxH = Math.min(availH, Math.max(100, qLines.length * lineHeight + 40));
+
+        ctx.save();
+        ctx.fillStyle = colorTheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(158, 27, 34, 0.05)';
+        ctx.fillRect(60, ty, 960, boxH);
+        ctx.strokeStyle = pal.accent;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(60, ty);
+        ctx.lineTo(60, ty + boxH);
+        ctx.stroke();
+
         ctx.fillStyle = pal.text;
-        ctx.font = 'italic 34px serif';
-        const qLines = wrapText(ctx, `"${displayedText.slice(0, 130)}${displayedText.length > 130 ? '…' : ''}"`, 960, 'italic 34px serif');
-        for (const line of qLines.slice(0, 3)) {
-          ctx.fillText(line, 60, ty);
-          ty += 48;
+        ctx.font = `italic ${fontSize}px serif`;
+        let qy = ty + 26 + fontSize * 0.8;
+        for (const line of qLines) {
+          ctx.fillText(line, 90, qy);
+          qy += lineHeight;
         }
-        ty += 20;
+        ctx.restore();
+        ty += boxH + 25;
       }
 
       // Info Pill
       ctx.fillStyle = pal.surface;
-      ctx.fillRect(60, ty, 960, 64);
+      ctx.fillRect(60, ty, 960, 60);
       ctx.fillStyle = pal.subText;
-      ctx.font = '28px monospace';
+      ctx.font = '26px monospace';
       const meta = `${effectiveVenue} · ${effectiveDate}${showAuthor && review?.userName ? ` · @${review.userName}` : ''}`;
-      ctx.fillText(meta, 90, ty + 42);
+      ctx.fillText(meta, 90, ty + 40);
 
       // Crimson Bottom Branding
       ctx.fillStyle = pal.bannerBg;
@@ -764,7 +880,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
     } else if (aspectRatio === '1:1') {
       // 1:1 Square Poster (1080x1080)
-      const posterW = 460;
+      const posterW = 420;
       if (posterLoaded && img) {
         ctx.save();
         ctx.beginPath();
@@ -778,48 +894,57 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fillRect(0, 0, posterW, 1080);
       }
 
-      const rx = posterW + 40;
-      const rMaxW = 1080 - rx - 40;
+      const rx = posterW + 36;
+      const rMaxW = 1080 - rx - 36;
 
       ctx.fillStyle = pal.text;
-      ctx.font = 'bold 44px serif';
+      ctx.font = 'bold 42px serif';
       ctx.textAlign = 'left';
-      const titleLines = wrapText(ctx, play.title, rMaxW, 'bold 44px serif');
-      let ty = 120;
+      const titleLines = wrapText(ctx, play.title, rMaxW, 'bold 42px serif');
+      let ty = 90;
       for (const line of titleLines.slice(0, 2)) {
         ctx.fillText(line, rx, ty);
-        ty += 52;
+        ty += 50;
       }
 
       ctx.fillStyle = pal.subText;
       ctx.font = '22px monospace';
-      ctx.fillText(`${play.playwright} · ${play.company}`, rx, ty + 10);
-      ty += 60;
+      ctx.fillText(`${play.playwright} · ${play.company}`, rx, ty + 8);
+      ty += 54;
 
       ctx.fillStyle = pal.star;
-      ctx.font = 'bold 50px sans-serif';
+      ctx.font = 'bold 48px sans-serif';
       ctx.fillText(renderStars(effectiveRating), rx, ty);
       ctx.fillStyle = pal.text;
-      ctx.font = 'bold 28px monospace';
-      ctx.fillText(`${effectiveRating.toFixed(1)} / 5.0`, rx + 290, ty - 2);
-      ty += 60;
+      ctx.font = 'bold 26px monospace';
+      ctx.fillText(`${effectiveRating.toFixed(1)} / 5.0`, rx + 280, ty - 2);
+      ty += 54;
 
       if (showReviewText && displayedText) {
+        const availH = 1080 - ty - 110;
+        const { lines: qLines, fontSize, lineHeight } = getFittedLines(
+          ctx,
+          `“${displayedText}”`,
+          rMaxW,
+          availH,
+          26,
+          16
+        );
+
         ctx.fillStyle = pal.text;
-        ctx.font = 'italic 28px serif';
-        const qLines = wrapText(ctx, `"${displayedText.slice(0, 130)}${displayedText.length > 130 ? '…' : ''}"`, rMaxW, 'italic 28px serif');
-        for (const line of qLines.slice(0, 3)) {
+        ctx.font = `italic ${fontSize}px serif`;
+        for (const line of qLines) {
           ctx.fillText(line, rx, ty);
-          ty += 38;
+          ty += lineHeight;
         }
-        ty += 25;
+        ty += 20;
       }
 
       if (showAuthor && review?.userName) {
         ctx.fillStyle = pal.accent;
         ctx.font = 'bold 20px monospace';
         ctx.fillText(`Seyirci: ${review.userName}`, rx, ty);
-        ty += 35;
+        ty += 32;
       }
 
       ctx.fillStyle = pal.subText;
@@ -835,7 +960,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
     } else {
       // 16:9 Landscape Poster (1200x675)
-      const posterWidth = 360;
+      const posterWidth = 340;
       if (posterLoaded && img) {
         const scale = Math.max(posterWidth / img.naturalWidth, 675 / img.naturalHeight);
         const dw = img.naturalWidth * scale;
@@ -851,49 +976,57 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fillRect(0, 0, posterWidth, 675);
       }
 
-      const rx = posterWidth + 50;
-      const rMaxW = 1200 - rx - 50;
+      const rx = posterWidth + 40;
+      const rMaxW = 1200 - rx - 40;
 
       ctx.fillStyle = pal.text;
-      ctx.font = 'bold 44px serif';
+      ctx.font = 'bold 40px serif';
       ctx.textAlign = 'left';
-      const titleLines = wrapText(ctx, play.title, rMaxW, 'bold 44px serif');
-      let ty = 80;
+      const titleLines = wrapText(ctx, play.title, rMaxW, 'bold 40px serif');
+      let ty = 75;
       for (const line of titleLines.slice(0, 2)) {
         ctx.fillText(line, rx, ty);
-        ty += 52;
+        ty += 48;
       }
 
       ctx.fillStyle = pal.subText;
-      ctx.font = '22px monospace';
+      ctx.font = '20px monospace';
       ctx.fillText(`${play.playwright} · ${play.company}`, rx, ty);
-      ty += 46;
+      ty += 44;
 
       ctx.fillStyle = pal.star;
-      ctx.font = 'bold 46px sans-serif';
+      ctx.font = 'bold 44px sans-serif';
       ctx.fillText(renderStars(effectiveRating), rx, ty);
       ctx.fillStyle = pal.text;
-      ctx.font = 'bold 28px monospace';
-      ctx.fillText(`${effectiveRating.toFixed(1)} / 5.0`, rx + 280, ty - 2);
-      ty += 54;
+      ctx.font = 'bold 26px monospace';
+      ctx.fillText(`${effectiveRating.toFixed(1)} / 5.0`, rx + 270, ty - 2);
+      ty += 50;
 
       if (showReviewText && displayedText) {
+        const availH = 675 - ty - 85;
+        const { lines: qLines, fontSize, lineHeight } = getFittedLines(
+          ctx,
+          `“${displayedText}”`,
+          rMaxW,
+          availH,
+          22,
+          14
+        );
         ctx.fillStyle = pal.text;
-        ctx.font = 'italic 24px serif';
-        const qLines = wrapText(ctx, `"${displayedText.slice(0, 140)}${displayedText.length > 140 ? '…' : ''}"`, rMaxW, 'italic 24px serif');
-        for (const line of qLines.slice(0, 3)) {
+        ctx.font = `italic ${fontSize}px serif`;
+        for (const line of qLines) {
           ctx.fillText(line, rx, ty);
-          ty += 34;
+          ty += lineHeight;
         }
         ty += 15;
       }
 
       ctx.fillStyle = pal.surface;
-      ctx.fillRect(rx, ty, rMaxW, 46);
+      ctx.fillRect(rx, ty, rMaxW, 44);
       ctx.fillStyle = pal.subText;
-      ctx.font = '20px monospace';
+      ctx.font = '18px monospace';
       const meta = `${effectiveVenue} · ${effectiveDate}${showAuthor && review?.userName ? ` · @${review.userName}` : ''}`;
-      ctx.fillText(meta, rx + 20, ty + 30);
+      ctx.fillText(meta, rx + 16, ty + 28);
 
       ctx.fillStyle = pal.bannerBg;
       ctx.fillRect(posterWidth, 675 - 50, 1200 - posterWidth, 50);
@@ -905,24 +1038,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
     return canvas;
   }, [aspectRatio, cardStyle, colorTheme, customExcerpt, effectiveDate, effectiveRating, effectiveSeat, effectiveSession, effectiveVenue, maskSpoiler, play, review, showAuthor, showReviewText, showSeat, showSession]);
-
-  function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, font: string): string[] {
-    ctx.font = font;
-    const words = text.split(' ');
-    const lines: string[] = [];
-    let current = '';
-    for (const word of words) {
-      const test = current ? `${current} ${word}` : word;
-      if (ctx.measureText(test).width > maxWidth && current) {
-        lines.push(current);
-        current = word;
-      } else {
-        current = test;
-      }
-    }
-    if (current) lines.push(current);
-    return lines;
-  }
 
   const handleDownload = useCallback(async () => {
     setDownloading(true);
@@ -972,7 +1087,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   const handleShare = useCallback(async () => {
     const url = `${window.location.origin}/oyun/${play.id}`;
     const authorTag = review?.userName ? `\nNot: @${review.userName}` : '';
-    const text = `${play.title} — ${effectiveRating.toFixed(1)}/5.0${authorTag}\n"${customExcerpt.slice(0, 90)}..."\n\n${url}`;
+    const text = `${play.title} — ${effectiveRating.toFixed(1)}/5.0${authorTag}\n\n"${displayedText}"\n\n${url}`;
     try {
       if (navigator.share) {
         await navigator.share({ title: play.title, text, url });
@@ -982,7 +1097,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         setTimeout(() => setShared(false), 2500);
       }
     } catch { /* ignore */ }
-  }, [customExcerpt, effectiveRating, play, review]);
+  }, [displayedText, effectiveRating, play, review]);
 
   // Lock background body scrolling when modal is open
   useEffect(() => {
@@ -1268,162 +1383,231 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
             />
           )}
 
+          {/* Note Text Editor */}
+          <div className="p-3 bg-layer-01/80 border border-border-subtle rounded-sm space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-mono font-semibold text-text-secondary">
+              <span>Kart Üzerindeki Not Metni ({displayedText.length} karakter)</span>
+              <span className="text-[10px] text-text-tertiary">Kartta Tamamı Yer Alır</span>
+            </div>
+            <textarea
+              value={customExcerpt}
+              onChange={(e) => setCustomExcerpt(e.target.value)}
+              rows={3}
+              className="w-full text-xs font-serif p-2 rounded-xs border border-border-subtle bg-canvas text-text-primary focus:outline-none focus:border-theatre-curtain resize-none transition-colors"
+              placeholder="Not metniniz..."
+            />
+          </div>
+
           {/* Live Preview Card */}
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between text-[11px] font-mono text-text-tertiary">
-              <span>CANLI ÖNİZLEME</span>
+              <span className="flex items-center gap-1.5 font-semibold text-text-secondary">
+                <Sparkles className="w-3.5 h-3.5 text-theatre-curtain" />
+                <span>CANLI ÖNİZLEME</span>
+              </span>
               <span>{aspectRatio === '9:16' ? '1080×1920 (Story)' : aspectRatio === '1:1' ? '1080×1080 (Kare)' : '1200×675 (Kart)'}</span>
             </div>
 
-            <div
-              className="relative w-full rounded-sm overflow-hidden border border-border-strong shadow-card flex flex-col justify-between transition-all duration-300"
-              style={{
-                aspectRatio: aspectRatio === '9:16' ? '9/16' : aspectRatio === '1:1' ? '1/1' : '16/9',
-                backgroundColor: currentPalette.bg,
-                color: currentPalette.text,
-                maxHeight: aspectRatio === '9:16' ? '300px' : aspectRatio === '1:1' ? '260px' : '200px',
-              }}
-            >
-              {/* Top Accent Bar */}
-              <div className="h-1" style={{ backgroundColor: colorTheme === 'crimson' ? '#141414' : currentPalette.accent }} />
+            <div className="flex justify-center items-center p-3 sm:p-4 bg-layer-02/50 rounded-sm border border-border-subtle overflow-hidden">
+              <div
+                className="relative rounded-sm overflow-hidden border border-border-strong shadow-2xl flex flex-col justify-between transition-all duration-300"
+                style={{
+                  aspectRatio: aspectRatio === '9:16' ? '9/16' : aspectRatio === '1:1' ? '1/1' : '16/9',
+                  width: aspectRatio === '9:16' ? '240px' : aspectRatio === '1:1' ? '290px' : '100%',
+                  maxWidth: aspectRatio === '16:9' ? '460px' : undefined,
+                  height: aspectRatio === '9:16' ? '426px' : aspectRatio === '1:1' ? '290px' : undefined,
+                  backgroundColor: currentPalette.bg,
+                  color: currentPalette.text,
+                }}
+              >
+                {/* Top Accent Bar */}
+                <div className="h-1" style={{ backgroundColor: colorTheme === 'crimson' ? '#141414' : currentPalette.accent }} />
 
-              {/* PREVIEW CONTENT */}
-              {cardStyle === 'ticket' ? (
-                <div className="flex-1 p-3 flex flex-col justify-between overflow-hidden text-xs">
-                  <div
-                    className="border border-dashed p-2.5 rounded-xs space-y-1.5"
-                    style={{
-                      borderColor: currentPalette.divider,
-                      backgroundColor: currentPalette.surface,
-                    }}
-                  >
-                    <div className="flex items-center justify-between text-[9px] font-mono" style={{ color: currentPalette.subText }}>
-                      <span className="font-bold" style={{ color: currentPalette.accent }}>★ BİLET KOÇANI</span>
-                      <span>{serialNo}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between gap-1">
-                      <div className="font-serif font-bold text-xs truncate" style={{ color: currentPalette.text }}>
-                        {play.title}
-                      </div>
-                      {showSession && (
-                        <span
-                          className="text-[8px] font-mono uppercase px-1 rounded-xs font-bold"
-                          style={{
-                            backgroundColor: colorTheme === 'dark' ? 'rgba(186, 27, 35, 0.3)' : 'rgba(158, 27, 34, 0.1)',
-                            color: currentPalette.accent,
-                          }}
-                        >
-                          {effectiveSession === 'matine' ? 'Matine' : 'Suare'}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-1.5 font-bold my-1" style={{ color: currentPalette.star }}>
-                      <span className="text-sm sm:text-base tracking-wider leading-none">{renderStars(effectiveRating)}</span>
-                      <span className="font-mono text-[10px] ml-1 opacity-90" style={{ color: currentPalette.text }}>
-                        {effectiveRating.toFixed(1)}/5.0
-                      </span>
-                      {effectiveRating >= 4.5 && (
-                        <span className="text-[8px] px-1 rounded-xs font-mono ml-auto bg-amber-500/20 text-amber-600 dark:text-amber-300">
-                          Ayakta Alkış
-                        </span>
-                      )}
-                    </div>
-
-                    {(review?.technicalRating || review?.performanceRating) && (
-                      <div className="flex items-center gap-1.5 text-[8px] font-mono">
-                        {review.technicalRating && (
-                          <span className="px-1 py-0.5 rounded-xs bg-blue-500/10 text-blue-500 font-semibold">
-                            Teknik: {review.technicalRating}/5
-                          </span>
-                        )}
-                        {review.performanceRating && (
-                          <span className="px-1 py-0.5 rounded-xs bg-purple-500/10 text-purple-500 font-semibold">
-                            Performans: {review.performanceRating}/5
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {showReviewText && (
-                      <p className="text-[9px] italic line-clamp-2 font-serif" style={{ color: currentPalette.subText }}>
-                        "{maskSpoiler && review?.hasSpoilers ? '★ Sürpriz Bozan (Spoiler) Korumalı Not ★' : customExcerpt.slice(0, 70)}…"
-                      </p>
-                    )}
-
+                {/* PREVIEW CONTENT */}
+                {cardStyle === 'ticket' ? (
+                  <div className="flex-1 p-2.5 flex flex-col justify-between overflow-hidden text-xs">
                     <div
-                      className="text-[8px] font-mono flex items-center justify-between pt-1 border-t"
+                      className="border border-dashed p-2 rounded-xs space-y-1 flex-1 flex flex-col justify-between overflow-hidden"
                       style={{
-                        borderColor: currentPalette.border,
-                        color: currentPalette.subText,
+                        borderColor: currentPalette.divider,
+                        backgroundColor: currentPalette.surface,
                       }}
                     >
-                      <span className="truncate">{effectiveVenue}</span>
-                      <span>{showSeat && effectiveSeat ? `Koltuk: ${effectiveSeat} · ` : ''}{effectiveDate}</span>
-                    </div>
-                  </div>
+                      <div>
+                        <div className="flex items-center justify-between text-[8px] font-mono" style={{ color: currentPalette.subText }}>
+                          <span className="font-bold" style={{ color: currentPalette.accent }}>★ BİLET KOÇANI</span>
+                          <span>{serialNo}</span>
+                        </div>
 
-                  <div className="text-center font-mono text-[8px] tracking-widest pt-1" style={{ color: currentPalette.subText }}>
-                    ||| | || |||| | ||| || |||| | |||
-                  </div>
-                </div>
-              ) : cardStyle === 'quote' ? (
-                <div className="flex-1 p-4 flex flex-col justify-between overflow-hidden">
-                  <div className="text-2xl font-serif leading-none" style={{ color: currentPalette.accent }}>“</div>
-                  <p className="font-serif italic text-xs line-clamp-3 my-auto leading-relaxed" style={{ color: currentPalette.text }}>
-                    {maskSpoiler && review?.hasSpoilers ? '★ Perde Arkası: Sürpriz Bozan Korumalı Seyir Notu ★' : customExcerpt.slice(0, 110)}
-                  </p>
-                  <div className="pt-2 border-t flex items-center justify-between text-[9px] font-mono" style={{ borderColor: currentPalette.border, color: currentPalette.subText }}>
-                    <span className="truncate font-semibold">{play.title} {showAuthor && review?.userName ? `— @${review.userName}` : ''}</span>
-                    <div className="flex items-center gap-1.5 shrink-0 font-bold" style={{ color: currentPalette.star }}>
-                      <span className="text-sm tracking-wider leading-none">{renderStars(effectiveRating)}</span>
-                      <span className="text-[9px] font-mono opacity-80" style={{ color: currentPalette.text }}>
-                        {effectiveRating.toFixed(1)}
-                      </span>
+                        <div className="flex items-center justify-between gap-1 my-0.5">
+                          <div className="font-serif font-bold text-xs truncate" style={{ color: currentPalette.text }}>
+                            {play.title}
+                          </div>
+                          {showSession && (
+                            <span
+                              className="text-[7px] font-mono uppercase px-1 rounded-xs font-bold shrink-0"
+                              style={{
+                                backgroundColor: colorTheme === 'dark' ? 'rgba(186, 27, 35, 0.3)' : 'rgba(158, 27, 34, 0.1)',
+                                color: currentPalette.accent,
+                              }}
+                            >
+                              {effectiveSession === 'matine' ? 'Matine' : 'Suare'}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1.5 font-bold my-0.5" style={{ color: currentPalette.star }}>
+                          <span className="text-sm tracking-wider leading-none">{renderStars(effectiveRating)}</span>
+                          <span className="font-mono text-[9px] ml-1 opacity-90" style={{ color: currentPalette.text }}>
+                            {effectiveRating.toFixed(1)}/5.0
+                          </span>
+                        </div>
+                      </div>
+
+                      {showReviewText && displayedText && (
+                        <div
+                          className="p-1.5 border-l-2 rounded-xs text-[9px] sm:text-[10px] font-serif italic leading-relaxed overflow-y-auto max-h-[140px] scrollbar-thin my-1"
+                          style={{
+                            borderColor: currentPalette.accent,
+                            backgroundColor: colorTheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(158, 27, 34, 0.05)',
+                            color: currentPalette.text,
+                          }}
+                        >
+                          “{displayedText}”
+                        </div>
+                      )}
+
+                      <div
+                        className="text-[8px] font-mono flex items-center justify-between pt-1 border-t shrink-0"
+                        style={{
+                          borderColor: currentPalette.border,
+                          color: currentPalette.subText,
+                        }}
+                      >
+                        <span className="truncate">{effectiveVenue}</span>
+                        <span>{showSeat && effectiveSeat ? `K: ${effectiveSeat} · ` : ''}{effectiveDate}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-center font-mono text-[7px] tracking-widest pt-0.5" style={{ color: currentPalette.subText }}>
+                      ||| | || |||| | ||| || |||| | |||
                     </div>
                   </div>
-                </div>
-              ) : (
-                /* Poster Style Preview */
-                <div className="flex-1 flex overflow-hidden">
-                  <div className="w-1/3 overflow-hidden bg-layer-01 relative">
-                    {play.posterUrl && (
-                      <img
-                        src={play.posterUrl}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        crossOrigin="anonymous"
-                      />
-                    )}
-                  </div>
-                  <div className="w-2/3 p-3 flex flex-col justify-between" style={{ backgroundColor: currentPalette.surface }}>
-                    <div>
-                      <div className="font-serif font-bold text-xs truncate" style={{ color: currentPalette.text }}>{play.title}</div>
-                      <div className="text-[9px] font-mono truncate" style={{ color: currentPalette.subText }}>{play.playwright}</div>
-                      <div className="font-bold my-1 flex items-center gap-1.5" style={{ color: currentPalette.star }}>
-                        <span className="text-sm sm:text-base tracking-wider leading-none">{renderStars(effectiveRating)}</span>
-                        <span className="text-[10px] font-mono font-normal opacity-85" style={{ color: currentPalette.text }}>
+                ) : cardStyle === 'quote' ? (
+                  <div className="flex-1 p-3.5 flex flex-col justify-between overflow-hidden">
+                    <div className="text-2xl font-serif leading-none" style={{ color: currentPalette.accent }}>“</div>
+                    <div
+                      className="font-serif italic text-[11px] sm:text-xs my-auto leading-relaxed overflow-y-auto max-h-[180px] scrollbar-thin pr-1"
+                      style={{ color: currentPalette.text }}
+                    >
+                      “{displayedText}”
+                    </div>
+                    <div className="pt-2 border-t flex items-center justify-between text-[9px] font-mono shrink-0" style={{ borderColor: currentPalette.border, color: currentPalette.subText }}>
+                      <span className="truncate font-semibold">{play.title} {showAuthor && review?.userName ? `— @${review.userName}` : ''}</span>
+                      <div className="flex items-center gap-1.5 shrink-0 font-bold" style={{ color: currentPalette.star }}>
+                        <span className="text-sm tracking-wider leading-none">{renderStars(effectiveRating)}</span>
+                        <span className="text-[9px] font-mono opacity-80" style={{ color: currentPalette.text }}>
                           {effectiveRating.toFixed(1)}
                         </span>
                       </div>
                     </div>
-                    {showReviewText && (
-                      <div className="text-[9px] italic line-clamp-2 font-serif" style={{ color: currentPalette.subText }}>
-                        "{maskSpoiler && review?.hasSpoilers ? '★ Spoiler Korumalı Not ★' : customExcerpt.slice(0, 60)}…"
+                  </div>
+                ) : aspectRatio === '9:16' ? (
+                  /* 9:16 Vertical Story Poster Style Preview */
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    <div className="h-[135px] w-full overflow-hidden bg-layer-01 relative shrink-0">
+                      {play.posterUrl && (
+                        <img
+                          src={play.posterUrl}
+                          alt=""
+                          className="w-full h-full object-cover"
+                          crossOrigin="anonymous"
+                        />
+                      )}
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          backgroundImage: `linear-gradient(to top, ${currentPalette.bg} 0%, transparent 60%)`,
+                        }}
+                      />
+                    </div>
+                    <div className="flex-1 px-3 py-1 flex flex-col justify-between overflow-hidden" style={{ backgroundColor: currentPalette.bg }}>
+                      <div>
+                        <div className="font-serif font-bold text-xs truncate" style={{ color: currentPalette.text }}>{play.title}</div>
+                        <div className="text-[8px] font-mono truncate" style={{ color: currentPalette.subText }}>{play.playwright}</div>
+                        <div className="font-bold my-0.5 flex items-center gap-1.5" style={{ color: currentPalette.star }}>
+                          <span className="text-sm tracking-wider leading-none">{renderStars(effectiveRating)}</span>
+                          <span className="text-[9px] font-mono font-normal opacity-85" style={{ color: currentPalette.text }}>
+                            {effectiveRating.toFixed(1)}
+                          </span>
+                        </div>
                       </div>
-                    )}
-                    <div className="text-[8px] font-mono flex items-center justify-between" style={{ color: currentPalette.subText }}>
-                      <span className="truncate">{effectiveVenue}</span>
-                      {showAuthor && review?.userName && <span>@{review.userName}</span>}
+                      {showReviewText && displayedText && (
+                        <div
+                          className="my-1 p-2 rounded-xs border-l-2 text-[9px] sm:text-[10px] font-serif italic leading-relaxed overflow-y-auto max-h-[140px] scrollbar-thin"
+                          style={{
+                            borderColor: currentPalette.accent,
+                            backgroundColor: colorTheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(158, 27, 34, 0.05)',
+                            color: currentPalette.text,
+                          }}
+                        >
+                          “{displayedText}”
+                        </div>
+                      )}
+                      <div className="text-[8px] font-mono flex items-center justify-between pt-1 border-t shrink-0" style={{ borderColor: currentPalette.border, color: currentPalette.subText }}>
+                        <span className="truncate">{effectiveVenue}</span>
+                        {showAuthor && review?.userName && <span>@{review.userName}</span>}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                ) : (
+                  /* 1:1 and 16:9 Horizontal Poster Style Preview */
+                  <div className="flex-1 flex overflow-hidden">
+                    <div className="w-1/3 overflow-hidden bg-layer-01 relative shrink-0">
+                      {play.posterUrl && (
+                        <img
+                          src={play.posterUrl}
+                          alt=""
+                          className="w-full h-full object-cover"
+                          crossOrigin="anonymous"
+                        />
+                      )}
+                    </div>
+                    <div className="w-2/3 p-2.5 flex flex-col justify-between overflow-hidden" style={{ backgroundColor: currentPalette.surface }}>
+                      <div>
+                        <div className="font-serif font-bold text-xs truncate" style={{ color: currentPalette.text }}>{play.title}</div>
+                        <div className="text-[8px] font-mono truncate" style={{ color: currentPalette.subText }}>{play.playwright}</div>
+                        <div className="font-bold my-0.5 flex items-center gap-1.5" style={{ color: currentPalette.star }}>
+                          <span className="text-sm tracking-wider leading-none">{renderStars(effectiveRating)}</span>
+                          <span className="text-[9px] font-mono font-normal opacity-85" style={{ color: currentPalette.text }}>
+                            {effectiveRating.toFixed(1)}
+                          </span>
+                        </div>
+                      </div>
+                      {showReviewText && displayedText && (
+                        <div
+                          className="text-[9px] sm:text-[10px] italic font-serif leading-relaxed p-1.5 rounded-xs border-l-2 my-1 overflow-y-auto max-h-[110px] scrollbar-thin"
+                          style={{
+                            borderColor: currentPalette.accent,
+                            backgroundColor: colorTheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(158, 27, 34, 0.05)',
+                            color: currentPalette.text,
+                          }}
+                        >
+                          “{displayedText}”
+                        </div>
+                      )}
+                      <div className="text-[8px] font-mono flex items-center justify-between pt-1 border-t shrink-0" style={{ borderColor: currentPalette.border, color: currentPalette.subText }}>
+                        <span className="truncate">{effectiveVenue}</span>
+                        {showAuthor && review?.userName && <span>@{review.userName}</span>}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-              {/* Bottom Tag */}
-              <div className="h-4 flex items-center justify-center" style={{ backgroundColor: colorTheme === 'crimson' ? '#141414' : currentPalette.accent }}>
-                <span className="text-[8px] font-mono text-white font-bold tracking-wider">TIYATRO·NOT</span>
+                {/* Bottom Tag */}
+                <div className="h-4 flex items-center justify-center shrink-0" style={{ backgroundColor: colorTheme === 'crimson' ? '#141414' : currentPalette.accent }}>
+                  <span className="text-[8px] font-mono text-white font-bold tracking-wider">TIYATRO·NOT</span>
+                </div>
               </div>
             </div>
           </div>
