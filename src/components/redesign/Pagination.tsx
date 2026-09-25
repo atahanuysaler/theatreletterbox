@@ -17,6 +17,19 @@ export const Pagination: React.FC<PaginationProps> = ({
 }) => {
   if (totalPages <= 1) return null;
 
+  const btnBase: React.CSSProperties = {
+    backgroundColor: 'var(--tn-container-bg, #fff)',
+    color: 'var(--tn-text)',
+    border: '2px solid var(--tn-ink)',
+  };
+
+  const btnActiveSx: React.CSSProperties = {
+    backgroundColor: '#BA1B23',
+    color: '#ffffff',
+    border: '2px solid #BA1B23',
+    fontWeight: 800,
+  };
+
   return (
     <div className="w-full flex flex-col items-center gap-3 pt-6 font-serif">
       {/* Mobile Load More */}
@@ -24,19 +37,21 @@ export const Pagination: React.FC<PaginationProps> = ({
         <button
           type="button"
           onClick={onLoadMore}
-          className="sm:hidden w-full h-12 rounded-xl bg-tn-surface text-tn-text font-semibold text-base border border-tn-border cursor-pointer hover:bg-tn-border transition-colors"
+          className="sm:hidden w-full h-12 rounded-xl font-semibold text-base cursor-pointer transition-colors"
+          style={btnBase}
         >
           Daha Fazla Oyun Göster
         </button>
       )}
 
       {/* Desktop Pagination Bar */}
-      <nav aria-label="Sayfalama" className="hidden sm:flex items-center gap-1.5 text-sm text-tn-text">
+      <nav aria-label="Sayfalama" className="hidden sm:flex items-center gap-1.5 text-sm">
         <button
           type="button"
           disabled={currentPage === 1}
           onClick={() => onPageChange(currentPage - 1)}
-          className="h-10 px-3.5 rounded-xl border border-tn-line bg-white dark:bg-tn-surface text-tn-text font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-tn-card transition-colors cursor-pointer"
+          className="h-10 px-3.5 rounded-xl font-semibold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+          style={btnBase}
         >
           ← Önceki
         </button>
@@ -54,11 +69,8 @@ export const Pagination: React.FC<PaginationProps> = ({
               key={pageNum}
               type="button"
               onClick={() => onPageChange(pageNum)}
-              className={`w-10 h-10 rounded-xl font-serif text-sm transition-colors cursor-pointer ${
-                isActive
-                  ? 'bg-tn-red text-white font-extrabold shadow-xs'
-                  : 'bg-white dark:bg-tn-surface border border-tn-line text-tn-text hover:bg-tn-card font-normal'
-              }`}
+              className="w-10 h-10 rounded-xl font-serif text-sm cursor-pointer transition-colors"
+              style={isActive ? btnActiveSx : btnBase}
             >
               {pageNum}
             </button>
@@ -69,7 +81,8 @@ export const Pagination: React.FC<PaginationProps> = ({
           type="button"
           disabled={currentPage === totalPages}
           onClick={() => onPageChange(currentPage + 1)}
-          className="h-10 px-3.5 rounded-xl border border-tn-line bg-white dark:bg-tn-surface text-tn-text font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-tn-card transition-colors cursor-pointer"
+          className="h-10 px-3.5 rounded-xl font-semibold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+          style={btnBase}
         >
           Sonraki →
         </button>
