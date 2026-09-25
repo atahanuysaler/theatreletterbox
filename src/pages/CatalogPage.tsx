@@ -10,7 +10,6 @@ import SiteHeader from '../components/redesign/SiteHeader';
 import SearchBar from '../components/redesign/SearchBar';
 import FilterRow, { SortOption } from '../components/redesign/FilterRow';
 import HashtagChip from '../components/redesign/HashtagChip';
-import FeaturedCard from '../components/redesign/FeaturedCard';
 import SplitCard from '../components/redesign/SplitCard';
 import SenDeYazOval from '../components/redesign/SenDeYazOval';
 import TicketNote from '../components/redesign/TicketNote';
@@ -310,38 +309,74 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
       {/* 6. Bento Grid (visible when not searching) */}
       {!searchQuery && !selectedGenre && !selectedCompany && !selectedActor && (
         <main className="grid grid-cols-1 lg:grid-cols-3 gap-1.5">
-          {/* Row 1: Col 1 Featured, Col 2-3 Scene / Wide Preview */}
-          {featuredPlay && (
-            <div className="lg:col-span-1 min-h-[440px]">
-              <FeaturedCard play={featuredPlay} badgeText="Ayakta Alkış" />
-            </div>
-          )}
-
+          {/* Row 1: Col 1–3 — One big clickable link for the featured play */}
           {featuredPlay && (
             <Link
               to={`/oyun/${featuredPlay.id}`}
-              className="lg:col-span-2 rounded-2xl p-5 flex flex-col justify-between min-h-[320px] lg:min-h-[440px] bg-cover bg-center relative overflow-hidden no-underline text-white group cursor-pointer hover:shadow-md transition-shadow"
-              style={{
-                backgroundColor: '#2B2927',
-                backgroundImage: featuredPlay.posterUrl ? `url(${featuredPlay.posterUrl})` : undefined,
-              }}
+              className="lg:col-span-3 grid grid-cols-1 lg:grid-cols-3 gap-1.5 no-underline group min-h-[440px]"
+              aria-label={`${featuredPlay.title} oyun detayına git`}
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/25 pointer-events-none" />
+              {/* Col 1: Editorial card */}
+              <div className="rounded-2xl bg-tn-red text-white p-6 box-border flex flex-col justify-between shadow-sm min-h-[440px] font-serif group-hover:shadow-md transition-all">
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center">
+                    <span className="h-6.5 px-3 flex items-center border border-white/75 rounded-full text-[13px] italic">
+                      Ayakta Alkış
+                    </span>
+                    <span className="text-base font-semibold">
+                      ★ {featuredPlay.rating ? featuredPlay.rating.toFixed(1) : '5.0'}{' '}
+                      <span className="font-normal italic opacity-85">
+                        ({featuredPlay.reviewCount || 1} not)
+                      </span>
+                    </span>
+                  </div>
+                  <div>
+                    <h2 className="m-0 font-extrabold text-4xl sm:text-5xl lg:text-[60px] leading-[0.92] tracking-tight">
+                      {featuredPlay.title}
+                    </h2>
+                    <div className="italic text-xl sm:text-2xl lg:text-[28px] leading-tight mt-1 opacity-95">
+                      {featuredPlay.playwright || 'Yazar belirtilmemiş'}
+                    </div>
+                  </div>
+                  <p className="m-0 text-base sm:text-[17px] leading-snug opacity-90">
+                    {featuredPlay.director ? `Yön. ${featuredPlay.director}` : ''}
+                    {featuredPlay.company ? ` · ${featuredPlay.company}` : ''}
+                    {featuredPlay.duration ? ` · ${featuredPlay.duration} dk` : ''}
+                    <br />
+                    <span className="italic">
+                      {featuredPlay.genre || 'Tiyatro'} {featuredPlay.year ? `— ${featuredPlay.year}` : ''}
+                    </span>
+                  </p>
+                </div>
+                <div className="flex justify-between items-center pt-4">
+                  <span className="text-sm font-semibold tracking-wider">OYUNA GİT</span>
+                  <div className="group-hover:scale-110 transition-transform w-10 h-10 rounded-full bg-black flex items-center justify-center text-white font-bold text-lg leading-none">→</div>
+                </div>
+              </div>
 
-              <span className="self-end relative z-10 h-7.5 px-3 flex items-center rounded-full bg-white/80 dark:bg-tn-container/80 backdrop-blur-xs text-xs sm:text-[13px] italic text-[#5E5852] dark:text-tn-text">
-                Sahne fotoğrafı · {featuredPlay.title}
-              </span>
-
-              <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
-                <span className="text-sm sm:text-base text-white/95 max-w-[520px] italic drop-shadow-sm line-clamp-3">
-                  {featuredPlay.synopsis ||
-                    'Gece yarısı iki çocuğuyla sığınacak yer arayan Aydan, bir lunaparkta çalışan Hasret’in evine girer…'}
+              {/* Col 2–3: Scene preview */}
+              <div
+                className="lg:col-span-2 rounded-2xl p-5 flex flex-col justify-between min-h-[320px] lg:min-h-[440px] bg-cover bg-center relative overflow-hidden text-white group-hover:shadow-md transition-shadow"
+                style={{
+                  backgroundColor: '#2B2927',
+                  backgroundImage: featuredPlay.posterUrl ? `url(${featuredPlay.posterUrl})` : undefined,
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/25 pointer-events-none" />
+                <span className="self-end relative z-10 h-7.5 px-3 flex items-center rounded-full bg-white/80 dark:bg-tn-container/80 backdrop-blur-xs text-xs sm:text-[13px] italic text-[#5E5852] dark:text-tn-text">
+                  Sahne fotoğrafı · {featuredPlay.title}
                 </span>
-                {featuredPlay.cast && featuredPlay.cast.length > 0 && (
-                  <span className="h-7.5 px-3 flex items-center rounded-full bg-white/90 dark:bg-tn-container/90 text-xs sm:text-[13px] font-semibold text-tn-text whitespace-nowrap shadow-xs">
-                    {featuredPlay.cast.slice(0, 2).join(' · ')}
+                <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
+                  <span className="text-sm sm:text-base text-white/95 max-w-[520px] italic drop-shadow-sm line-clamp-3">
+                    {featuredPlay.synopsis ||
+                      'Gece yarısı iki çocuğuyla sığınacak yer arayan Aydan, bir lunaparkta çalışan Hasret\u2019in evine girer\u2026'}
                   </span>
-                )}
+                  {featuredPlay.cast && featuredPlay.cast.length > 0 && (
+                    <span className="h-7.5 px-3 flex items-center rounded-full bg-white/90 dark:bg-tn-container/90 text-xs sm:text-[13px] font-semibold text-tn-text whitespace-nowrap shadow-xs">
+                      {featuredPlay.cast.slice(0, 2).join(' · ')}
+                    </span>
+                  )}
+                </div>
               </div>
             </Link>
           )}

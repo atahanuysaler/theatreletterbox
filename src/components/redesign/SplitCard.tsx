@@ -25,7 +25,7 @@ export const SplitCard: React.FC<SplitCardProps> = ({
     <Link
       to={`/oyun/${play.id}`}
       aria-label={`${play.title} oyun detayına git`}
-      className="rounded-2xl overflow-hidden flex flex-col font-serif text-tn-text h-full shadow-sm min-h-[480px] no-underline block group cursor-pointer hover:shadow-md transition-all border border-tn-line/40"
+      className="rounded-2xl overflow-hidden flex flex-col font-serif text-tn-text h-full shadow-sm min-h-[480px] no-underline block group cursor-pointer hover:shadow-md hover:scale-[1.005] transition-all border border-tn-line/40"
     >
       {/* Top half: editorial text */}
       <div className={`${bgClass} p-5 sm:p-5.5 flex flex-col gap-2.5 min-h-[220px] box-border`}>
@@ -43,7 +43,7 @@ export const SplitCard: React.FC<SplitCardProps> = ({
           </span>
         </div>
 
-        <h3 className="m-0 font-extrabold text-3xl sm:text-[36px] leading-[0.95] tracking-tight line-clamp-2">
+        <h3 className="m-0 font-extrabold text-3xl sm:text-[36px] leading-[0.95] tracking-tight line-clamp-2 group-hover:text-tn-red transition-colors">
           {play.title}
         </h3>
 

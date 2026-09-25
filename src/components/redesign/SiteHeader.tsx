@@ -87,7 +87,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
           <button
             type="button"
             onClick={onOpenLogModal}
-            className="h-10 sm:h-11 px-3.5 sm:px-4.5 flex items-center rounded-full bg-tn-red text-white text-[15px] font-semibold hover:bg-tn-red/90 transition-colors cursor-pointer border-none whitespace-nowrap shadow-sm"
+            className="h-10 sm:h-11 px-3.5 sm:px-5 flex items-center rounded-full bg-[#BA1B23] text-white text-[15px] font-semibold hover:bg-[#9B161D] transition-colors cursor-pointer border-2 border-[#BA1B23] whitespace-nowrap shadow-sm"
           >
             Not Ekle
           </button>

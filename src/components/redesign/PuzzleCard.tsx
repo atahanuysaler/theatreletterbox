@@ -22,17 +22,22 @@ export const PuzzleCard: React.FC<PuzzleCardProps> = ({
   bgVariant = 'cream',
   onClick,
 }) => {
-  const bgClass = bgVariant === 'cream' ? 'bg-tn-ticket' : 'bg-tn-sand-light';
+  const isSand = bgVariant === 'sand';
+  const bgClass = isSand ? 'bg-tn-ink text-white' : 'bg-white text-tn-ink';
+  const badgeClass = isSand ? 'border-white/40 text-white/90' : 'border-tn-ink/40 text-tn-ink';
+  const descClass = isSand ? 'text-white/75' : 'text-[#4A4541]';
+  const subtitleClass = isSand ? 'text-white/60' : 'text-tn-muted';
+  const titleHover = isSand ? 'group-hover:text-tn-ochre' : 'group-hover:text-tn-red';
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-2xl ${bgClass} p-4 sm:p-4.5 flex flex-col justify-between text-left text-tn-text border border-tn-line transition-all hover:scale-[1.01] cursor-pointer font-serif min-h-[180px] shadow-xs group`}
+      className={`rounded-2xl ${bgClass} p-4 sm:p-4.5 flex flex-col justify-between text-left border transition-all hover:scale-[1.01] cursor-pointer font-serif min-h-[180px] shadow-xs group ${isSand ? 'border-white/10' : 'border-tn-line'}`}
     >
       {/* Top badges */}
       <div className="w-full flex justify-between items-center">
-        <span className="h-6 px-2.5 flex items-center border border-tn-ink rounded-full text-[11px] font-semibold tracking-wider">
+        <span className={`h-6 px-2.5 flex items-center border rounded-full text-[11px] font-semibold tracking-wider ${badgeClass}`}>
           {badge}
         </span>
         <span className="text-xs sm:text-sm font-semibold">
@@ -42,20 +47,20 @@ export const PuzzleCard: React.FC<PuzzleCardProps> = ({
 
       {/* Title & subtitle */}
       <div className="my-2">
-        <div className="font-extrabold text-xl sm:text-[24px] leading-tight group-hover:text-tn-red transition-colors">
+        <div className={`font-extrabold text-xl sm:text-[24px] leading-tight transition-colors ${titleHover}`}>
           {title}
         </div>
-        <div className="italic text-sm sm:text-base text-tn-muted mt-0.5">
+        <div className={`italic text-sm sm:text-base mt-0.5 ${subtitleClass}`}>
           {subtitle}
         </div>
       </div>
 
       {/* Description & button */}
       <div className="w-full flex justify-between items-center gap-2">
-        <span className="text-xs sm:text-[13px] text-[#4A4541] line-clamp-2 leading-snug">
+        <span className={`text-xs sm:text-[13px] line-clamp-2 leading-snug ${descClass}`}>
           {description}
         </span>
-        <CircleArrowButton size="sm" variant="black" aria-label={`${title} bulmacasını oyna`} />
+        <CircleArrowButton size="sm" variant={isSand ? 'white' : 'black'} aria-label={`${title} bulmacasını oyna`} />
       </div>
     </button>
   );

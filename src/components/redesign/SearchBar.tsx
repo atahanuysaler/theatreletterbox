@@ -79,10 +79,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           aria-expanded={isFiltersOpen}
           aria-controls="filtre-satiri"
           onClick={onToggleFilters}
-          className={`h-12 sm:h-14 px-4 sm:px-5 flex items-center gap-2 rounded-2xl font-serif text-sm sm:text-base font-semibold cursor-pointer transition-all whitespace-nowrap border shadow-2xs ${
+          className={`h-12 sm:h-14 px-4 sm:px-5 flex items-center gap-2 rounded-2xl font-serif text-sm sm:text-base font-semibold cursor-pointer transition-all whitespace-nowrap border-2 shadow-xs ${
             isFiltersOpen || activeFiltersCount > 0
               ? 'bg-tn-red text-white border-tn-red shadow-sm'
-              : 'bg-tn-surface hover:bg-tn-card text-tn-text border-tn-line'
+              : 'bg-white dark:bg-tn-surface text-tn-ink dark:text-tn-text border-tn-ink/20 dark:border-tn-line hover:border-tn-ink/40 hover:bg-tn-surface'
           }`}
         >
           <SlidersHorizontal className="w-4 h-4 flex-shrink-0" />
