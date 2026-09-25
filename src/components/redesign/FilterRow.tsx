@@ -1,8 +1,100 @@
-import React from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import HashtagChip from './HashtagChip';
-import { X, RotateCcw } from 'lucide-react';
+import { X, RotateCcw, Building2, Users } from 'lucide-react';
+import { normalizeSearchText } from '../../utils/textUtils';
 
 export type SortOption = 'rating_desc' | 'rating_asc' | 'year_desc' | 'reviews_desc' | 'title_asc';
+
+interface FilterTextInputProps {
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (val: string) => void;
+  options: string[];
+  icon?: React.ReactNode;
+}
+
+const FilterTextInput: React.FC<FilterTextInputProps> = ({
+  label,
+  placeholder,
+  value,
+  onChange,
+  options,
+  icon,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const filteredOptions = useMemo(() => {
+    if (!value.trim()) return options.slice(0, 8);
+    const q = normalizeSearchText(value.trim());
+    return options
+      .filter((opt) => normalizeSearchText(opt).includes(q))
+      .slice(0, 10);
+  }, [value, options]);
+
+  return (
+    <div ref={containerRef} className="relative flex-1 min-w-[180px]">
+      <div className="relative flex items-center h-11 px-3.5 rounded-xl border border-tn-line bg-white dark:bg-tn-card text-tn-text focus-within:ring-2 focus-within:ring-tn-red/30 transition-all shadow-2xs">
+        {icon && <span className="mr-2 flex-shrink-0">{icon}</span>}
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setIsOpen(true);
+          }}
+          onFocus={() => setIsOpen(true)}
+          placeholder={placeholder}
+          className="w-full h-full border-none bg-transparent font-serif text-sm text-tn-text placeholder:text-tn-muted/70 focus:outline-none"
+        />
+        {value && (
+          <button
+            type="button"
+            onClick={() => {
+              onChange('');
+              setIsOpen(false);
+            }}
+            aria-label={`${label} filtresini temizle`}
+            className="w-6 h-6 flex items-center justify-center text-tn-muted hover:text-tn-text border-none bg-transparent cursor-pointer p-0 ml-1 flex-shrink-0"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+
+      {/* Autocomplete suggestions popover */}
+      {isOpen && filteredOptions.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 max-h-52 overflow-y-auto rounded-xl bg-white dark:bg-tn-card border border-tn-line shadow-lg z-30 py-1 divide-y divide-tn-line/40">
+          {filteredOptions.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => {
+                onChange(item);
+                setIsOpen(false);
+              }}
+              className="w-full text-left px-3.5 py-2 text-sm font-serif text-tn-text hover:bg-tn-surface transition-colors cursor-pointer border-none bg-transparent flex justify-between items-center"
+            >
+              <span className="truncate">{item}</span>
+              {value === item && <span className="text-tn-red text-xs font-bold">✓</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface FilterRowProps {
   isOpen: boolean;
@@ -89,41 +181,27 @@ export const FilterRow: React.FC<FilterRowProps> = ({
             </div>
           </div>
 
-          {/* Section 2: Topluluk & Oyuncu Dropdowns */}
+          {/* Section 2: Topluluk & Oyuncu Text Boxes */}
           <div className="pt-3 border-t border-tn-line/60 flex flex-wrap gap-2.5 items-center">
-            {/* Company select */}
-            <div className="relative flex-1 min-w-[150px] sm:min-w-[180px]">
-              <select
-                value={selectedCompany}
-                onChange={(e) => onCompanyChange(e.target.value)}
-                className="w-full h-11 px-3.5 pr-8 rounded-xl border border-tn-line bg-white dark:bg-tn-card text-sm font-serif text-tn-text appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-tn-red"
-              >
-                <option value="">Topluluk: Tüm Topluluklar</option>
-                {companyOptions.map((c) => (
-                  <option key={c} value={c}>
-                    Topluluk: {c}
-                  </option>
-                ))}
-              </select>
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-xs text-tn-muted">▾</span>
-            </div>
+            {/* Company text box */}
+            <FilterTextInput
+              label="Topluluk"
+              placeholder="Topluluk ara veya seç…"
+              value={selectedCompany}
+              onChange={onCompanyChange}
+              options={companyOptions}
+              icon={<Building2 className="w-4 h-4 text-tn-muted" />}
+            />
 
-            {/* Actor select */}
-            <div className="relative flex-1 min-w-[150px] sm:min-w-[180px]">
-              <select
-                value={selectedActor}
-                onChange={(e) => onActorChange(e.target.value)}
-                className="w-full h-11 px-3.5 pr-8 rounded-xl border border-tn-line bg-white dark:bg-tn-card text-sm font-serif text-tn-text appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-tn-red"
-              >
-                <option value="">Oyuncu: Tüm Oyuncular</option>
-                {actorOptions.map((a) => (
-                  <option key={a} value={a}>
-                    Oyuncu: {a}
-                  </option>
-                ))}
-              </select>
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-xs text-tn-muted">▾</span>
-            </div>
+            {/* Actor text box */}
+            <FilterTextInput
+              label="Oyuncu"
+              placeholder="Oyuncu ara veya seç…"
+              value={selectedActor}
+              onChange={onActorChange}
+              options={actorOptions}
+              icon={<Users className="w-4 h-4 text-tn-muted" />}
+            />
 
             {/* Reset Filters */}
             {hasActiveFilters && onClearFilters && (
@@ -187,7 +265,7 @@ export const FilterRow: React.FC<FilterRowProps> = ({
             <button
               type="button"
               onClick={onClearFilters}
-              className="text-tn-red hover:underline italic ml-1 cursor-pointer border-none bg-transparent font-medium"
+              className="text-tn-red hover:opacity-80 italic ml-1 cursor-pointer border-none bg-transparent font-medium transition-opacity"
             >
               Tümünü Temizle
             </button>

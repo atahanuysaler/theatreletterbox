@@ -291,15 +291,16 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
                   e.currentTarget.style.display = 'none';
                 }}
               />
-              {/* Vignette gradients for readable overlays */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/35 pointer-events-none" />
             </>
           ) : (
-            <div className="absolute inset-0 bg-tn-surface flex flex-col items-center justify-center p-6 text-center">
+            <div className="absolute inset-0 bg-[#221F20] flex flex-col items-center justify-center p-6 text-center">
               <span className="text-5xl mb-2">🎭</span>
-              <span className="italic text-base text-tn-muted font-serif">Afiş · {play.title}</span>
+              <span className="italic text-base text-white/70 font-serif">Afiş · {play.title}</span>
             </div>
           )}
+
+          {/* Vignette gradients for readable overlays on all posters and fallbacks */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/40 pointer-events-none" />
 
           {/* Top badges over poster */}
           <div className="relative z-10 flex justify-between items-center w-full">
@@ -680,7 +681,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
             </h2>
             <Link
               to={`/?genre=${encodeURIComponent(play.genre)}`}
-              className="text-sm sm:text-base italic font-semibold text-tn-red no-underline hover:underline"
+              className="text-sm sm:text-base italic font-semibold text-tn-red no-underline hover:text-tn-red/80 transition-colors"
             >
               #{play.genre} kataloğu →
             </Link>

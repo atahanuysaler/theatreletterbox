@@ -142,7 +142,7 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
             <button
               type="button"
               onClick={() => onShare(review)}
-              className="font-semibold underline underline-offset-3 hover:text-tn-red cursor-pointer border-none bg-transparent p-0 text-tn-text whitespace-nowrap"
+              className="font-semibold hover:text-tn-red cursor-pointer border-none bg-transparent p-0 text-tn-text whitespace-nowrap transition-colors"
             >
               Bileti Paylaş
             </button>

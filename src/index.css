@@ -85,6 +85,15 @@ html.dark,
     max-width: 100vw;
   }
 
+  a, button {
+    text-decoration: none;
+  }
+
+  a:hover, button:hover,
+  a:focus, button:focus {
+    text-decoration: none !important;
+  }
+
   :focus-visible {
     outline: 2px solid var(--tn-red, #BA1B23);
     outline-offset: 2px;

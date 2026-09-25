@@ -34,7 +34,7 @@ export const FeaturedCard: React.FC<FeaturedCardProps> = ({
 
         {/* Title & Author */}
         <div>
-          <h2 className="m-0 font-extrabold text-4xl sm:text-5xl lg:text-[60px] leading-[0.92] tracking-tight group-hover:underline">
+          <h2 className="m-0 font-extrabold text-4xl sm:text-5xl lg:text-[60px] leading-[0.92] tracking-tight">
             {play.title}
           </h2>
           <div className="italic text-xl sm:text-2xl lg:text-[28px] leading-tight mt-1 opacity-95">

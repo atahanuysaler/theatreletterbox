@@ -206,14 +206,16 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
       });
     }
 
-    // Company filter
-    if (selectedCompany) {
-      result = result.filter((p) => p.company === selectedCompany);
+    // Company filter (supports text box search)
+    if (selectedCompany.trim()) {
+      const cNorm = normalizeSearchText(selectedCompany.trim());
+      result = result.filter((p) => normalizeSearchText(p.company || '').includes(cNorm));
     }
 
-    // Actor filter
-    if (selectedActor) {
-      result = result.filter((p) => p.cast?.includes(selectedActor));
+    // Actor filter (supports text box search)
+    if (selectedActor.trim()) {
+      const aNorm = normalizeSearchText(selectedActor.trim());
+      result = result.filter((p) => (p.cast || []).some((actor) => normalizeSearchText(actor).includes(aNorm)));
     }
 
     // Sorting
@@ -320,18 +322,18 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
               to={`/oyun/${featuredPlay.id}`}
               className="lg:col-span-2 rounded-2xl p-5 flex flex-col justify-between min-h-[320px] lg:min-h-[440px] bg-cover bg-center relative overflow-hidden no-underline text-white group cursor-pointer hover:shadow-md transition-shadow"
               style={{
-                backgroundColor: '#DDD5CB',
+                backgroundColor: '#2B2927',
                 backgroundImage: featuredPlay.posterUrl ? `url(${featuredPlay.posterUrl})` : undefined,
               }}
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20 group-hover:from-black/90 transition-colors pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/25 pointer-events-none" />
 
               <span className="self-end relative z-10 h-7.5 px-3 flex items-center rounded-full bg-white/80 dark:bg-tn-container/80 backdrop-blur-xs text-xs sm:text-[13px] italic text-[#5E5852] dark:text-tn-text">
                 Sahne fotoğrafı · {featuredPlay.title}
               </span>
 
               <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
-                <span className="text-sm sm:text-base text-white/95 max-w-[520px] italic drop-shadow-sm line-clamp-3 group-hover:underline">
+                <span className="text-sm sm:text-base text-white/95 max-w-[520px] italic drop-shadow-sm line-clamp-3">
                   {featuredPlay.synopsis ||
                     'Gece yarısı iki çocuğuyla sığınacak yer arayan Aydan, bir lunaparkta çalışan Hasret’in evine girer…'}
                 </span>

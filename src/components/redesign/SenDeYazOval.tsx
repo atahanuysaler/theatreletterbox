@@ -25,7 +25,7 @@ export const SenDeYazOval: React.FC<SenDeYazOvalProps> = ({
         <span className="font-extrabold text-5xl sm:text-[60px] leading-[0.9] text-center tracking-tight text-tn-text">
           SEN DE<br />YAZ
         </span>
-        <span className="italic text-base sm:text-lg underline underline-offset-4 text-tn-text font-medium">
+        <span className="italic text-base sm:text-lg text-tn-text font-medium opacity-90">
           Bu gece ne izledin? Not bırak
         </span>
       </button>

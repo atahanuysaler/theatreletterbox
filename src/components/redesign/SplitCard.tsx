@@ -43,7 +43,7 @@ export const SplitCard: React.FC<SplitCardProps> = ({
           </span>
         </div>
 
-        <h3 className="m-0 font-extrabold text-3xl sm:text-[36px] leading-[0.95] tracking-tight line-clamp-2 group-hover:underline">
+        <h3 className="m-0 font-extrabold text-3xl sm:text-[36px] leading-[0.95] tracking-tight line-clamp-2">
           {play.title}
         </h3>
 

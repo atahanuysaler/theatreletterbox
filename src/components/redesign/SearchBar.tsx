@@ -107,7 +107,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               className="h-12 sm:h-14 px-3.5 pr-8 rounded-2xl border border-tn-line bg-tn-surface hover:bg-tn-card text-xs sm:text-sm font-serif text-tn-text appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-tn-red font-medium transition-colors shadow-2xs"
             >
               {(Object.keys(SORT_LABELS) as SortOption[]).map((key) => (
-                <option key={key} value={key}>
+                <option key={key} value={key} className="bg-white text-[#1C1A1B] dark:bg-[#262324] dark:text-[#F1EDE7]">
                   Sırala: {SORT_LABELS[key]}
                 </option>
               ))}

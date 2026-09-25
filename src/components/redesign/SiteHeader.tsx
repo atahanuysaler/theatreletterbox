@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthSafe } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 import SideMenu from './SideMenu';
 
 interface SiteHeaderProps {
@@ -17,16 +16,6 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
   const auth = useAuthSafe();
   const user = auth?.user;
   const loginWithGoogle = auth?.loginWithGoogle;
-
-  let themeContext: ReturnType<typeof useTheme> | null = null;
-  try {
-    themeContext = useTheme();
-  } catch {
-    // optional fallback
-  }
-
-  const isDark = themeContext?.isDark ?? false;
-  const toggleTheme = themeContext?.toggleTheme ?? (() => {});
 
   return (
     <>
@@ -46,43 +35,25 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             </svg>
           </button>
 
-          <Link to="/" className="flex items-baseline gap-2 sm:gap-2.5 text-tn-text no-underline hover:text-tn-red transition-colors">
-            <span className="font-extrabold text-2xl sm:text-[30px] tracking-tight leading-none whitespace-nowrap">
-              TİYATRO<span className="text-tn-red">·</span>NOT
-            </span>
-            <span className="italic text-xs sm:text-[15px] text-tn-muted hidden xs:inline whitespace-nowrap">
-              dijital oyun günlüğü
-            </span>
+          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 text-tn-text no-underline hover:text-tn-red transition-colors">
+            <img
+              src="/logo.png"
+              alt="Tiyatronot Logo"
+              className="w-8 h-8 rounded-lg object-contain flex-shrink-0"
+            />
+            <div className="flex items-baseline gap-2 sm:gap-2.5">
+              <span className="font-extrabold text-2xl sm:text-[30px] tracking-tight leading-none whitespace-nowrap">
+                TİYATRO<span className="text-tn-red">·</span>NOT
+              </span>
+              <span className="italic text-xs sm:text-[15px] text-tn-muted hidden xs:inline whitespace-nowrap">
+                dijital oyun günlüğü
+              </span>
+            </div>
           </Link>
         </div>
 
         {/* Right: Actions */}
         <div className="flex justify-end gap-1.5 sm:gap-2 items-center flex-shrink-0">
-          {/* Dark mode button */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label={isDark ? 'Aydınlık görünüm' : 'Karanlık görünüm'}
-            className="w-10 sm:w-11 h-10 sm:h-11 rounded-full bg-tn-surface border-none cursor-pointer flex items-center justify-center hover:bg-tn-border transition-colors text-tn-text"
-          >
-            {isDark ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="5" />
-                <line x1="12" y1="1" x2="12" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="23" />
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                <line x1="1" y1="12" x2="3" y2="12" />
-                <line x1="21" y1="12" x2="23" y2="12" />
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-              </svg>
-            ) : (
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-              </svg>
-            )}
-          </button>
 
           {/* Desktop links */}
           <Link

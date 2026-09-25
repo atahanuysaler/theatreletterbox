@@ -78,7 +78,7 @@ export const LeaderboardSnippet: React.FC<LeaderboardSnippetProps> = ({
           ))}
           <Link
             to="/liderler"
-            className="text-center text-xs font-semibold underline underline-offset-4 text-tn-text mt-1"
+            className="text-center text-xs font-semibold hover:text-tn-red text-tn-text mt-1 transition-colors"
           >
             Tüm Sıralamayı Gör →
           </Link>
@@ -93,7 +93,7 @@ export const LeaderboardSnippet: React.FC<LeaderboardSnippetProps> = ({
           </span>
           <Link
             to="/liderler"
-            className="italic text-base text-tn-red font-semibold underline underline-offset-4"
+            className="italic text-base text-tn-red font-semibold hover:opacity-85 transition-opacity"
           >
             İlk sen ol!
           </Link>
