@@ -37,18 +37,21 @@ export const PlayCard: React.FC<PlayCardProps> = ({
   const handleSeenClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    (e.currentTarget as HTMLElement)?.blur();
     onToggleSeen?.(play.id);
   };
 
   const handleWatchlistClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    (e.currentTarget as HTMLElement)?.blur();
     onToggleWatchlist?.(play.id);
   };
 
   const handleLogClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    (e.currentTarget as HTMLElement)?.blur();
     onOpenLogModal?.(play);
   };
 
@@ -144,7 +147,7 @@ export const PlayCard: React.FC<PlayCardProps> = ({
           onMouseDown={(e) => e.stopPropagation()}
         >
           {/* Quick Seen Toggle */}
-          <Tooltip content={isSeen ? "İzlendi olarak kayıtlı" : "İzledim olarak işaretle (+10 XP)"} placement="top">
+          <Tooltip content={isSeen ? "İzlendi olarak kayıtlı" : "İzledim olarak işaretle (+10 XP)"} placement="top" closeDelay={0} delay={100}>
             <button
               type="button"
               onClick={handleSeenClick}
@@ -163,7 +166,7 @@ export const PlayCard: React.FC<PlayCardProps> = ({
 
           {/* Quick Watchlist Toggle */}
           {onToggleWatchlist && (
-            <Tooltip content={isWatchlisted ? "Listeden çıkar" : "İzleme listeme ekle"} placement="top">
+            <Tooltip content={isWatchlisted ? "Listeden çıkar" : "İzleme listeme ekle"} placement="top" closeDelay={0} delay={100}>
               <button
                 type="button"
                 onClick={handleWatchlistClick}
@@ -182,7 +185,7 @@ export const PlayCard: React.FC<PlayCardProps> = ({
           )}
 
           {/* Quick Not Al */}
-          <Tooltip content="Bu oyuna seyir notu ekle" placement="top">
+          <Tooltip content="Bu oyuna seyir notu ekle" placement="top" closeDelay={0} delay={100}>
             <button
               type="button"
               onClick={handleLogClick}

@@ -95,7 +95,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     (selectedCompany ? 1 : 0) + 
     (selectedActor ? 1 : 0) +
     (selectedCrewMember ? 1 : 0);
-  const hasActiveFilters = Boolean(searchQuery || activeDropdownFiltersCount > 0);
+  const hasActiveFilters = activeDropdownFiltersCount > 0;
 
   return (
     <div className="space-y-2.5">

@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tiyatronot — Giriş Sayfası</title>
+<!-- Tiyatronot tasarım referansı — Claude ile hazırlanan prototipten otomatik üretildi.
+     Bu dosya GÖRSEL REFERANSTIR: stiller satır içi (inline). Üretim kodunda DESIGN.md'deki token'ları ve component'leri kullanın.
+     data-action="..." öznitelikleri, prototipteki etkileşimin adını gösterir (örn. toggleFilters, openMenu). -->
+<link rel="stylesheet" href="../assets/fonts/newsreader.css">
+<style>
+body{margin:0;background:#E9E4DC;font-family:'Newsreader',Georgia,serif;color:#1C1A1B;-webkit-font-smoothing:antialiased}
+a{color:#1C1A1B}a:hover{color:#BA1B23}
+</style>
+</head>
+<body>
+<div style="position: relative; width: 1440px; height: 4700px; box-sizing: border-box; padding: 10px; background: #E9E4DC; font-family: 'Newsreader', Georgia, serif; color: #1C1A1B">
+<div style="height: 100%; box-sizing: border-box; background: #FFFFFF; border-radius: 22px; padding: 18px 16px 16px; display: flex; flex-direction: column; gap: 6px">
+
+  <!-- HEADER -->
+  <header style="display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 4px 6px 14px">
+    <div style="display: flex; align-items: center; gap: 12px; width: 558px"><button data-action="openMenu" type="button" aria-label="Menüyü aç" aria-expanded="false" style="flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; border: none; background: #F1EDE7; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1A1B" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button><a href="#" style="display: flex; align-items: baseline; gap: 10px; text-decoration: none; color: #1C1A1B; height: 25px">
+      <span style="font-weight: 800; font-size: 30px; letter-spacing: -0.5px; line-height: 1">TİYATRO<span style="color: #BA1B23">·</span>NOT</span>
+      <span style="font-style: italic; font-size: 15px; color: #6E6862; white-space: nowrap">dijital oyun günlüğü</span>
+    </a></div>
+    
+    <div style="display: flex; justify-content: flex-end; gap: 6px; align-items: center; flex-shrink: 0">
+      <button type="button" aria-label="Karanlık görünüm" style="width: 44px; height: 44px; border-radius: 50%; background: #F1EDE7; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1C1A1B" stroke-width="1.8"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg></button>
+      <a href="#" style="height: 44px; padding: 0 16px; box-sizing: border-box; display: flex; align-items: center; border-radius: 999px; background: #F1EDE7; font-size: 15px; text-decoration: none; white-space: nowrap">Oyun Ekle</a>
+      <a href="#" style="height: 44px; padding: 0 16px; box-sizing: border-box; display: flex; align-items: center; border-radius: 999px; background: #F1EDE7; font-size: 15px; text-decoration: none; white-space: nowrap">Giriş Yap</a>
+      <a href="#" style="height: 44px; padding: 0 18px; box-sizing: border-box; display: flex; align-items: center; border-radius: 999px; background: #BA1B23; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; white-space: nowrap">Not Ekle</a>
+    </div>
+  </header>
+
+  <!-- INTRO -->
+  <section style="display: flex; justify-content: space-between; align-items: end; gap: 40px; padding: 10px 6px 18px">
+    <h1 style="margin: 0; font-weight: 400; font-size: 64px; line-height: 0.95; letter-spacing: -2px; max-width: 900px">Türk tiyatrosunun <span style="font-weight: 800">kataloğu,</span> senin <span style="font-style: italic; color: #BA1B23">sahne not defterin.</span></h1>
+    
+  </section>
+
+  <!-- SEARCH -->
+  <form role="search" style="display: flex; align-items: center; gap: 10px; height: 68px; padding: 0 8px 0 22px; background: #F1EDE7; border-radius: 16px">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6E6862" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+    <label for="q3" style="position: absolute; left: -9999px">Katalogda ara</label>
+    <input id="q3" type="search" placeholder="Oyun, topluluk, yazar veya oyuncu ara…" style="flex-grow: 1; height: 56px; border: none; background: transparent; font-family: 'Newsreader', Georgia, serif; font-style: italic; font-size: 26px; color: #1C1A1B; padding: 0">
+    <span style="font-size: 14px; color: #6E6862; padding: 0 10px"><span style="font-weight: 800; color: #1C1A1B">1854</span> oyun</span>
+    <button data-action="toggleFilters" type="button" aria-expanded="false" aria-controls="filtre-satiri" style="height: 52px; padding: 0 20px; display: flex; align-items: center; gap: 8px; border-radius: 12px; background: #1C1A1B; color: #FFFFFF; border: none; font-family: 'Newsreader', Georgia, serif; font-size: 16px; font-weight: 600; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4" /></svg>Filtreler</button>
+  </form>
+
+  <!-- FILTER ROW -->
+  <div id="filtre-satiri" style="display: flex; gap: 6px; align-items: center; min-height: 40px">
+    
+    
+    <span style="font-style: italic; font-size: 15px; color: #9A928A; padding-left: 6px">Tür, topluluk, oyuncu ve yapım ekibine göre daraltmak için Filtreler’i aç.</span>
+    
+    <span style="flex-grow: 1"></span>
+    <button type="button" style="height: 40px; padding: 0 14px; border-radius: 12px; border: 1px solid #E2DCD4; background: #FFFFFF; font-family: 'Newsreader', Georgia, serif; font-size: 15px; cursor: pointer"><span style="font-style: italic; color: #6E6862">Sıralama:</span> <span style="font-weight: 600">En Yüksek Puan</span> ▾</button>
+  </div>
+
+  <!-- COLORED HASHTAGS -->
+  <nav aria-label="Katalog etiketleri" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 0 14px; font-size: 15px">
+    <a href="#" style="height: 34px; padding: 0 14px; display: flex; align-items: center; border-radius: 999px; background: #BA1B23; color: #FFFFFF; font-weight: 600; text-decoration: none">#Trajedi &amp; Dram</a>
+    <a href="#" style="height: 34px; padding: 0 14px; display: flex; align-items: center; border-radius: 999px; background: #F4D3CE; font-weight: 600; text-decoration: none">#Komedi</a>
+    <a href="#" style="height: 34px; padding: 0 14px; display: flex; align-items: center; border-radius: 999px; background: #1C1A1B; color: #FFFFFF; font-weight: 600; text-decoration: none">#Müzikal &amp; Kabare</a>
+    <a href="#" style="height: 34px; padding: 0 14px; display: flex; align-items: center; border-radius: 999px; background: #E4B33A; font-weight: 600; text-decoration: none">#Deneysel &amp; Absürd</a>
+    <a href="#" style="height: 34px; padding: 0 14px; display: flex; align-items: center; border-radius: 999px; background: #D9CFF2; font-weight: 600; text-decoration: none">#Performans</a>
+    <a href="#" style="height: 34px; padding: 0 14px; display: flex; align-items: center; border-radius: 999px; background: #D6E0D3; font-weight: 600; text-decoration: none">#Gösteri</a>
+    <a href="#" style="height: 34px; padding: 0 14px; display: flex; align-items: center; border-radius: 999px; background: #BA1B23; color: #FFFFFF; font-weight: 600; text-decoration: none">#Çocuk &amp; Genç</a>
+    <a href="#" style="height: 34px; padding: 0 14px; display: flex; align-items: center; border-radius: 999px; background: #F4D3CE; font-weight: 600; text-decoration: none">#Kukla</a>
+    <a href="#" style="height: 34px; padding: 0 14px; display: flex; align-items: center; border-radius: 999px; background: #1C1A1B; color: #FFFFFF; font-weight: 600; text-decoration: none">#Karakomedi</a>
+    <a href="#" style="height: 34px; padding: 0 14px; display: flex; align-items: center; border-radius: 999px; background: #E4B33A; font-weight: 600; text-decoration: none">#Fiziksel Tiyatro</a>
+  </nav>
+
+  <!-- BENTO -->
+  <main style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: 470px 520px 430px 440px; gap: 6px">
+
+    <!-- r1 c1 featured -->
+    <article style="border-radius: 16px; background: #BA1B23; color: #FFFFFF; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between">
+      <div style="display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <span style="height: 26px; padding: 0 11px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.75); border-radius: 999px; font-size: 13px; font-style: italic">Ayakta Alkış</span>
+          <span style="font-size: 16px; font-weight: 600">★ 5.0 <span style="font-weight: 400; font-style: italic; opacity: 0.85">(17 not)</span></span>
+        </div>
+        <div>
+          <h2 style="margin: 0; font-weight: 800; font-size: 64px; line-height: 0.92; letter-spacing: -1.5px">Dönme Dolap</h2>
+          <div style="font-style: italic; font-size: 30px; line-height: 1.2; margin-top: 4px">Dilara Güzel</div>
+        </div>
+        <p style="margin: 0; font-size: 17px; line-height: 1.4; opacity: 0.92">Yön. Ertül Erdan · LEIT KOLEKTİF · 90 dk<br><span style="font-style: italic">Trajedi &amp; Dram / Komedi — 2026</span></p>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <span style="font-size: 14px; font-weight: 600; letter-spacing: 0.6px">OYUNA GİT</span>
+        <a href="desktop-oyun-detay.html" aria-label="Oyun detay sayfası" style="width: 52px; height: 52px; border-radius: 50%; background: #1C1A1B; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+      </div>
+    </article>
+
+    <!-- r1 c2-3 wide image -->
+    <div style="grid-column: span 2; border-radius: 16px; background: #DDD5CB; display: flex; flex-direction: column; justify-content: space-between; padding: 18px; box-sizing: border-box">
+      <span style="align-self: flex-end; height: 30px; padding: 0 12px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.8); font-size: 13px; font-style: italic; color: #5E5852">Sahne fotoğrafı · Dönme Dolap</span>
+      <div style="display: flex; justify-content: space-between; align-items: end">
+        <span style="font-size: 15px; color: #5E5852; max-width: 520px; font-style: italic">Gece yarısı iki çocuğuyla sığınacak yer arayan Aydan, bir lunaparkta çalışan Hasret’in evine girer…</span>
+        <span style="height: 30px; padding: 0 12px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.8); font-size: 13px; font-weight: 600">Dilara Güzel · Gamze Alver</span>
+      </div>
+    </div>
+
+    <!-- r2 split cards -->
+    
+      <article style="border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; background: #F4D3CE">
+        <div style="padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; height: 240px; box-sizing: border-box">
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span style="height: 26px; padding: 0 11px; display: flex; align-items: center; border: 1px solid #1C1A1B; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.4px">KOMEDİ / MÜZİKAL &amp; KABARE</span>
+            <span style="font-size: 15px; font-weight: 600">★ 5.0 <span style="font-weight: 400; font-style: italic; color: #4A4541">(1 not)</span></span>
+          </div>
+          <h3 style="margin: 0; font-weight: 800; font-size: 40px; line-height: 0.95; letter-spacing: -0.8px">Clown Jam</h3>
+          <span style="font-style: italic; font-size: 20px">Yazar belirtilmemiş</span>
+          <span style="font-size: 15px; color: #4A4541">Yön. Güray Dinçol · Fiziksel Tiyatro Araştırmaları · 90 dk · 2025</span>
+        </div>
+        <div style="flex-grow: 1; border-radius: 16px; background: #D9CFC5; padding: 16px 16px 16px 20px; display: flex; justify-content: space-between; align-items: end">
+          <span style="font-size: 13px; font-style: italic; color: #4A4541">Afiş · Clown Jam</span>
+          <a href="#" aria-label="Clown Jam sayfası" style="width: 48px; height: 48px; border-radius: 50%; background: #FFFFFF; color: #1C1A1B; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(28,26,27,0.12)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+        </div>
+      </article>
+    
+      <article style="border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; background: #D6E0D3">
+        <div style="padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; height: 240px; box-sizing: border-box">
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span style="height: 26px; padding: 0 11px; display: flex; align-items: center; border: 1px solid #1C1A1B; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.4px">TRAJEDİ &amp; DRAM</span>
+            <span style="font-size: 15px; font-weight: 600">★ 5.0 <span style="font-weight: 400; font-style: italic; color: #4A4541"></span></span>
+          </div>
+          <h3 style="margin: 0; font-weight: 800; font-size: 40px; line-height: 0.95; letter-spacing: -0.8px">Gecede Yaşayanlar</h3>
+          <span style="font-style: italic; font-size: 20px">Oğuzhan Özcan</span>
+          <span style="font-size: 15px; color: #4A4541">Yön. Oğuzhan Özcan &amp; Ulukan Özpolat · Entrik Sahne · 2025</span>
+        </div>
+        <div style="flex-grow: 1; border-radius: 16px; background: #2B2927; padding: 16px 16px 16px 20px; display: flex; justify-content: space-between; align-items: end">
+          <span style="font-size: 13px; font-style: italic; color: #EDE7DF">Afiş · Gecede Yaşayanlar</span>
+          <a href="#" aria-label="Gecede Yaşayanlar sayfası" style="width: 48px; height: 48px; border-radius: 50%; background: #FFFFFF; color: #1C1A1B; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(28,26,27,0.12)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+        </div>
+      </article>
+    
+      <article style="border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; background: #F1E3C4">
+        <div style="padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; height: 240px; box-sizing: border-box">
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span style="height: 26px; padding: 0 11px; display: flex; align-items: center; border: 1px solid #1C1A1B; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.4px">TRAJEDİ &amp; DRAM</span>
+            <span style="font-size: 15px; font-weight: 600">★ 5.0 <span style="font-weight: 400; font-style: italic; color: #4A4541">(1 not)</span></span>
+          </div>
+          <h3 style="margin: 0; font-weight: 800; font-size: 40px; line-height: 0.95; letter-spacing: -0.8px">Satıcının Ölümü</h3>
+          <span style="font-style: italic; font-size: 20px">Arthur Miller</span>
+          <span style="font-size: 15px; color: #4A4541">Yön. Rufus Norris · Zorlu PSM · 90 dk · 2026</span>
+        </div>
+        <div style="flex-grow: 1; border-radius: 16px; background: #CFC6B8; padding: 16px 16px 16px 20px; display: flex; justify-content: space-between; align-items: end">
+          <span style="font-size: 13px; font-style: italic; color: #4A4541">Afiş · Satıcının Ölümü</span>
+          <a href="desktop-oyun-detay.html" aria-label="Satıcının Ölümü sayfası" style="width: 48px; height: 48px; border-radius: 50%; background: #FFFFFF; color: #1C1A1B; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(28,26,27,0.12)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+        </div>
+      </article>
+    
+
+    <!-- r3 c1: SEN DE YAZ -->
+    <div style="border-radius: 16px; background: #CFC3F1; background-image: repeating-linear-gradient(0deg, #CFC3F1 0 26px, #C0B2EA 26px 28px); display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box">
+      <a href="#" style="width: 100%; height: 280px; border: 2px solid #1C1A1B; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-decoration: none; color: #1C1A1B">
+        <span style="font-weight: 800; font-size: 60px; line-height: 0.9; text-align: center; letter-spacing: -1px; white-space: pre-line">SEN DE
+YAZ</span>
+        <span style="font-style: italic; font-size: 18px; text-decoration: underline; text-underline-offset: 4px">Bu gece ne izledin? Not bırak</span>
+      </a>
+    </div>
+
+    <!-- r3 c2-3: latest notes as tickets -->
+    <section style="grid-column: span 2; border-radius: 16px; background: #1C1A1B; color: #FFFFFF; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <h2 style="margin: 0; font-weight: 400; font-size: 42px; line-height: 1">Son <span style="font-weight: 800">Seyirci</span> <span style="font-style: italic">Notları</span></h2>
+        <span style="font-style: italic; font-size: 15px; color: #B8B0A8">Seyirci Günlüğü’nden</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; flex-grow: 1">
+        
+          <article style="border-radius: 14px; background: #FFFCF7; color: #1C1A1B; display: grid; grid-template-columns: minmax(0, 1fr) 96px; overflow: hidden">
+            <div style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+              <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; letter-spacing: 0.8px; color: #6E6862"><span>BİLET NO IST-TN-2026-MN8A</span><span>★ AKŞAM SUARESİ ★</span></div>
+              <div style="font-weight: 800; font-size: 28px; line-height: 1">Satıcının Ölümü</div>
+              <div style="font-size: 14px; font-style: italic; color: #5E5852">Zorlu PSM · 10.09.2026</div>
+              <p style="margin: 4px 0 0; font-style: italic; font-size: 19px; line-height: 1.3">“gozlerimi arda ergulden alamadim maalesef..”</p>
+              <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 13px">
+                <span><span style="font-weight: 600">Atahan Uysaler</span> <span style="font-style: italic; color: #6E6862">· Seyirci Günlüğü</span></span>
+                <a href="#" style="font-weight: 600; text-decoration: underline; text-underline-offset: 3px">Bileti Paylaş</a>
+              </div>
+            </div>
+            <div style="border-left: 2px dashed #D8D2CA; padding: 16px 12px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center">
+              <span style="font-size: 10px; font-weight: 800; letter-spacing: 0.8px; color: #BA1B23; border: 1.5px solid #BA1B23; border-radius: 8px; padding: 4px 6px; transform: rotate(-6deg)">GİRİŞ ONAYLI</span>
+              <div>
+                <div style="font-weight: 800; font-size: 34px; line-height: 1">5.0</div>
+                <div style="font-size: 12px; font-style: italic">/ 5.0</div>
+                <div style="font-size: 12px; font-weight: 600; margin-top: 4px">Ayakta Alkış</div>
+              </div>
+              <div style="width: 64px; height: 30px; background-image: repeating-linear-gradient(90deg, #1C1A1B 0 2px, transparent 2px 4px, #1C1A1B 4px 5px, transparent 5px 8px)"></div>
+            </div>
+          </article>
+        
+          <article style="border-radius: 14px; background: #FFFCF7; color: #1C1A1B; display: grid; grid-template-columns: minmax(0, 1fr) 96px; overflow: hidden">
+            <div style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+              <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; letter-spacing: 0.8px; color: #6E6862"><span>BİLET NO IST-TN-2026-JGKG</span><span>★ AKŞAM SUARESİ ★</span></div>
+              <div style="font-weight: 800; font-size: 28px; line-height: 1">Clown Jam</div>
+              <div style="font-size: 14px; font-style: italic; color: #5E5852">Baba Sahne · 10.09.2026</div>
+              <p style="margin: 4px 0 0; font-style: italic; font-size: 19px; line-height: 1.3">“cemre kaboglu zaveylo performansi.. yorumsuz”</p>
+              <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 13px">
+                <span><span style="font-weight: 600">Atahan Uysaler</span> <span style="font-style: italic; color: #6E6862">· Seyirci Günlüğü</span></span>
+                <a href="#" style="font-weight: 600; text-decoration: underline; text-underline-offset: 3px">Bileti Paylaş</a>
+              </div>
+            </div>
+            <div style="border-left: 2px dashed #D8D2CA; padding: 16px 12px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center">
+              <span style="font-size: 10px; font-weight: 800; letter-spacing: 0.8px; color: #BA1B23; border: 1.5px solid #BA1B23; border-radius: 8px; padding: 4px 6px; transform: rotate(-6deg)">GİRİŞ ONAYLI</span>
+              <div>
+                <div style="font-weight: 800; font-size: 34px; line-height: 1">5.0</div>
+                <div style="font-size: 12px; font-style: italic">/ 5.0</div>
+                <div style="font-size: 12px; font-weight: 600; margin-top: 4px">Ayakta Alkış</div>
+              </div>
+              <div style="width: 64px; height: 30px; background-image: repeating-linear-gradient(90deg, #1C1A1B 0 2px, transparent 2px 4px, #1C1A1B 4px 5px, transparent 5px 8px)"></div>
+            </div>
+          </article>
+        
+      </div>
+    </section>
+
+    <!-- r4 c1-2: puzzles -->
+    <section id="bulmacalar" style="grid-column: span 2; border-radius: 16px; background: #F1E3C4; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; justify-content: space-between; align-items: end">
+        <div>
+          <span style="font-size: 12px; font-weight: 800; letter-spacing: 1px">GÜNLÜK TİYATRO BULMACALARI</span>
+          <h2 style="margin: 4px 0 0; font-weight: 800; font-size: 44px; line-height: 1">Bulmacalar <span style="font-weight: 400; font-style: italic; font-size: 26px">— sahne hafızanı tazele, XP kazan.</span></h2>
+        </div>
+        <span style="font-style: italic; font-size: 15px; color: #5E5852">Her gece 00:00’da yenilenir</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; flex-grow: 1">
+        
+          <a href="#" style="border-radius: 14px; background: #FFFCF7; padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between; text-decoration: none; color: #1C1A1B">
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              <span style="height: 24px; padding: 0 10px; display: flex; align-items: center; border: 1px solid #1C1A1B; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.4px">HER GÜN YENİ</span>
+              <span style="font-size: 14px; font-weight: 600">+30 XP <span style="font-weight: 400; font-style: italic">· ~2 dk</span></span>
+            </div>
+            <div>
+              <div style="font-weight: 800; font-size: 26px; line-height: 1">Günün Repliği</div>
+              <div style="font-style: italic; font-size: 16px; margin-top: 2px">Replik Tahmin Bulmacası</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              <span style="font-size: 14px; color: #4A4541; max-width: 330px; line-height: 1.3">Kült oyunlardan seçilen unutulmaz repliği en az tahminle ve ipuçlarıyla bul.</span>
+              <span style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: #1C1A1B; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+            </div>
+          </a>
+        
+          <a href="#" style="border-radius: 14px; background: #FAF1DD; padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between; text-decoration: none; color: #1C1A1B">
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              <span style="height: 24px; padding: 0 10px; display: flex; align-items: center; border: 1px solid #1C1A1B; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.4px">YENİ</span>
+              <span style="font-size: 14px; font-weight: 600">+30 XP <span style="font-weight: 400; font-style: italic">· 2 dk</span></span>
+            </div>
+            <div>
+              <div style="font-weight: 800; font-size: 26px; line-height: 1">Oyuncu Dedektifi</div>
+              <div style="font-style: italic; font-size: 16px; margin-top: 2px">Usta Oyuncu Tahmini</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              <span style="font-size: 14px; color: #4A4541; max-width: 330px; line-height: 1.3">Usta oyuncuları rolleri, efsane tiradları ve kariyer ipuçlarıyla keşfet.</span>
+              <span style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: #1C1A1B; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+            </div>
+          </a>
+        
+          <a href="#" style="border-radius: 14px; background: #FAF1DD; padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between; text-decoration: none; color: #1C1A1B">
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              <span style="height: 24px; padding: 0 10px; display: flex; align-items: center; border: 1px solid #1C1A1B; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.4px">BİLGİ YARIŞI</span>
+              <span style="font-size: 14px; font-weight: 600">+25 XP <span style="font-weight: 400; font-style: italic">· 2 dk</span></span>
+            </div>
+            <div>
+              <div style="font-weight: 800; font-size: 26px; line-height: 1">Sahne Trivia</div>
+              <div style="font-style: italic; font-size: 16px; margin-top: 2px">Günlük Tiyatro Bilgi Testi</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              <span style="font-size: 14px; color: #4A4541; max-width: 330px; line-height: 1.3">Tiyatro tarihi, yazarlar, prömiyerler ve sahne arkası üzerine 5 soru.</span>
+              <span style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: #1C1A1B; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+            </div>
+          </a>
+        
+          <a href="#" style="border-radius: 14px; background: #FFFCF7; padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between; text-decoration: none; color: #1C1A1B">
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              <span style="height: 24px; padding: 0 10px; display: flex; align-items: center; border: 1px solid #1C1A1B; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.4px">KELİME OYUNU</span>
+              <span style="font-size: 14px; font-weight: 600">+25 XP <span style="font-weight: 400; font-style: italic">· 2 dk</span></span>
+            </div>
+            <div>
+              <div style="font-weight: 800; font-size: 26px; line-height: 1">Perde Arkası: Kelime</div>
+              <div style="font-style: italic; font-size: 16px; margin-top: 2px">Tiyatro Jargonu &amp; Terimler</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              <span style="font-size: 14px; color: #4A4541; max-width: 330px; line-height: 1.3">Tirad, fuaye, sufle, kulis… sahne jargonunu harf ve anlam ipuçlarıyla çöz.</span>
+              <span style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: #1C1A1B; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+            </div>
+          </a>
+        
+      </div>
+    </section>
+
+    <!-- r4 c3: leaders -->
+    <section id="liderler" style="border-radius: 16px; background: #F4D3CE; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px">
+      <div>
+        <span style="font-size: 12px; font-weight: 800; letter-spacing: 1px">SAHNE LİDERLERİ</span>
+        <h2 style="margin: 4px 0 0; font-weight: 400; font-size: 38px; line-height: 1">Tiyatronot <span style="font-weight: 800">Sıralaması</span></h2>
+        <p style="margin: 8px 0 0; font-style: italic; font-size: 16px; line-height: 1.35; color: #4A4541">En çok oyun izleyen, en kapsamlı notları tutan ve tiyatro pasaportunu dolduran sahne müdavimleri.</p>
+      </div>
+      <div style="display: flex; gap: 3px; padding: 3px; border-radius: 999px; background: rgba(255,255,255,0.55); align-self: flex-start">
+        <button type="button" style="height: 34px; padding: 0 14px; border-radius: 999px; border: none; background: #FFFFFF; font-family: 'Newsreader', Georgia, serif; font-size: 14px; font-weight: 600; cursor: pointer">Tüm Zamanlar</button>
+        <button type="button" style="height: 34px; padding: 0 14px; border-radius: 999px; border: none; background: transparent; font-family: 'Newsreader', Georgia, serif; font-size: 14px; cursor: pointer">Bu Sezon (2025–2026)</button>
+      </div>
+      <div style="flex-grow: 1; border-radius: 14px; border: 1.5px dashed rgba(28,26,27,0.35); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 16px">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.6px; color: #6B4A45">SIRA · TİYATROSEVER · KADEME · İZLENEN · XP</span>
+        <span style="font-weight: 800; font-size: 24px">Henüz sıralamada kimse yok.</span>
+        <span style="font-style: italic; font-size: 18px; color: #BA1B23">İlk sen ol!</span>
+      </div>
+    </section>
+  </main>
+
+  <!-- CURATED LISTS -->
+  <section id="listeler" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 0">
+    
+      <a href="#" style="height: 300px; box-sizing: border-box; border-radius: 16px; background: #1C1A1B; color: #FFFFFF; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; text-decoration: none">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <span style="height: 24px; padding: 0 10px; display: flex; align-items: center; border: 1px solid #FFFFFF; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.4px">BÖLGE &amp; MEKÂN</span>
+          <span style="font-size: 14px; font-style: italic">4 oyun</span>
+        </div>
+        <div>
+          <div style="font-size: 12px; font-weight: 800; letter-spacing: 1px; opacity: 0.8">KÜRATÖRLÜ SEÇKİ</div>
+          <div style="font-weight: 800; font-size: 28px; line-height: 1; margin-top: 4px">Kadıköy Sahnelerinde Bu Sezon</div>
+          <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.35; opacity: 0.9">Moda Sahnesi, Oyun Atölyesi, Kadıköy Emek ve Boa Sahne’de parlayan alternatif ve bağımsız seçki.</p>
+        </div>
+        <span style="font-style: italic; font-size: 14px">— Tiyatronot Editör Masası</span>
+      </a>
+    
+      <a href="#" style="height: 300px; box-sizing: border-box; border-radius: 16px; background: #D9CFF2; color: #1C1A1B; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; text-decoration: none">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <span style="height: 24px; padding: 0 10px; display: flex; align-items: center; border: 1px solid #1C1A1B; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.4px">PERFORMANS</span>
+          <span style="font-size: 14px; font-style: italic">3 oyun</span>
+        </div>
+        <div>
+          <div style="font-size: 12px; font-weight: 800; letter-spacing: 1px; opacity: 0.8">KÜRATÖRLÜ SEÇKİ</div>
+          <div style="font-weight: 800; font-size: 28px; line-height: 1; margin-top: 4px">Tek Kişilik Dev Performanslar</div>
+          <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.35; opacity: 0.9">Bütün sahneyi tek bir nefesle dolduran çağdaş ve klasik monolog başyapıtları.</p>
+        </div>
+        <span style="font-style: italic; font-size: 14px">— Tiyatro Kulübü</span>
+      </a>
+    
+      <a href="#" style="height: 300px; box-sizing: border-box; border-radius: 16px; background: #D6E0D3; color: #1C1A1B; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; text-decoration: none">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <span style="height: 24px; padding: 0 10px; display: flex; align-items: center; border: 1px solid #1C1A1B; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.4px">YERLİ METİN</span>
+          <span style="font-size: 14px; font-style: italic">3 oyun</span>
+        </div>
+        <div>
+          <div style="font-size: 12px; font-weight: 800; letter-spacing: 1px; opacity: 0.8">KÜRATÖRLÜ SEÇKİ</div>
+          <div style="font-weight: 800; font-size: 28px; line-height: 1; margin-top: 4px">Çağdaş Türk Tiyatrosu Seçkisi</div>
+          <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.35; opacity: 0.9">Haldun Taner, Turgut Özakman ve yeni kuşak yerli yazarların unutulmaz metinleri.</p>
+        </div>
+        <span style="font-style: italic; font-size: 14px">— Dramaturg Gözü</span>
+      </a>
+    
+      <a href="#" style="height: 300px; box-sizing: border-box; border-radius: 16px; background: #BA1B23; color: #FFFFFF; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; text-decoration: none">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <span style="height: 24px; padding: 0 10px; display: flex; align-items: center; border: 1px solid #FFFFFF; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.4px">DÜNYA KLASİĞİ</span>
+          <span style="font-size: 14px; font-style: italic">3 oyun</span>
+        </div>
+        <div>
+          <div style="font-size: 12px; font-weight: 800; letter-spacing: 1px; opacity: 0.8">KÜRATÖRLÜ SEÇKİ</div>
+          <div style="font-weight: 800; font-size: 28px; line-height: 1; margin-top: 4px">Klasiklerin Çağdaş Yorumları</div>
+          <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.35; opacity: 0.9">Shakespeare, Çehov, Beckett ve Molière’in günümüz yönetmenlerince cesur yorumları.</p>
+        </div>
+        <span style="font-style: italic; font-size: 14px">— Sahne Notu</span>
+      </a>
+    
+  </section>
+
+  <!-- CATALOG -->
+  <section style="display: flex; flex-direction: column; gap: 6px; margin-top: 18px">
+    <div style="display: flex; justify-content: space-between; align-items: end; padding: 0 6px 10px">
+      <h2 style="margin: 0; font-weight: 400; font-size: 52px; line-height: 1; letter-spacing: -1px"><span style="font-weight: 800">Katalog</span> <span style="font-style: italic">— en yüksek puanlılar</span></h2>
+      <span style="font-size: 15px; color: #5E5852"><span style="font-style: italic">Toplam</span> <span style="font-weight: 800; color: #1C1A1B">1854</span> <span style="font-style: italic">oyun arasından 1–30</span></span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px">
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #DDD5CB; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 5.0</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Clown Jam</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Belirtilmemiş</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Güray Dinçol</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Fiziksel Tiyatro Araştırmaları</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">KOMEDİ / MÜZİKAL</span><span>2025</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #D6E0D3; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 5.0</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Dönme Dolap</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Dilara Güzel</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Ertül Erdan</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">LEIT KOLEKTİF</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">TRAJEDİ &amp; DRAM / KOMEDİ</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #F4D3CE; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 5.0</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Gecede Yaşayanlar</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Oğuzhan Özcan</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Oğuzhan Özcan &amp; Ulukan Özpolat</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Entrik Sahne</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">TRAJEDİ &amp; DRAM</span><span>2025</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #E7DFC9; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 5.0</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Hamam Böcekleri</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Baransel Gürsoy</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Baransel Gürsoy</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Kuzgun Yapım</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">KOMEDİ</span><span>2024</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #D9CFF2; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 5.0</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Satıcının Ölümü</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Arthur Miller</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Rufus Norris</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Zorlu PSM</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">TRAJEDİ &amp; DRAM</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #E3DDD6; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 5.0</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Target - 12’den</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Belirtilmemiş</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Deniz Atlı</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Platform Dance Theatre</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">PERFORMANS</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #DDD5CB; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 5.0</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Yap Bi Doğaçlama</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Belirtilmemiş</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Serhat Akın Altıntaş</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">TiyatrOn</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">GÖSTERİ</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #D6E0D3; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.9</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Hayri Fitler</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Burçhan Göze</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Burçhan Göze</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Altı Üstü Kabare</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">KOMEDİ</span><span>2025</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #F4D3CE; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.9</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">#ilkbahar #uyanis</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Frank Wedekind</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Berfin Ertan</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Oyun Arkadaşları</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">TRAJEDİ &amp; DRAM / KOMEDİ</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #E7DFC9; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.9</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Lusifer</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Omid Darvishi</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Omid Darvishi</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Tiyatro Mid</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">TRAJEDİ &amp; DRAM</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #D9CFF2; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.9</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Profesyonel</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Duşan Kovaçevic</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Işıl Kasapoğlu</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Ment Event</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">KOMEDİ</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #E3DDD6; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.9</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Tut Elimden Rovni</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Aziz Nesin</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Uzay Gökhan Irmak &amp; Bahar Aksoy</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Pia.no:3</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">TRAJEDİ &amp; DRAM</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #DDD5CB; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.8</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">3. Koğuş</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Hüseyin Öztürk</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Hüseyin Öztürk</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Seyirlik Sanat</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">KOMEDİ</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #D6E0D3; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.8</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Bahar Noktası Soruşturması</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">William Shakespeare</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Aysel Yıldırım &amp; Cüneyt Yalaz &amp; İlker Yasin Keskin &amp; Metin Göksel</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">BGST</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">KOMEDİ</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #F4D3CE; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.8</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">DNA</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Paul Zindel</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Nihan Okutucu</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Bağımsız Tiyatro</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">TRAJEDİ &amp; DRAM</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #E7DFC9; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.8</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Miyav</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Burcu Görek</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Tito Lorefice</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Bu Yapım</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">MÜZİKAL / ÇOCUK &amp; GENÇ</span><span>2024</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #D9CFF2; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.8</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Palyaçonun Yükselişi</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">İsa Arif Akten</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Taha Macit</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Kalokagatya Sanat</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">ÇOCUK &amp; GENÇ</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #E3DDD6; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.8</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">The Magician and The Gambler</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Belirtilmemiş</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Belirtilmemiş</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Tiyatro Circa</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">GÖSTERİ</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #DDD5CB; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.8</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Yaşam</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Belirtilmemiş</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Belirtilmemiş</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Bağımsız Tiyatro</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">KUKLA / GÖSTERİ</span><span>2022</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #D6E0D3; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.7</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">90’LAR</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Burçhan Göze</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Burçhan Göze</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Altı Üstü Kabare</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">MÜZİKAL &amp; KABARE</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #F4D3CE; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.7</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Bazı Detaylar</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Osman Utku Atış &amp; Doğuş Elden</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Osman Utku Atış &amp; Doğuş Elden</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Baküs Sahne</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">TRAJEDİ &amp; DRAM</span><span>2022</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #E7DFC9; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.7</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Ermişler Ya Da Günahkarlar</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Anthony Horowitz</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Işıl Kasapoğlu</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Oyun Atölyesi</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">TRAJEDİ &amp; DRAM</span><span>2002</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #D9CFF2; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.7</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Günaydın</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Melike Zaman</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Şahver Yazıcıoğlu</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Tiyatro Mona</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">DENEYSEL &amp; ABSÜRD</span><span>2024</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #E3DDD6; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.7</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">İz</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Ahmet Sami Özbudak</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Aras Nas</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Inger Tiyatro Grubu</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">TRAJEDİ &amp; DRAM</span><span>2025</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #DDD5CB; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.7</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Joko’nun Doğum Günü</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Roland Topor</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Muhammet Uzuner</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Cihangir Atölye Sahnesi</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">DENEYSEL &amp; ABSÜRD</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #D6E0D3; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.7</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Komedya 2020</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Jale Karabekir</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Jale Karabekir</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Tiyatro Boyalı Kuş</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">KOMEDİ</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #F4D3CE; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.7</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Öteki İnsan</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Pyotr Gladilin</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Rabia Kaya &amp; Tanya Aksu Gökdeniz</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Devr-i Alem Oyuncuları</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">TRAJEDİ &amp; DRAM</span><span>2017</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #E7DFC9; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.7</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Seksen Günde Dünya Turu</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Jules Verne</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Cem Engin</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Tiyatro We</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">ÇOCUK &amp; GENÇ</span><span>2026</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #D9CFF2; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.7</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Sevgili Arsız Ölüm - Dirmit</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Latife Tekin</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Hakan Emre Ünal</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Tiyatro Hemhâl</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">TRAJEDİ &amp; DRAM</span><span>2017</span></span>
+          </div>
+        </a>
+      
+        <a href="#" style="display: flex; flex-direction: column; gap: 8px; padding: 6px 6px 12px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 170px; border-radius: 12px; background: #E3DDD6; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: 8px; box-sizing: border-box">
+            <span style="height: 24px; padding: 0 9px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 13px; font-weight: 600">★ 4.7</span>
+            <span style="align-self: flex-start; font-size: 12px; font-style: italic; color: #5E5852">afiş</span>
+          </div>
+          <div style="padding: 0 6px; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 19px; line-height: 1.05">Sırrımdaki Kambur</span>
+            <span style="font-style: italic; font-size: 14px; color: #4A4541">Ufkum Kalaoğlu &amp; Mehmet A. Salk</span>
+            <span style="font-size: 13px; color: #5E5852; line-height: 1.3">Yön. Ufkum Kalaoğlu</span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.3">Kreatif Sanat</span>
+            <span style="margin-top: 6px; display: flex; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px"><span style="color: #BA1B23">TRAJEDİ &amp; DRAM</span><span>2024</span></span>
+          </div>
+        </a>
+      
+    </div>
+    <nav aria-label="Sayfalama" style="display: flex; justify-content: center; align-items: center; gap: 6px; padding-top: 10px; font-size: 15px">
+      <a href="#" style="height: 40px; padding: 0 16px; display: flex; align-items: center; border-radius: 999px; background: #F1EDE7; color: #9A928A; text-decoration: none">Önceki</a>
+      <span style="height: 40px; padding: 0 16px; display: flex; align-items: center; font-style: italic">Sayfa <span style="font-weight: 800; font-style: normal; margin: 0 4px">1</span> / 62</span>
+      <a href="#" style="height: 40px; padding: 0 16px; display: flex; align-items: center; border-radius: 999px; background: #1C1A1B; color: #FFFFFF; text-decoration: none">Sonraki</a>
+    </nav>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="margin-top: auto; border-radius: 16px; background: #1C1A1B; color: #FFFFFF; padding: 30px 28px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; min-height: 200px; box-sizing: border-box">
+    <div style="display: flex; flex-direction: column; justify-content: space-between">
+      <span style="font-style: italic; font-size: 16px; color: #B8B0A8">Dijital tiyatro günlüğü &amp; topluluğu</span>
+      <span style="font-weight: 800; font-size: 50px; line-height: 1; letter-spacing: -1px">TİYATRO<span style="color: #BA1B23">·</span>NOT</span>
+    </div>
+    <nav aria-label="Alt menü" style="display: flex; flex-direction: column; gap: 6px; font-size: 16px">
+      <a href="#" style="color: #FFFFFF; text-decoration: none">Katalog</a>
+      <a href="#" style="color: #FFFFFF; text-decoration: none">Küratörlü Listeler</a>
+      <a href="#" style="color: #FFFFFF; text-decoration: none">Bulmacalar</a>
+      <a href="#" style="color: #FFFFFF; text-decoration: none">Sahne Liderleri</a>
+      <a href="#" style="color: #FFFFFF; text-decoration: none">Yeni Oyun Öner / Ekle</a>
+    </nav>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <label for="nl4" style="font-size: 16px; font-style: italic">Haftanın sahnelerini e-postana gönderelim</label>
+      <div style="display: flex; gap: 6px; padding: 5px 5px 5px 16px; border-radius: 14px; background: rgba(255,255,255,0.08)">
+        <input id="nl4" type="email" placeholder="E-posta" style="flex-grow: 1; height: 44px; background: transparent; border: none; color: #FFFFFF; font-family: 'Newsreader', Georgia, serif; font-size: 16px; padding: 0">
+        <button type="button" style="height: 44px; padding: 0 18px; border-radius: 10px; background: #FFFFFF; color: #1C1A1B; border: none; font-family: 'Newsreader', Georgia, serif; font-size: 15px; font-weight: 600; cursor: pointer">Abone ol</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+  <!-- SIDE MENU -->
+  
+</div>
+</body>
+</html>

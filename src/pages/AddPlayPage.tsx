@@ -307,10 +307,10 @@ export const AddPlayPage: React.FC = () => {
                   <span>Afiş Görseli URL <span className="text-text-tertiary font-normal lowercase">(isteğe bağlı)</span></span>
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   value={posterUrl}
                   onChange={e => setPosterUrl(e.target.value)}
-                  placeholder="https://..."
+                  placeholder="https://... veya /resimler/... veya veritabanı yolu"
                   className="w-full border border-border-strong bg-canvas px-3 py-2 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors"
                 />
                 {posterUrl && (

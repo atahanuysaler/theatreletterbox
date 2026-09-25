@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Header from './components/layout/Header';
-import MobileDock from './components/layout/MobileDock';
-import Footer from './components/layout/Footer';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import SiteHeader from './components/redesign/SiteHeader';
+import Footer from './components/redesign/Footer';
+import MobileTabBar from './components/redesign/MobileTabBar';
+
 import CatalogPage from './pages/CatalogPage';
 import IzlediklerimPage from './pages/IzlediklerimPage';
 import LeaderboardPage from './pages/LeaderboardPage';
@@ -21,6 +22,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import type { Play } from './types';
 
 const AppContent: React.FC = () => {
+  const location = useLocation();
   const authContext = useAuthSafe();
   const user = authContext?.user;
   const loginWithGoogle = authContext?.loginWithGoogle;
@@ -33,7 +35,6 @@ const AppContent: React.FC = () => {
     if (!user) {
       try {
         await loginWithGoogle?.();
-        // After successful sign-in, open the log modal with the preselected play
         setLogModalPlay(play || null);
         setIsLogModalOpen(true);
       } catch (err) {
@@ -47,37 +48,75 @@ const AppContent: React.FC = () => {
 
   const handleOpenDailyQuote = () => setIsDailyQuoteOpen(true);
 
+  const isPlayDetailPage = location.pathname.startsWith('/oyun/');
+
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden flex flex-col bg-canvas text-text-primary antialiased font-sans selection:bg-theatre-curtain selection:text-white">
-      {/* Editorial Header */}
-      <Header onOpenLogModal={() => handleOpenLogModal()} onOpenDailyQuote={handleOpenDailyQuote} />
+    <div className="min-h-screen w-full bg-tn-page text-tn-text font-serif p-2 sm:p-2.5 box-border flex flex-col items-center selection:bg-tn-red selection:text-white">
+      {/* 1440px max width container with 22px border-radius matching DESIGN.md */}
+      <div className="w-full max-w-[1440px] bg-white dark:bg-tn-surface rounded-[22px] p-3 sm:p-4.5 box-border flex flex-col gap-1.5 shadow-sm min-h-screen">
+        {/* Editorial Header */}
+        <SiteHeader
+          onOpenLogModal={() => handleOpenLogModal()}
+          onOpenDailyQuote={handleOpenDailyQuote}
+        />
 
-      {/* Main Viewport Content */}
-      <main className="flex-1 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:pb-8">
-        <Routes>
-          <Route path="/" element={<CatalogPage onOpenLogModal={handleOpenLogModal} onOpenDailyQuote={handleOpenDailyQuote} />} />
-          <Route path="/izlediklerim" element={<IzlediklerimPage />} />
-          <Route path="/izlemek-istediklerim" element={<ProfilePage initialTab="izlemek-istediklerim" onOpenDailyQuote={handleOpenDailyQuote} />} />
-          <Route path="/listeler" element={<ListsPage onOpenLogModal={handleOpenLogModal} />} />
-          <Route path="/liderler" element={<LeaderboardPage />} />
-          <Route path="/oyun/:id" element={<PlayDetailPage onOpenLogModal={handleOpenLogModal} />} />
-          <Route path="/profil" element={<ProfilePage onOpenDailyQuote={handleOpenDailyQuote} />} />
-          <Route path="/profil/:userId" element={<ProfilePage onOpenDailyQuote={handleOpenDailyQuote} />} />
-          <Route path="/kullanici/:userId" element={<ProfilePage onOpenDailyQuote={handleOpenDailyQuote} />} />
-          <Route path="/bulmacalar" element={<BulmacalarPage onOpenDailyQuote={handleOpenDailyQuote} />} />
-          <Route path="/iletisim" element={<ContactPage />} />
-          <Route path="/oyun-ekle" element={<AddPlayPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/404" element={<NotFoundPage />} />
-          <Route path="*" element={<Navigate to="/404" replace />} />
-        </Routes>
-      </main>
+        {/* Main Viewport Content */}
+        <main className="flex-1 w-full pb-16 md:pb-2">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <CatalogPage
+                  onOpenLogModal={handleOpenLogModal}
+                  onOpenDailyQuote={handleOpenDailyQuote}
+                />
+              }
+            />
+            <Route path="/izlediklerim" element={<IzlediklerimPage />} />
+            <Route
+              path="/izlemek-istediklerim"
+              element={
+                <ProfilePage
+                  initialTab="izlemek-istediklerim"
+                  onOpenDailyQuote={handleOpenDailyQuote}
+                />
+              }
+            />
+            <Route path="/listeler" element={<ListsPage onOpenLogModal={handleOpenLogModal} />} />
+            <Route path="/liderler" element={<LeaderboardPage />} />
+            <Route
+              path="/oyun/:id"
+              element={<PlayDetailPage onOpenLogModal={handleOpenLogModal} />}
+            />
+            <Route path="/profil" element={<ProfilePage onOpenDailyQuote={handleOpenDailyQuote} />} />
+            <Route
+              path="/profil/:userId"
+              element={<ProfilePage onOpenDailyQuote={handleOpenDailyQuote} />}
+            />
+            <Route
+              path="/kullanici/:userId"
+              element={<ProfilePage onOpenDailyQuote={handleOpenDailyQuote} />}
+            />
+            <Route
+              path="/bulmacalar"
+              element={<BulmacalarPage onOpenDailyQuote={handleOpenDailyQuote} />}
+            />
+            <Route path="/iletisim" element={<ContactPage />} />
+            <Route path="/oyun-ekle" element={<AddPlayPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/404" element={<NotFoundPage />} />
+            <Route path="*" element={<Navigate to="/404" replace />} />
+          </Routes>
+        </main>
 
-      {/* Editorial Footer */}
-      <Footer />
+        {/* Editorial Footer */}
+        <Footer />
+      </div>
 
-      {/* Mobile Sticky Bottom Dock */}
-      <MobileDock onOpenLogModal={() => handleOpenLogModal()} onOpenDailyQuote={handleOpenDailyQuote} />
+      {/* Mobile Tab Bar (Bottom Nav - hidden on PlayDetail where StickyActionBar is used) */}
+      {!isPlayDetailPage && (
+        <MobileTabBar onOpenLogModal={() => handleOpenLogModal()} />
+      )}
 
       {/* Global Modals */}
       <LogModal

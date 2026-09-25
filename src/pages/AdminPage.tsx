@@ -340,10 +340,6 @@ function PublishedPlaysSection() {
 
   const handleSavePlay = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formTitle.trim() || !formPlaywright.trim() || !formCompany.trim()) {
-      alert('Lütfen zorunlu alanları (Oyun Adı, Yazar, Topluluk) doldurun.');
-      return;
-    }
 
     setSaving(true);
     try {
@@ -357,30 +353,32 @@ function PublishedPlaysSection() {
         .map(s => s.trim())
         .filter(Boolean);
 
+      const titleToSave = formTitle.trim() || (editingPlay ? editingPlay.title : 'İsimsiz Oyun');
+
       if (editingPlay) {
-        // Update existing play
+        // Update existing play - no mandatory field restrictions
         await storageService.updatePlay(editingPlay.id, {
-          title: formTitle.trim(),
-          originalTitle: formOriginalTitle.trim() || formTitle.trim(),
+          title: titleToSave,
+          originalTitle: formOriginalTitle.trim(),
           playwright: formPlaywright.trim(),
           director: formDirector.trim(),
           company: formCompany.trim(),
-          venue: formVenue.trim() || 'Sahne',
-          year: Number(formYear) || new Date().getFullYear(),
-          duration: Number(formDuration) || 90,
+          venue: formVenue.trim() || editingPlay.venue || '',
+          year: Number(formYear) || editingPlay.year || new Date().getFullYear(),
+          duration: Number(formDuration) || editingPlay.duration || 90,
           hasIntermission: formHasIntermission,
-          genre: formGenre.trim() || 'Dram',
-          posterUrl: formPosterUrl.trim() || editingPlay.posterUrl,
+          genre: formGenre.trim() || editingPlay.genre || 'Dram',
+          posterUrl: formPosterUrl.trim() !== '' ? formPosterUrl.trim() : (editingPlay.posterUrl || ''),
           cast: castArray,
           synopsis: formSynopsis.trim(),
           tags: tagsArray
         });
-        setStatusMsg({ type: 'success', text: `"${formTitle.trim()}" oyunu başarıyla güncellendi.` });
+        setStatusMsg({ type: 'success', text: `"${titleToSave}" oyunu başarıyla güncellendi.` });
       } else {
-        // Create new play
+        // Create new play - no mandatory field restrictions
         await storageService.createPlay({
-          title: formTitle.trim(),
-          originalTitle: formOriginalTitle.trim() || formTitle.trim(),
+          title: titleToSave,
+          originalTitle: formOriginalTitle.trim() || titleToSave,
           playwright: formPlaywright.trim(),
           director: formDirector.trim(),
           company: formCompany.trim(),
@@ -389,12 +387,12 @@ function PublishedPlaysSection() {
           duration: Number(formDuration) || 90,
           hasIntermission: formHasIntermission,
           genre: formGenre.trim() || 'Dram',
-          posterUrl: formPosterUrl.trim() || 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=800&q=80',
+          posterUrl: formPosterUrl.trim() || '',
           cast: castArray,
           synopsis: formSynopsis.trim(),
           tags: tagsArray
         });
-        setStatusMsg({ type: 'success', text: `"${formTitle.trim()}" oyunu kataloğa başarıyla eklendi.` });
+        setStatusMsg({ type: 'success', text: `"${titleToSave}" oyunu kataloğa başarıyla eklendi.` });
       }
 
       setIsModalOpen(false);
@@ -427,7 +425,8 @@ function PublishedPlaysSection() {
     return (
       normalizeSearchText(p.title).includes(q) ||
       normalizeSearchText(p.playwright).includes(q) ||
-      normalizeSearchText(p.company).includes(q)
+      normalizeSearchText(p.company).includes(q) ||
+      (p.cast || []).some(c => normalizeSearchText(c).includes(q))
     );
   });
 
@@ -632,15 +631,14 @@ function PublishedPlaysSection() {
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleSavePlay} className="flex-1 overflow-y-auto p-5 space-y-4 text-xs font-mono">
+            <form onSubmit={handleSavePlay} noValidate className="flex-1 overflow-y-auto p-5 space-y-4 text-xs font-mono">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-semibold text-text-secondary uppercase">
-                    Oyun Adı *
+                    Oyun Adı
                   </label>
                   <input
                     type="text"
-                    required
                     value={formTitle}
                     onChange={e => setFormTitle(e.target.value)}
                     placeholder="Örn. Lüküs Hayat"
@@ -665,11 +663,10 @@ function PublishedPlaysSection() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-semibold text-text-secondary uppercase">
-                    Yazar *
+                    Yazar
                   </label>
                   <input
                     type="text"
-                    required
                     value={formPlaywright}
                     onChange={e => setFormPlaywright(e.target.value)}
                     placeholder="Örn. Haldun Taner"
@@ -694,11 +691,10 @@ function PublishedPlaysSection() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-semibold text-text-secondary uppercase">
-                    Topluluk / Tiyatro Ekibi *
+                    Topluluk / Tiyatro Ekibi
                   </label>
                   <input
                     type="text"
-                    required
                     value={formCompany}
                     onChange={e => setFormCompany(e.target.value)}
                     placeholder="Örn. Şehir Tiyatroları, Moda Sahnesi..."
@@ -776,19 +772,19 @@ function PublishedPlaysSection() {
 
                 <div className="space-y-1">
                   <label className="font-semibold text-text-secondary uppercase">
-                    Afiş Görsel URL'si
+                    Afiş Görseli (URL veya Veritabanı Yolu)
                   </label>
                   <input
-                    type="url"
+                    type="text"
                     value={formPosterUrl}
                     onChange={e => setFormPosterUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
+                    placeholder="https://... veya /resimler/... veya veritabanı yolu"
                     className="w-full bg-layer-01 border border-border-strong px-3 py-2 text-text-primary rounded-xs focus:outline-none focus:border-theatre-curtain"
                   />
                 </div>
               </div>
 
-              {/* Poster Preview if valid URL */}
+              {/* Poster Preview if provided */}
               {formPosterUrl && (
                 <div className="p-2 bg-layer-01 border border-border-subtle rounded-sm flex items-center gap-3">
                   <img
@@ -800,7 +796,7 @@ function PublishedPlaysSection() {
                     }}
                   />
                   <div className="text-[11px] text-text-secondary">
-                    <span className="font-semibold text-text-primary">Afiş Önizleme:</span> Görsel bağlantısı geçerli.
+                    <span className="font-semibold text-text-primary">Afiş:</span> Görsel yolu / URL tanımlı.
                   </div>
                 </div>
               )}
@@ -1002,7 +998,8 @@ function CuratedListsSection() {
     return (
       normalizeSearchText(p.title).includes(q) ||
       normalizeSearchText(p.playwright).includes(q) ||
-      normalizeSearchText(p.company).includes(q)
+      normalizeSearchText(p.company).includes(q) ||
+      (p.cast || []).some(c => normalizeSearchText(c).includes(q))
     );
   });
 

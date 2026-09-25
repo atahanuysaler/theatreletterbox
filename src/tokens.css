@@ -1,0 +1,77 @@
+/* ==========================================================================
+   TİYATRONOT — Design Tokens (v1 · 25.09.2026)
+   Kaynak: Claude ile hazırlanan prototip. Tüm renk/ölçü kararları buradan okunur.
+   ========================================================================== */
+
+:root {
+  /* ---- Marka ---- */
+  --tn-red: #BA1B23;            /* birincil eylem, marka noktası, aktif durum */
+  --tn-ink: #1C1A1B;            /* ana metin, koyu bloklar, ikincil buton */
+  --tn-white: #FFFFFF;
+
+  /* ---- Zeminler / yüzeyler ---- */
+  --tn-page: #E9E4DC;           /* masaüstü dış zemin (beyaz konteynerin arkası) */
+  --tn-surface: #F1EDE7;        /* arama, haplar, günlük bloğu, form alanları */
+  --tn-card: #F6F3EE;           /* katalog kartı zemini */
+  --tn-ticket: #FFFCF7;         /* bilet kağıdı */
+  --tn-line: #E2DCD4;           /* ince kenarlık (filtre butonları) */
+  --tn-line-strong: #D8D2CA;    /* bilet kesik çizgisi, pasif yıldız, kapalı switch */
+
+  /* ---- Pastel blok renkleri ---- */
+  --tn-blush: #F4D3CE;
+  --tn-sage: #D6E0D3;
+  --tn-sand: #F1E3C4;
+  --tn-sand-light: #FAF1DD;
+  --tn-lilac: #D9CFF2;
+  --tn-lilac-strong: #CFC3F1;   /* SEN DE YAZ zemini */
+  --tn-lilac-stripe: #C0B2EA;   /* SEN DE YAZ çizgileri */
+  --tn-ochre: #E4B33A;          /* Ayakta Alkış rozeti, hashtag */
+
+  /* ---- Görsel yer tutucu tonları (afiş gelene kadar) ---- */
+  --tn-ph-1: #DDD5CB; --tn-ph-2: #D6E0D3; --tn-ph-3: #F4D3CE;
+  --tn-ph-4: #E7DFC9; --tn-ph-5: #D9CFF2; --tn-ph-6: #E3DDD6; --tn-ph-dark: #2B2927;
+
+  /* ---- Metin ---- */
+  --tn-text: #1C1A1B;
+  --tn-text-2: #4A4541;         /* pastel üstünde ikincil metin */
+  --tn-text-3: #5E5852;         /* açıklama */
+  --tn-text-muted: #6E6862;     /* etiket, alt başlık */
+  --tn-text-faint: #9A928A;     /* pasif ipucu */
+  --tn-text-on-dark-muted: #B8B0A8;
+  --tn-text-on-blush: #6B4A45;
+  --tn-text-on-sage: #3F4A3C;
+
+  /* ---- Tipografi ---- */
+  --tn-font: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --tn-w-regular: 400; --tn-w-semibold: 600; --tn-w-bold: 800;
+
+  /* ---- Aralık ---- */
+  --tn-gutter: 6px;             /* TÜM bloklar arası boşluk — değişmez kural */
+  --tn-page-pad-desktop: 10px;  /* dış çerçeve */
+  --tn-container-pad: 18px 16px 16px;
+  --tn-page-pad-mobile: 8px;
+  --tn-block-pad: 22px;         /* masaüstü blok iç boşluk (20–26 aralığı) */
+  --tn-block-pad-mobile: 18px;
+  --tn-section-gap: 18px;       /* büyük bölümler arası (katalog, benzerler) */
+
+  /* ---- Köşe yarıçapı ---- */
+  --tn-r-container: 22px;
+  --tn-r-block: 16px;           /* bento blokları + blok içi fotoğraf alanı */
+  --tn-r-inner: 14px;           /* blok içindeki kartlar (bilet, bulmaca) */
+  --tn-r-control: 12px;         /* buton, filtre, input */
+  --tn-r-small: 10px;
+  --tn-r-pill: 999px;
+
+  /* ---- Gölge (çok az kullanılır) ---- */
+  --tn-shadow-seg: 0 1px 3px rgba(28,26,27,.14);
+  --tn-shadow-ticket: 0 1px 2px rgba(28,26,27,.06), 0 8px 22px rgba(28,26,27,.07);
+  --tn-shadow-float: 0 2px 8px rgba(28,26,27,.12);
+  --tn-shadow-bar: 0 4px 24px rgba(28,26,27,.16), 0 0 0 1px rgba(28,26,27,.05);
+  --tn-shadow-drawer: 0 20px 60px rgba(28,26,27,.25);
+  --tn-scrim: rgba(28,26,27,.38);
+
+  /* ---- Diğer ---- */
+  --tn-touch: 44px;             /* minimum dokunma hedefi */
+  --tn-stripe-lilac: repeating-linear-gradient(0deg, #CFC3F1 0 26px, #C0B2EA 26px 28px);
+  --tn-barcode: repeating-linear-gradient(90deg, #1C1A1B 0 2px, transparent 2px 4px, #1C1A1B 4px 5px, transparent 5px 8px, #1C1A1B 8px 11px, transparent 11px 13px);
+}

@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Tiyatronot — Oyun Detay</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,800;1,6..72,400;1,6..72,600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E9E4DC;font-family:'Newsreader',Georgia,serif;color:#1C1A1B;-webkit-font-smoothing:antialiased}
+a{color:#1C1A1B}a:hover{color:#BA1B23}
+</style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 2560px; box-sizing: border-box; padding: 10px; background: #E9E4DC; font-family: 'Newsreader', Georgia, serif; color: #1C1A1B">
+<div style="height: 100%; box-sizing: border-box; background: #FFFFFF; border-radius: 22px; padding: 18px 16px 16px; display: flex; flex-direction: column; gap: 6px">
+
+  <!-- HEADER -->
+  <header style="display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 4px 6px 14px">
+    <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0"><button type="button" aria-label="Menüyü aç" aria-expanded="{{menuExpanded}}" onClick="{{openMenu}}" style="flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; border: none; background: #F1EDE7; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1C1A1B" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button><a href="Main.dc.html" style="display: flex; align-items: baseline; gap: 10px; text-decoration: none; color: #1C1A1B; width: 461px; height: 32px">
+      <span style="font-weight: 800; font-size: 30px; letter-spacing: -0.5px; line-height: 1">TİYATRO<span style="color: {{brand}}">·</span>NOT</span>
+      <span style="font-style: italic; font-size: 15px; color: #6E6862; white-space: nowrap">dijital oyun günlüğü</span>
+    </a></div>
+    
+    <div style="display: flex; justify-content: flex-end; gap: 6px; align-items: center; flex-shrink: 0">
+      <button type="button" aria-label="Karanlık görünüm" style="width: 44px; height: 44px; border-radius: 50%; background: #F1EDE7; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1C1A1B" stroke-width="1.8"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg></button>
+      <a href="#" style="height: 44px; padding: 0 16px; box-sizing: border-box; display: flex; align-items: center; border-radius: 999px; background: #F1EDE7; font-size: 15px; text-decoration: none; white-space: nowrap">Oyun Ekle</a>
+      <a href="#" style="height: 44px; padding: 0 16px; box-sizing: border-box; display: flex; align-items: center; border-radius: 999px; background: #F1EDE7; font-size: 15px; text-decoration: none; white-space: nowrap">Giriş Yap</a>
+      <a href="#gunluk" style="height: 44px; padding: 0 18px; box-sizing: border-box; display: flex; align-items: center; border-radius: 999px; background: {{brand}}; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; white-space: nowrap">Not Ekle</a>
+    </div>
+  </header>
+
+  <!-- BREADCRUMB -->
+  <nav aria-label="Konum" style="display: flex; align-items: center; gap: 10px; font-size: 16px; color: #6E6862; padding: 0 0 8px">
+    <a href="Main.dc.html" style="height: 36px; padding: 0 14px 0 10px; display: flex; align-items: center; gap: 6px; border-radius: 999px; background: #F1EDE7; text-decoration: none; color: #1C1A1B; font-weight: 600"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg>Katalog</a>
+    <span style="font-style: italic">Trajedi &amp; Dram</span><span>›</span><span style="color: #1C1A1B; font-weight: 600">Satıcının Ölümü</span>
+  </nav>
+
+  <!-- HERO -->
+  <section style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: 660px; gap: 6px">
+    <div style="border-radius: 16px; background: #DDD5CB; display: flex; flex-direction: column; justify-content: space-between; padding: 16px; box-sizing: border-box">
+      <span style="align-self: flex-end; height: 28px; padding: 0 11px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.85); font-size: 14px; font-weight: 600">★ 5.0</span>
+      <span style="align-self: center; font-style: italic; font-size: 15px; color: #5E5852">Afiş · Satıcının Ölümü</span>
+      <span></span>
+    </div>
+
+    <article style="border-radius: 16px; background: {{brand}}; color: #FFFFFF; padding: 26px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between">
+      <div style="display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; gap: 6px">
+          <span style="height: 26px; padding: 0 11px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.75); border-radius: 999px; font-size: 13px; font-style: italic">Ayakta Alkış</span>
+          <span style="height: 26px; padding: 0 11px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.75); border-radius: 999px; font-size: 13px; font-weight: 600; letter-spacing: 0.4px">TRAJEDİ &amp; DRAM</span>
+          <span style="height: 26px; padding: 0 11px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.75); border-radius: 999px; font-size: 13px">2026</span>
+        </div>
+        <div>
+          <h1 style="margin: 0; font-weight: 800; font-size: 80px; line-height: 0.9; letter-spacing: -2px">Satıcının Ölümü</h1>
+          <div style="font-style: italic; font-size: 34px; line-height: 1.2; margin-top: 8px">Arthur Miller</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.13)">
+          <span style="font-weight: 800; font-size: 60px; line-height: 0.9">5.0</span>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 18px; letter-spacing: 2px">★★★★★</span>
+            <span style="font-size: 15px; font-style: italic; opacity: 0.9">1 seyirci notu</span>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <a href="#gunluk" style="height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: #FFFFFF; color: #1C1A1B; font-size: 17px; font-weight: 600; text-decoration: none">Bu Oyuna Not Ekle</a>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+          <button type="button" onClick="{{toggleSeen}}" style="height: 44px; border-radius: 12px; background: {{seenBg}}; color: {{seenFg}}; border: none; font-family: 'Newsreader', Georgia, serif; font-size: 15px; cursor: pointer">{{seenLabel}}</button>
+          <button type="button" onClick="{{toggleList}}" style="height: 44px; border-radius: 12px; background: {{listBg}}; color: {{listFg}}; border: none; font-family: 'Newsreader', Georgia, serif; font-size: 15px; cursor: pointer">{{listLabel}}</button>
+          <button type="button" style="height: 44px; border-radius: 12px; background: rgba(255,255,255,0.14); color: #FFFFFF; border: none; font-family: 'Newsreader', Georgia, serif; font-size: 15px; cursor: pointer">Paylaş</button>
+        </div>
+      </div>
+    </article>
+
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <section style="flex-grow: 1; border-radius: 16px; background: #F1EDE7; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span style="font-size: 12px; font-weight: 800; letter-spacing: 1px">KONU</span>
+          <p style="margin: 0; font-size: 21px; line-height: 1.3">Arthur Miller’ın Pulitzer ve Tony ödüllü başyapıtı, <span style="font-style: italic">hayaller, başarı arzusu ve aile bağları</span> üzerine kurulu zamansız hikâyesiyle Rönesans’ın katkılarıyla Zorlu PSM prodüksiyonu olarak sahnede. Amerikan Rüyası’nın ardındaki kırılgan gerçekler, <span style="font-weight: 600">Willy Loman</span>’ın umutları ve hayal kırıklıkları üzerinden anlatılıyor.</p>
+        </div>
+        <a href="#" style="align-self: flex-start; font-size: 16px; font-weight: 600; font-style: italic; color: {{brand}}; text-decoration: none">Devamını oku →</a>
+      </section>
+      <section style="border-radius: 16px; background: #F4D3CE; padding: 20px 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px">
+        <span style="font-size: 12px; font-weight: 800; letter-spacing: 1px">TİYATRO KÜNYESİ</span>
+        <dl style="margin: 0; display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 7px 12px; font-size: 17px">
+          <dt style="font-style: italic; color: #6B4A45">Yazar</dt><dd style="margin: 0; font-weight: 600">Arthur Miller</dd>
+          <dt style="font-style: italic; color: #6B4A45">Yönetmen</dt><dd style="margin: 0; font-weight: 600">Rufus Norris</dd>
+          <dt style="font-style: italic; color: #6B4A45">Topluluk</dt><dd style="margin: 0; font-weight: 600"><a href="#">Zorlu PSM</a></dd>
+          <dt style="font-style: italic; color: #6B4A45">Süre</dt><dd style="margin: 0; font-weight: 600">90 dakika</dd>
+        </dl>
+      </section>
+    </div>
+  </section>
+
+  <!-- TEAM + CAST -->
+  <section style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+    <article style="border-radius: 16px; background: #D6E0D3; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-weight: 400; font-size: 34px; line-height: 1">Yaratıcı <span style="font-weight: 800">Ekip</span></h2>
+      <sc-for list="{{team}}" as="m" hint-placeholder-count="6">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 8px; border-bottom: 1px solid rgba(28,26,27,0.18); font-size: 17px">
+          <span style="font-style: italic; color: #3F4A3C">{{m.role}}</span><span style="font-weight: 600">{{m.name}}</span>
+        </div>
+      </sc-for>
+      <span style="margin-top: auto; font-size: 13px; font-style: italic; color: #3F4A3C">Tanıtım metninden derlendi.</span>
+    </article>
+
+    <article style="grid-column: span 2; border-radius: 16px; background: #1C1A1B; color: #FFFFFF; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <h2 style="margin: 0; font-weight: 400; font-size: 34px; line-height: 1">Oyuncu <span style="font-weight: 800">Kadrosu</span> <span style="font-style: italic; color: #B8B0A8">(26)</span></h2>
+        <span style="font-size: 15px; font-style: italic; color: #B8B0A8">#Trajedi &amp; Dram · #Zorlu PSM</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+        <a href="#" style="grid-column: span 1; border-radius: 12px; background: {{brand}}; padding: 14px 16px; text-decoration: none; color: #FFFFFF; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 13px; font-style: italic; opacity: 0.9">Willy Loman</span>
+          <span style="font-weight: 800; font-size: 26px; line-height: 1">Halit Ergenç</span>
+        </a>
+        <a href="#" style="border-radius: 12px; background: rgba(255,255,255,0.08); padding: 14px 16px; text-decoration: none; color: #FFFFFF; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 13px; font-style: italic; color: #B8B0A8">[ROL]</span>
+          <span style="font-weight: 800; font-size: 26px; line-height: 1">Zerrin Tekindor</span>
+        </a>
+        <a href="#" style="border-radius: 12px; background: rgba(255,255,255,0.08); padding: 14px 16px; text-decoration: none; color: #FFFFFF; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 13px; font-style: italic; color: #B8B0A8">[ROL]</span>
+          <span style="font-weight: 800; font-size: 26px; line-height: 1">Fatih Artman</span>
+        </a>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px">
+        <sc-for list="{{cast}}" as="c" hint-placeholder-count="23">
+          <a href="#" style="height: 34px; padding: 0 13px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.08); color: #FFFFFF; font-size: 16px; text-decoration: none">{{c}}</a>
+        </sc-for>
+      </div>
+    </article>
+  </section>
+
+  <!-- SEYİRCİ GÜNLÜĞÜ -->
+  <section id="gunluk" style="border-radius: 16px; background: #F1EDE7; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; margin-top: 0">
+    <div style="display: flex; justify-content: space-between; align-items: end">
+      <div>
+        <span style="font-size: 12px; font-weight: 800; letter-spacing: 1px">SEYİRCİ GÜNLÜĞÜ</span>
+        <h2 style="margin: 4px 0 0; font-weight: 400; font-size: 48px; line-height: 1">Bu oyunun <span style="font-weight: 800">biletleri</span> <span style="font-style: italic">&amp; notları</span></h2>
+      </div>
+      <div style="display: flex; gap: 3px; padding: 3px; border-radius: 999px; background: #FFFFFF">
+        <button type="button" style="height: 34px; padding: 0 14px; border-radius: 999px; border: none; background: #1C1A1B; color: #FFFFFF; font-family: 'Newsreader', Georgia, serif; font-size: 14px; cursor: pointer">En yeni</button>
+        <button type="button" style="height: 34px; padding: 0 14px; border-radius: 999px; border: none; background: transparent; font-family: 'Newsreader', Georgia, serif; font-size: 14px; cursor: pointer">En yüksek puan</button>
+        <button type="button" style="height: 34px; padding: 0 14px; border-radius: 999px; border: none; background: transparent; font-family: 'Newsreader', Georgia, serif; font-size: 14px; cursor: pointer">Spoiler’sız</button>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: 560px; gap: 6px">
+      <!-- summary -->
+      <div style="border-radius: 14px; background: #FFFFFF; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-style: italic; font-size: 17px; color: #6E6862">Seyirci ortalaması</span>
+          <span style="font-weight: 800; font-size: 120px; line-height: 0.85; letter-spacing: -3px">5.0</span>
+          <span style="font-size: 22px; letter-spacing: 3px; color: {{brand}}">★★★★★</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 17px">
+          <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid #E2DCD4"><span style="font-style: italic">Temsil notu</span><span style="font-weight: 800">1</span></div>
+          <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid #E2DCD4"><span style="font-style: italic">Katalogdaki puan</span><span style="font-weight: 800">5.0 · 1 not</span></div>
+          <div style="display: flex; justify-content: space-between"><span style="font-style: italic">Rozet</span><span style="height: 26px; padding: 0 11px; display: flex; align-items: center; border-radius: 999px; background: #E4B33A; font-size: 14px; font-weight: 600">Ayakta Alkış</span></div>
+        </div>
+      </div>
+
+      <!-- real ticket -->
+      <article style="border-radius: 14px; background: #FFFCF7; box-shadow: 0 1px 2px rgba(28,26,27,0.06), 0 8px 22px rgba(28,26,27,0.07); display: flex; flex-direction: column; overflow: hidden">
+        <div style="padding: 20px 22px 16px; display: flex; flex-direction: column; gap: 8px; text-align: center; align-items: center">
+          <span style="font-size: 12px; font-weight: 600; letter-spacing: 1px; color: #6E6862">BİLET NO · IST-TN-2026-MN8A</span>
+          <span style="font-weight: 800; font-size: 17px; letter-spacing: 1.5px">★ AKŞAM SUARESİ ★</span>
+          <span style="font-style: italic; font-size: 17px">Zorlu PSM · 10.09.2026</span>
+          <div style="width: 70%; height: 34px; background-image: repeating-linear-gradient(90deg, #1C1A1B 0 2px, transparent 2px 4px, #1C1A1B 4px 5px, transparent 5px 8px, #1C1A1B 8px 11px, transparent 11px 13px)"></div>
+          <span style="font-size: 12px; font-weight: 800; letter-spacing: 1px; color: {{brand}}; border: 1.5px solid {{brand}}; border-radius: 8px; padding: 4px 8px; transform: rotate(-4deg)">GİRİŞ ONAYLI</span>
+        </div>
+        <div style="border-top: 2px dashed #D8D2CA; margin: 0 14px"></div>
+        <div style="flex-grow: 1; padding: 16px 22px 20px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span style="display: flex; align-items: center; gap: 10px"><span style="width: 36px; height: 36px; border-radius: 50%; background: #1C1A1B; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px">AU</span><span style="display: flex; flex-direction: column"><span style="font-weight: 800; font-size: 17px; line-height: 1.1">Atahan Uysaler</span><span style="font-style: italic; font-size: 14px; color: #6E6862">Seyirci Günlüğü</span></span></span>
+            <span style="text-align: right"><span style="font-weight: 800; font-size: 26px">5.0</span><span style="font-style: italic; font-size: 14px"> / 5.0</span><br><span style="font-size: 13px; font-weight: 600">Ayakta Alkış</span></span>
+          </div>
+          <p style="margin: 0; font-style: italic; font-size: 24px; line-height: 1.25">“gozlerimi arda ergulden alamadim maalesef..”</p>
+          <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 14px">
+            <span style="font-style: italic; color: #6E6862">Kayıt: 10.09.2026</span>
+            <a href="#" style="height: 36px; padding: 0 14px; display: flex; align-items: center; border-radius: 999px; background: #F1EDE7; font-weight: 600; text-decoration: none">Bileti Paylaş</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- SEN DE YAZ / composer -->
+      <sc-if value="{{notComposing}}" hint-placeholder-val="{{true}}">
+        <div style="border-radius: 14px; background: #CFC3F1; background-image: repeating-linear-gradient(0deg, #CFC3F1 0 26px, #C0B2EA 26px 28px); display: flex; align-items: center; justify-content: center; padding: 18px; box-sizing: border-box">
+          <button type="button" onClick="{{startCompose}}" style="width: 100%; height: 300px; border: 2px solid #1C1A1B; border-radius: 50%; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: pointer; font-family: 'Newsreader', Georgia, serif; color: #1C1A1B">
+            <span style="font-weight: 800; font-size: 60px; line-height: 0.9; letter-spacing: -1px; white-space: pre-line">SEN DE
+YAZ</span>
+            <span style="font-style: italic; font-size: 18px; text-decoration: underline; text-underline-offset: 4px">Biletini kes, notunu bırak</span>
+          </button>
+        </div>
+      </sc-if>
+      <sc-if value="{{composing}}" hint-placeholder-val="{{false}}">
+        <form style="border-radius: 14px; background: #FFFCF7; border: 2px solid #CFC3F1; padding: 18px 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 1px; color: #6E6862">YENİ BİLET · SATICININ ÖLÜMÜ</span>
+            <button type="button" onClick="{{stopCompose}}" style="height: 32px; padding: 0 12px; border-radius: 999px; border: none; background: #F1EDE7; font-family: 'Newsreader', Georgia, serif; font-size: 14px; cursor: pointer">Vazgeç</button>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-style: italic; color: #6E6862">Temsil tarihi<input type="date" style="height: 40px; border: none; border-radius: 10px; background: #F1EDE7; font-family: 'Newsreader', Georgia, serif; font-size: 15px; padding: 0 10px; color: #1C1A1B"></label>
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-style: italic; color: #6E6862">Sahne<input type="text" value="Zorlu PSM" style="height: 40px; border: none; border-radius: 10px; background: #F1EDE7; font-family: 'Newsreader', Georgia, serif; font-size: 15px; padding: 0 10px; color: #1C1A1B"></label>
+          </div>
+          <div style="display: flex; align-items: center; gap: 2px">
+            <sc-for list="{{stars}}" as="s" hint-placeholder-count="5">
+              <button type="button" aria-label="{{s.label}}" onClick="{{s.pick}}" style="width: 44px; height: 44px; border: none; background: transparent; padding: 0; font-size: 30px; line-height: 1; color: {{s.color}}; cursor: pointer">★</button>
+            </sc-for>
+            <span style="font-weight: 800; font-size: 24px; margin-left: 8px">{{ratingText}}</span>
+          </div>
+          <div role="radiogroup" aria-label="Koltuk görüşü" style="display: flex; gap: 3px; padding: 3px; border-radius: 12px; background: #F1EDE7">
+            <sc-for list="{{seats}}" as="o" hint-placeholder-count="3">
+              <button type="button" role="radio" aria-checked="{{o.on}}" onClick="{{o.pick}}" style="flex-grow: 1; height: 36px; border: none; border-radius: 10px; background: {{o.bg}}; box-shadow: {{o.shadow}}; font-family: 'Newsreader', Georgia, serif; font-size: 14px; color: #1C1A1B; cursor: pointer">{{o.label}}</button>
+            </sc-for>
+          </div>
+          <label for="nt" style="position: absolute; left: -9999px">İzlenimlerin</label>
+          <textarea id="nt" placeholder="Sahne deneyimin, koltuk görüşün, izlenimlerin…" style="flex-grow: 1; min-height: 90px; border: none; border-radius: 12px; background: #F1EDE7; font-family: 'Newsreader', Georgia, serif; font-style: italic; font-size: 17px; padding: 12px; resize: none; color: #1C1A1B"></textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <button type="button" role="switch" aria-checked="{{spoilerOn}}" onClick="{{toggleSpoiler}}" style="display: flex; align-items: center; gap: 8px; height: 44px; border: none; background: transparent; padding: 0; font-family: 'Newsreader', Georgia, serif; font-size: 15px; color: #1C1A1B; cursor: pointer">
+              <span style="width: 42px; height: 24px; border-radius: 999px; background: {{switchBg}}; display: flex; align-items: center; padding: 3px; box-sizing: border-box; justify-content: {{switchJustify}}"><span style="width: 18px; height: 18px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.25)"></span></span>
+              Spoiler içeriyor
+            </button>
+            <button type="button" style="height: 44px; padding: 0 20px; border-radius: 12px; background: {{brand}}; color: #FFFFFF; border: none; font-family: 'Newsreader', Georgia, serif; font-size: 16px; font-weight: 600; cursor: pointer">Bileti Kaydet</button>
+          </div>
+        </form>
+      </sc-if>
+    </div>
+  </section>
+
+  <!-- SIMILAR -->
+  <section style="display: flex; flex-direction: column; gap: 6px; margin-top: 12px">
+    <div style="display: flex; justify-content: space-between; align-items: end; padding: 0 6px 8px">
+      <h2 style="margin: 0; font-weight: 400; font-size: 40px; line-height: 1">Aynı türden, <span style="font-weight: 800">en yüksek puanlılar</span></h2>
+      <a href="Main.dc.html" style="font-size: 16px; font-style: italic; font-weight: 600; color: {{brand}}; text-decoration: none">#Trajedi &amp; Dram kataloğu →</a>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+      <sc-for list="{{similar}}" as="c" hint-placeholder-count="4">
+        <a href="#" style="display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; padding: 6px; border-radius: 16px; background: #F6F3EE; text-decoration: none; color: #1C1A1B">
+          <div style="height: 150px; border-radius: 12px; background: {{c.bg}}; display: flex; align-items: flex-start; justify-content: flex-end; padding: 6px; box-sizing: border-box">
+            <span style="height: 22px; padding: 0 8px; display: flex; align-items: center; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 12px; font-weight: 600">★ {{c.score}}</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 3px; padding: 6px 6px 6px 0">
+            <span style="font-weight: 800; font-size: 21px; line-height: 1">{{c.title}}</span>
+            <span style="font-style: italic; font-size: 15px">{{c.author}}</span>
+            <span style="font-size: 14px; color: #5E5852">{{c.company}}</span>
+            <span style="margin-top: auto; font-size: 11px; font-weight: 600; letter-spacing: 0.3px; color: {{brand}}">{{c.genre}} · {{c.year}}</span>
+          </div>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="margin-top: auto; border-radius: 16px; background: #1C1A1B; color: #FFFFFF; padding: 30px 28px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; min-height: 200px; box-sizing: border-box">
+    <div style="display: flex; flex-direction: column; justify-content: space-between">
+      <span style="font-style: italic; font-size: 16px; color: #B8B0A8">Dijital tiyatro günlüğü &amp; topluluğu</span>
+      <span style="font-weight: 800; font-size: 50px; line-height: 1; letter-spacing: -1px">TİYATRO<span style="color: {{brand}}">·</span>NOT</span>
+    </div>
+    <nav aria-label="Alt menü" style="display: flex; flex-direction: column; gap: 6px; font-size: 16px">
+      <a href="Main.dc.html" style="color: #FFFFFF; text-decoration: none">Katalog</a>
+      <a href="#" style="color: #FFFFFF; text-decoration: none">Küratörlü Listeler</a>
+      <a href="#" style="color: #FFFFFF; text-decoration: none">Bulmacalar</a>
+      <a href="#" style="color: #FFFFFF; text-decoration: none">Sahne Liderleri</a>
+      <a href="#" style="color: #FFFFFF; text-decoration: none">Yeni Oyun Öner / Ekle</a>
+    </nav>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <label for="nl5" style="font-size: 16px; font-style: italic">Haftanın sahnelerini e-postana gönderelim</label>
+      <div style="display: flex; gap: 6px; padding: 5px 5px 5px 16px; border-radius: 14px; background: rgba(255,255,255,0.08)">
+        <input id="nl5" type="email" placeholder="E-posta" style="flex-grow: 1; height: 44px; background: transparent; border: none; color: #FFFFFF; font-family: 'Newsreader', Georgia, serif; font-size: 16px; padding: 0">
+        <button type="button" style="height: 44px; padding: 0 18px; border-radius: 10px; background: #FFFFFF; color: #1C1A1B; border: none; font-family: 'Newsreader', Georgia, serif; font-size: 15px; font-weight: 600; cursor: pointer">Abone ol</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+  <!-- SIDE MENU -->
+  <sc-if value="{{menuOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 50">
+      <button type="button" aria-label="Menüyü kapat" onClick="{{closeMenu}}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; padding: 0; background: rgba(28,26,27,0.38); cursor: pointer"></button>
+      <aside aria-label="Yan menü" style="position: absolute; top: 8px; left: 8px; width: 380px; height: 880px; box-sizing: border-box; border-radius: 20px; background: #FFFFFF; box-shadow: 0 20px 60px rgba(28,26,27,0.25); padding: 16px; display: flex; flex-direction: column; gap: 6px; font-family: 'Newsreader', Georgia, serif">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 2px 2px 14px">
+          <span style="display: flex; flex-direction: column"><span style="font-weight: 800; font-size: 26px; letter-spacing: -0.4px; line-height: 1">TİYATRO<span style="color: {{brand}}">·</span>NOT</span><span style="font-style: italic; font-size: 14px; color: #6E6862">dijital oyun günlüğü</span></span>
+          <button type="button" aria-label="Menüyü kapat" onClick="{{closeMenu}}" style="width: 44px; height: 44px; border-radius: 50%; border: none; background: #F1EDE7; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1C1A1B" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+        </div>
+        <nav aria-label="Yan menü bağlantıları" style="display: flex; flex-direction: column; gap: 2px">
+        <a href="Main.dc.html" style="height: 48px; padding: 0 14px; display: flex; align-items: center; border-radius: 12px; background: #F1EDE7; font-size: 20px; font-weight: 800; text-decoration: none; color: #1C1A1B">Katalog</a>
+        <a href="#" style="height: 48px; padding: 0 14px; display: flex; align-items: center; border-radius: 12px; background: transparent; font-size: 20px; font-weight: 400; text-decoration: none; color: #1C1A1B">İzlediklerim</a>
+        <a href="#" style="height: 48px; padding: 0 14px; display: flex; align-items: center; border-radius: 12px; background: transparent; font-size: 20px; font-weight: 400; text-decoration: none; color: #1C1A1B">İzlemek İstediklerim</a>
+        <a href="#" style="height: 48px; padding: 0 14px; display: flex; align-items: center; border-radius: 12px; background: transparent; font-size: 20px; font-weight: 400; text-decoration: none; color: #1C1A1B">Küratörlü Listeler</a>
+        <a href="#" style="height: 48px; padding: 0 14px; display: flex; align-items: center; border-radius: 12px; background: transparent; font-size: 20px; font-weight: 400; text-decoration: none; color: #1C1A1B">Bulmacalar <span style="margin-left: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: {{brand}}">YENİ</span></a>
+        <a href="#" style="height: 48px; padding: 0 14px; display: flex; align-items: center; border-radius: 12px; background: transparent; font-size: 20px; font-weight: 400; text-decoration: none; color: #1C1A1B">Sahne Liderleri</a>
+        <a href="#" style="height: 48px; padding: 0 14px; display: flex; align-items: center; border-radius: 12px; background: transparent; font-size: 20px; font-weight: 400; text-decoration: none; color: #1C1A1B">Yeni Oyun Öner / Ekle</a>
+        </nav>
+        <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding-top: 14px; border-top: 1px solid #E2DCD4">
+          <button type="button" role="switch" aria-checked="{{darkOn}}" onClick="{{toggleDark}}" style="height: 44px; display: flex; justify-content: space-between; align-items: center; border: none; background: transparent; padding: 0 4px; font-family: 'Newsreader', Georgia, serif; font-size: 17px; color: #1C1A1B; cursor: pointer">
+            <span><span style="font-style: italic; color: #6E6862">Görünüm:</span> <span style="font-weight: 600">Karanlık</span></span>
+            <span style="width: 44px; height: 26px; border-radius: 999px; background: {{darkBg}}; display: flex; align-items: center; padding: 3px; box-sizing: border-box; justify-content: {{darkJustify}}"><span style="width: 20px; height: 20px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.25)"></span></span>
+          </button>
+          <span style="font-style: italic; font-size: 15px; color: #6E6862; padding: 0 4px">Dijital Tiyatro Günlüğü &amp; Topluluğu</span>
+          <a href="#" style="height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: {{brand}}; color: #FFFFFF; font-size: 17px; font-weight: 600; text-decoration: none">Giriş Yap</a>
+        </div>
+      </aside>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"brand":{"editor":"color","default":"#BA1B23","options":["#BA1B23","#8E1B3A","#C2410C","#1F3A8A"]},"$preview":{"width":1440,"height":2560}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { menuOpen: false, dark: false, rating: 0, seen: false, listed: false, seat: 'İyi', spoiler: false, composing: false };
+  }
+  renderVals() {
+    const brand = this.props.brand ?? '#BA1B23';
+    const s = this.state;
+    return {
+      menuOpen: this.state.menuOpen,
+      menuExpanded: this.state.menuOpen ? 'true' : 'false',
+      openMenu: () => this.setState({ menuOpen: true }),
+      closeMenu: () => this.setState({ menuOpen: false }),
+      darkOn: this.state.dark ? 'true' : 'false',
+      darkBg: this.state.dark ? (this.props.brand ?? '#BA1B23') : '#D8D2CA',
+      darkJustify: this.state.dark ? 'flex-end' : 'flex-start',
+      toggleDark: () => this.setState({ dark: !this.state.dark }),
+      brand,
+      composing: s.composing,
+      notComposing: !s.composing,
+      startCompose: () => this.setState({ composing: true }),
+      stopCompose: () => this.setState({ composing: false }),
+      stars: [1, 2, 3, 4, 5].map((n) => ({ label: n + ' yıldız', color: n <= s.rating ? brand : '#D8D2CA', pick: () => this.setState({ rating: n }) })),
+      ratingText: s.rating ? s.rating + '.0' : '—',
+      seats: ['Kusursuz', 'İyi', 'Kısıtlı'].map((l) => ({ label: l, on: s.seat === l ? 'true' : 'false', bg: s.seat === l ? '#FFFFFF' : 'transparent', shadow: s.seat === l ? '0 1px 3px rgba(28,26,27,0.15)' : 'none', pick: () => this.setState({ seat: l }) })),
+      spoilerOn: s.spoiler ? 'true' : 'false',
+      switchBg: s.spoiler ? brand : '#D8D2CA',
+      switchJustify: s.spoiler ? 'flex-end' : 'flex-start',
+      toggleSpoiler: () => this.setState({ spoiler: !s.spoiler }),
+      seenLabel: s.seen ? '✓ İzledim' : 'İzledim',
+      seenBg: s.seen ? '#FFFFFF' : 'rgba(255,255,255,0.14)',
+      seenFg: s.seen ? '#1C1A1B' : '#FFFFFF',
+      toggleSeen: () => this.setState({ seen: !s.seen }),
+      listLabel: s.listed ? '✓ Listemde' : 'Listeme Ekle',
+      listBg: s.listed ? '#FFFFFF' : 'rgba(255,255,255,0.14)',
+      listFg: s.listed ? '#1C1A1B' : '#FFFFFF',
+      toggleList: () => this.setState({ listed: !s.listed }),
+      team: [
+        { role: 'Sahne tasarımı', name: 'Es Devlin' },
+        { role: 'Kostüm tasarımı', name: 'Katrina Lindsay' },
+        { role: 'Işık tasarımı', name: 'Oliver Fenwick' },
+        { role: 'Müzik', name: 'Oğuz Kaplangı' },
+        { role: 'Ses tasarımı', name: 'Adam Cork' },
+        { role: 'Koreografi', name: 'Javier de Frutos' }
+      ],
+      cast: ['Kerem Arslanoğlu','Kubilay Karslıoğlu','Beyti Engin','Alize Edizyürek','Buse Kara','Defne Koldaş','İpek Türktan','Mert Aydın','Ömer Cem Çoltu','Talha Kaya','Ardel Biran','Atakan Büyükbaş','Can Çelik','Duygu Savaşçı','Fethi Arda Ergül','Gürdeniz Bursalı','Hakan Karaca','İsmail Keskin','Merve Tokgöz','Tuğçe Doygunel','Tufan Afşar','Ubey Gül','Yağmur Elif Seber'],
+      similar: [
+        { title: 'Dönme Dolap', author: 'Dilara Güzel', company: 'LEIT KOLEKTİF', genre: 'TRAJEDİ & DRAM / KOMEDİ', year: '2026', score: '5.0', bg: '#F4D3CE' },
+        { title: 'Gecede Yaşayanlar', author: 'Oğuzhan Özcan', company: 'Entrik Sahne', genre: 'TRAJEDİ & DRAM', year: '2025', score: '5.0', bg: '#D6E0D3' },
+        { title: 'Lusifer', author: 'Omid Darvishi', company: 'Tiyatro Mid', genre: 'TRAJEDİ & DRAM', year: '2026', score: '4.9', bg: '#D9CFF2' },
+        { title: 'Tut Elimden Rovni', author: 'Aziz Nesin', company: 'Pia.no:3', genre: 'TRAJEDİ & DRAM', year: '2026', score: '4.9', bg: '#E7DFC9' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

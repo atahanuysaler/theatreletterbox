@@ -5,10 +5,16 @@
  * - Diacritics ('ç'->'c', 'ğ'->'g', 'ö'->'o', 'ş'->'s', 'ü'->'u') match seamlessly
  * - Case-insensitive matching works reliably regardless of keyboard layout
  */
+const normCache = new Map<string, string>();
+const MAX_CACHE_SIZE = 10000;
+
 export function normalizeSearchText(text?: string | null): string {
   if (!text) return '';
-  return text
-    .toString()
+  const str = text.toString();
+  const cached = normCache.get(str);
+  if (cached !== undefined) return cached;
+
+  const result = str
     .replace(/İ/g, 'i')
     .replace(/I/g, 'i')
     .replace(/ı/g, 'i')
@@ -22,6 +28,11 @@ export function normalizeSearchText(text?: string | null): string {
     .replace(/ü/g, 'u')
     .toLowerCase()
     .trim();
+
+  if (normCache.size < MAX_CACHE_SIZE) {
+    normCache.set(str, result);
+  }
+  return result;
 }
 
 /**
