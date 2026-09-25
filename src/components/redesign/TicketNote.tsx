@@ -34,12 +34,15 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
           <span className="font-extrabold text-base tracking-widest text-tn-text">
             {sessionText}
           </span>
-          <span className="italic text-[15px] text-[#5E5852]">
+          <span className="italic text-[15px] text-tn-muted">
             {review.venue || 'Sahne Belirtilmemiş'} {review.performanceDate ? `· ${review.performanceDate}` : ''}
           </span>
 
           {/* Barcode Strip */}
-          <div className="w-[70%] h-8 my-1 bg-[repeating-linear-gradient(90deg,#1C1A1B_0_2px,transparent_2px_4px,#1C1A1B_4px_5px,transparent_5px_8px,#1C1A1B_8px_11px,transparent_11px_13px)] opacity-85" />
+          <div
+            className="w-[70%] h-8 my-1 opacity-85"
+            style={{ backgroundImage: 'var(--tn-barcode)' }}
+          />
 
           {/* Stamp */}
           <span className="text-xs font-extrabold tracking-wider text-tn-red border-1.5 border-tn-red rounded-lg px-2 py-0.5 -rotate-3 select-none">
@@ -48,7 +51,7 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
         </div>
 
         {/* Dashed perforation line */}
-        <div className="border-t-2 border-dashed border-[#D8D2CA] mx-3.5 my-1" />
+        <div className="border-t-2 border-dashed border-tn-line-strong mx-3.5 my-1" />
 
         {/* Bottom review body */}
         <div className="flex-grow p-5 pt-3 flex flex-col gap-3">
@@ -96,7 +99,7 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
               <button
                 type="button"
                 onClick={() => onShare(review)}
-                className="h-8 px-3 rounded-full bg-tn-surface text-tn-text font-semibold hover:bg-tn-border transition-colors cursor-pointer border-none text-xs"
+                className="h-8 px-3 rounded-full border border-tn-line bg-tn-surface text-tn-text font-semibold hover:bg-tn-line transition-colors cursor-pointer text-xs"
               >
                 Bileti Paylaş
               </button>
@@ -118,10 +121,10 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
         </div>
 
         <div>
-          <div className="font-extrabold text-2xl sm:text-[28px] leading-tight line-clamp-1">
+          <div className="font-extrabold text-2xl sm:text-[28px] leading-tight line-clamp-1 text-tn-text">
             {review.playTitle}
           </div>
-          <div className="text-xs sm:text-sm italic text-[#5E5852] truncate">
+          <div className="text-xs sm:text-sm italic text-tn-muted truncate">
             {review.venue || 'Sahne'} {review.performanceDate ? `· ${review.performanceDate}` : ''}
           </div>
         </div>
@@ -132,7 +135,7 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
 
         <div className="mt-auto flex justify-between items-center text-xs sm:text-[13px] pt-1">
           <span className="truncate max-w-[70%]">
-            <span className="font-semibold">{review.userName || 'Tiyatrosever'}</span>{' '}
+            <span className="font-semibold text-tn-text">{review.userName || 'Tiyatrosever'}</span>{' '}
             <span className="italic text-tn-muted hidden sm:inline">· Seyirci Günlüğü</span>
           </span>
           {onShare && (
@@ -148,13 +151,13 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
       </div>
 
       {/* Right stub perforation */}
-      <div className="border-l-2 border-dashed border-[#D8D2CA] dark:border-tn-line-strong p-3 flex flex-col justify-between items-center text-center bg-tn-surface">
+      <div className="border-l-2 border-dashed border-tn-line-strong p-3 flex flex-col justify-between items-center text-center bg-tn-surface">
         <span className="text-[10px] font-extrabold tracking-wider text-tn-red border-1.5 border-tn-red rounded-md px-1.5 py-0.5 -rotate-6 select-none whitespace-nowrap">
           GİRİŞ ONAYLI
         </span>
 
         <div>
-          <div className="font-extrabold text-2xl sm:text-[32px] leading-none">
+          <div className="font-extrabold text-2xl sm:text-[32px] leading-none text-tn-text">
             {ratingValue}
           </div>
           <div className="text-[11px] italic text-tn-muted">/ 5.0</div>
@@ -164,7 +167,10 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
         </div>
 
         {/* Small barcode */}
-        <div className="w-14 h-7 bg-[repeating-linear-gradient(90deg,#1C1A1B_0_2px,transparent_2px_4px,#1C1A1B_4px_5px,transparent_5px_8px)] opacity-80" />
+        <div
+          className="w-14 h-7 opacity-80"
+          style={{ backgroundImage: 'var(--tn-barcode)' }}
+        />
       </div>
     </article>
   );

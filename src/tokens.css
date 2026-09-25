@@ -85,8 +85,8 @@ html.dark,
 [data-theme='dark'] {
   /* ---- Marka ---- */
   --tn-red: #D62831;            /* koyu modda canlı, yüksek kontrastlı kırmızı */
-  --tn-ink: #FFFFFF;            /* koyu modda ana beyaz/açık renk */
-  --tn-white: #1C1A1B;
+  --tn-ink: #181617;            /* koyu modda derin kömür zemin rengi (beyaz DEĞİL!) */
+  --tn-white: #FFFFFF;
 
   /* ---- Zeminler / yüzeyler ---- */
   --tn-page: #121011;           /* masaüstü dış zemin */

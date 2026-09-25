@@ -277,10 +277,53 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
         </Link>
       </div>
 
-      {/* 2. Hero Section: Col 1 Editorial Red Card, Col 2 Synopsis & Kunye */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-1.5">
-        {/* Red Card */}
-        <article className="rounded-2xl bg-tn-red text-white p-6 sm:p-7 flex flex-col justify-between shadow-sm min-h-[500px]">
+      {/* 2. Hero Section: Col 1 Poster, Col 2 Editorial Red Card, Col 3 Synopsis & Kunye */}
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-1.5 items-stretch">
+        {/* Col 1: Poster Card */}
+        <div className="relative rounded-2xl overflow-hidden bg-tn-surface border border-tn-line/60 flex flex-col justify-between p-4 min-h-[460px] sm:min-h-[520px] lg:min-h-[580px] shadow-sm group">
+          {play.posterUrl ? (
+            <>
+              <img
+                src={play.posterUrl}
+                alt={play.title}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+              {/* Vignette gradients for readable overlays */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/35 pointer-events-none" />
+            </>
+          ) : (
+            <div className="absolute inset-0 bg-tn-surface flex flex-col items-center justify-center p-6 text-center">
+              <span className="text-5xl mb-2">🎭</span>
+              <span className="italic text-base text-tn-muted font-serif">Afiş · {play.title}</span>
+            </div>
+          )}
+
+          {/* Top badges over poster */}
+          <div className="relative z-10 flex justify-between items-center w-full">
+            <span className="h-7 px-3 flex items-center rounded-full bg-white/95 dark:bg-tn-card/95 text-tn-text text-xs font-bold shadow-md backdrop-blur-xs">
+              ★ {play.rating ? play.rating.toFixed(1) : '5.0'}
+            </span>
+            <span className="h-7 px-3 flex items-center rounded-full bg-tn-ochre text-[#1C1A1B] text-xs font-extrabold shadow-md">
+              Ayakta Alkış
+            </span>
+          </div>
+
+          {/* Bottom title & year caption on poster */}
+          <div className="relative z-10 flex flex-col gap-0.5 text-white drop-shadow-md">
+            <span className="text-xs uppercase tracking-wider font-semibold opacity-90">
+              {play.genre || 'Tiyatro'} {play.year ? `· ${play.year}` : ''}
+            </span>
+            <span className="font-extrabold text-xl leading-tight truncate">
+              {play.title}
+            </span>
+          </div>
+        </div>
+
+        {/* Col 2: Red Editorial Card */}
+        <article className="rounded-2xl bg-tn-red text-white p-6 sm:p-7 flex flex-col justify-between shadow-sm min-h-[460px] sm:min-h-[520px] lg:min-h-[580px]">
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-center">
               <span className="h-6.5 px-3 flex items-center border border-white/75 rounded-full text-xs font-semibold tracking-wider uppercase">
@@ -295,15 +338,15 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
             </div>
 
             <div>
-              <h1 className="m-0 font-extrabold text-4xl sm:text-5xl lg:text-[60px] leading-[0.92] tracking-tight">
+              <h1 className="m-0 font-extrabold text-3xl sm:text-4xl lg:text-[42px] xl:text-[48px] leading-[0.95] tracking-tight">
                 {play.title}
               </h1>
-              <div className="italic text-2xl sm:text-[28px] leading-tight mt-1 opacity-95">
+              <div className="italic text-xl sm:text-2xl leading-tight mt-1 opacity-95">
                 {play.playwright || 'Yazar belirtilmemiş'}
               </div>
             </div>
 
-            <p className="m-0 text-base sm:text-[17px] leading-snug opacity-90">
+            <p className="m-0 text-sm sm:text-base leading-snug opacity-90">
               {play.director ? `Yön. ${play.director}` : ''}
               {play.company ? ` · ${play.company}` : ''}
               {play.duration ? ` · ${play.duration} dk` : ''}
@@ -314,13 +357,13 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
             </p>
 
             {/* Big Rating Summary */}
-            <div className="flex items-center gap-4 p-3.5 sm:p-4 rounded-xl bg-white/13 backdrop-blur-xs mt-2">
-              <span className="font-extrabold text-5xl sm:text-[60px] leading-none">
+            <div className="flex items-center gap-4 p-3.5 sm:p-4 rounded-xl bg-white/20 backdrop-blur-xs border border-white/25 mt-2">
+              <span className="font-extrabold text-4xl sm:text-5xl leading-none">
                 {play.rating ? play.rating.toFixed(1) : '5.0'}
               </span>
               <div className="flex flex-col gap-0.5">
-                <span className="text-lg tracking-widest text-[#FFDF00]">★★★★★</span>
-                <span className="text-sm italic opacity-90">
+                <span className="text-base sm:text-lg tracking-widest text-[#FFDF00]">★★★★★</span>
+                <span className="text-xs sm:text-sm italic opacity-95">
                   {reviews.length || play.reviewCount || 1} seyirci notu
                 </span>
               </div>
@@ -336,7 +379,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
                 const el = document.getElementById('gunluk');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="h-13 flex items-center justify-center rounded-xl bg-white text-tn-ink text-base sm:text-[17px] font-semibold hover:bg-white/90 transition-colors cursor-pointer border-none shadow-xs"
+              className="h-12 sm:h-13 flex items-center justify-center rounded-xl bg-white text-[#1C1A1B] text-base sm:text-[17px] font-bold hover:bg-white/90 transition-colors cursor-pointer border border-white shadow-sm"
             >
               Bu Oyuna Not Ekle
             </button>
@@ -345,10 +388,10 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
               <button
                 type="button"
                 onClick={handleToggleSeen}
-                className={`h-11 rounded-xl text-sm font-serif border-none cursor-pointer transition-colors ${
+                className={`h-11 rounded-xl text-sm font-serif cursor-pointer transition-colors ${
                   isSeen
-                    ? 'bg-white text-tn-red font-bold'
-                    : 'bg-white/14 text-white hover:bg-white/20'
+                    ? 'bg-white text-tn-red font-bold border border-white shadow-xs'
+                    : 'bg-white/20 hover:bg-white/30 text-white font-medium border border-white/30'
                 }`}
               >
                 {isSeen ? '✓ İzlendi' : 'İzledim'}
@@ -357,10 +400,10 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
               <button
                 type="button"
                 onClick={handleToggleWatchlist}
-                className={`h-11 rounded-xl text-sm font-serif border-none cursor-pointer transition-colors ${
+                className={`h-11 rounded-xl text-sm font-serif cursor-pointer transition-colors ${
                   isWatchlisted
-                    ? 'bg-white text-tn-ink font-bold'
-                    : 'bg-white/14 text-white hover:bg-white/20'
+                    ? 'bg-white text-[#1C1A1B] font-bold border border-white shadow-xs'
+                    : 'bg-white/20 hover:bg-white/30 text-white font-medium border border-white/30'
                 }`}
               >
                 {isWatchlisted ? '✓ Listemde' : 'Listeme Ekle'}
@@ -381,7 +424,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
                     setTimeout(() => setFeedbackToast(null), 2500);
                   }
                 }}
-                className="h-11 rounded-xl bg-white/14 text-white text-sm font-serif border-none cursor-pointer hover:bg-white/20 transition-colors"
+                className="h-11 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-serif font-medium border border-white/30 cursor-pointer transition-colors"
               >
                 Paylaş
               </button>
@@ -389,36 +432,55 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
           </div>
         </article>
 
-        {/* Right Stack: Konu + Künye */}
-        <div className="flex flex-col gap-1.5">
-          <section className="flex-grow rounded-2xl bg-tn-surface p-5 sm:p-6 flex flex-col justify-between">
+        {/* Col 3: Right Stack: Konu + Künye */}
+        <div className="flex flex-col gap-1.5 md:col-span-2 lg:col-span-1 justify-between">
+          <section className="flex-grow rounded-2xl bg-tn-surface p-5 sm:p-6 flex flex-col justify-between border border-tn-line/40">
             <div className="flex flex-col gap-2.5">
-              <span className="text-xs font-extrabold tracking-wider text-tn-text">
+              <span className="text-xs font-extrabold tracking-wider text-tn-red uppercase">
                 KONU
               </span>
-              <p className="m-0 text-lg sm:text-[21px] leading-snug">
+              <p className="m-0 text-base sm:text-lg leading-relaxed text-tn-text">
                 {play.synopsis ||
                   `${play.title}, ${play.playwright || 'yazarın'} kaleminden sahnelenen ve ${play.company || 'topluluğun'} repertuarında yer alan etkileyici bir sahne yapımı.`}
               </p>
             </div>
+            {play.tags && play.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-3">
+                {play.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-xs italic px-2.5 py-1 rounded-full bg-tn-card text-tn-muted border border-tn-line/50"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </section>
 
-          <section className="rounded-2xl bg-tn-blush p-5 sm:p-5.5 flex flex-col gap-2.5 border border-tn-line/40">
-            <span className="text-xs font-extrabold tracking-wider text-tn-text">
+          <section className="rounded-2xl bg-tn-blush p-5 sm:p-5.5 flex flex-col gap-2.5 border border-tn-line/40 text-tn-text">
+            <span className="text-xs font-extrabold tracking-wider text-[#6B4A45] dark:text-[#EFA79F] uppercase">
               TİYATRO KÜNYESİ
             </span>
-            <dl className="m-0 grid grid-cols-[100px_minmax(0,1fr)] gap-y-2 gap-x-3 text-base sm:text-[17px]">
-              <dt className="italic text-[#6B4A45]">Yazar</dt>
-              <dd className="m-0 font-semibold">{play.playwright || 'Belirtilmemiş'}</dd>
+            <dl className="m-0 grid grid-cols-[90px_minmax(0,1fr)] gap-y-2 gap-x-3 text-sm sm:text-base">
+              <dt className="italic text-[#6B4A45] dark:text-[#EFA79F]">Yazar</dt>
+              <dd className="m-0 font-bold text-tn-text">{play.playwright || 'Belirtilmemiş'}</dd>
 
-              <dt className="italic text-[#6B4A45]">Yönetmen</dt>
-              <dd className="m-0 font-semibold">{play.director || 'Belirtilmemiş'}</dd>
+              <dt className="italic text-[#6B4A45] dark:text-[#EFA79F]">Yönetmen</dt>
+              <dd className="m-0 font-bold text-tn-text">{play.director || 'Belirtilmemiş'}</dd>
 
-              <dt className="italic text-[#6B4A45]">Topluluk</dt>
-              <dd className="m-0 font-semibold">{play.company || 'Belirtilmemiş'}</dd>
+              <dt className="italic text-[#6B4A45] dark:text-[#EFA79F]">Topluluk</dt>
+              <dd className="m-0 font-bold text-tn-text">{play.company || 'Belirtilmemiş'}</dd>
 
-              <dt className="italic text-[#6B4A45]">Süre</dt>
-              <dd className="m-0 font-semibold">{play.duration ? `${play.duration} dakika` : 'Tek Perde'}</dd>
+              <dt className="italic text-[#6B4A45] dark:text-[#EFA79F]">Süre</dt>
+              <dd className="m-0 font-bold text-tn-text">{play.duration ? `${play.duration} dakika` : 'Tek Perde'}</dd>
+
+              {play.venue && (
+                <>
+                  <dt className="italic text-[#6B4A45] dark:text-[#EFA79F]">Sahne</dt>
+                  <dd className="m-0 font-bold text-tn-text">{play.venue}</dd>
+                </>
+              )}
             </dl>
           </section>
         </div>
@@ -486,14 +548,14 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
           </div>
 
           {/* Filter Pills */}
-          <div className="flex gap-1 p-1 rounded-full bg-white dark:bg-tn-card border border-tn-line/40 text-xs sm:text-sm">
+          <div className="flex gap-1 p-1 rounded-full bg-white dark:bg-tn-card border border-tn-line text-xs sm:text-sm shadow-xs">
             <button
               type="button"
               onClick={() => setReviewFilter('latest')}
               className={`h-8 px-3.5 rounded-full border-none font-serif cursor-pointer transition-colors ${
                 reviewFilter === 'latest'
-                  ? 'bg-tn-ink text-white font-semibold'
-                  : 'bg-transparent text-tn-text hover:bg-tn-surface'
+                  ? 'bg-tn-ink text-white dark:bg-white dark:text-[#1C1A1B] font-bold shadow-xs'
+                  : 'bg-transparent text-tn-text hover:bg-tn-surface font-medium'
               }`}
             >
               En yeni
@@ -503,8 +565,8 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
               onClick={() => setReviewFilter('top')}
               className={`h-8 px-3.5 rounded-full border-none font-serif cursor-pointer transition-colors ${
                 reviewFilter === 'top'
-                  ? 'bg-tn-ink text-white font-semibold'
-                  : 'bg-transparent text-tn-text hover:bg-tn-surface'
+                  ? 'bg-tn-ink text-white dark:bg-white dark:text-[#1C1A1B] font-bold shadow-xs'
+                  : 'bg-transparent text-tn-text hover:bg-tn-surface font-medium'
               }`}
             >
               En yüksek puan
@@ -514,8 +576,8 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
               onClick={() => setReviewFilter('no_spoiler')}
               className={`h-8 px-3.5 rounded-full border-none font-serif cursor-pointer transition-colors ${
                 reviewFilter === 'no_spoiler'
-                  ? 'bg-tn-ink text-white font-semibold'
-                  : 'bg-transparent text-tn-text hover:bg-tn-surface'
+                  ? 'bg-tn-ink text-white dark:bg-white dark:text-[#1C1A1B] font-bold shadow-xs'
+                  : 'bg-transparent text-tn-text hover:bg-tn-surface font-medium'
               }`}
             >
               Spoiler’sız
@@ -526,12 +588,12 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
         {/* 3 Columns Grid: Col 1 Summary, Col 2 Real Ticket, Col 3 SenDeYazOval / TicketComposer */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-1.5 min-h-[540px]">
           {/* Col 1: Summary Card */}
-          <div className="rounded-2xl bg-white dark:bg-tn-card p-5 sm:p-6 flex flex-col justify-between shadow-xs border border-tn-line/60">
+          <div className="rounded-2xl bg-white dark:bg-tn-card p-5 sm:p-6 flex flex-col justify-between shadow-xs border border-tn-line text-tn-text">
             <div className="flex flex-col gap-1.5">
               <span className="italic text-base sm:text-[17px] text-tn-muted">
                 Seyirci ortalaması
               </span>
-              <span className="font-extrabold text-7xl sm:text-[110px] leading-[0.85] tracking-tight text-tn-text">
+              <span className="font-extrabold text-7xl sm:text-[96px] leading-[0.85] tracking-tight text-tn-text">
                 {play.rating ? play.rating.toFixed(1) : '5.0'}
               </span>
               <span className="text-xl sm:text-[22px] tracking-widest text-tn-red">
@@ -539,20 +601,20 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
               </span>
             </div>
 
-            <div className="flex flex-col gap-2 pt-4 border-t border-tn-border text-base sm:text-[17px]">
-              <div className="flex justify-between pb-2 border-b border-tn-border/70">
+            <div className="flex flex-col gap-2 pt-4 border-t border-tn-line text-base sm:text-[17px]">
+              <div className="flex justify-between pb-2 border-b border-tn-line/70">
                 <span className="italic text-tn-muted">Temsil notu</span>
-                <span className="font-extrabold">{reviews.length}</span>
+                <span className="font-extrabold text-tn-text">{reviews.length}</span>
               </div>
-              <div className="flex justify-between pb-2 border-b border-tn-border/70">
+              <div className="flex justify-between pb-2 border-b border-tn-line/70">
                 <span className="italic text-tn-muted">Katalogdaki puan</span>
-                <span className="font-extrabold">
+                <span className="font-extrabold text-tn-text">
                   {play.rating ? play.rating.toFixed(1) : '5.0'} · {play.reviewCount || 1} not
                 </span>
               </div>
               <div className="flex justify-between items-center pt-1">
                 <span className="italic text-tn-muted">Rozet</span>
-                <span className="h-6.5 px-3 flex items-center rounded-full bg-[#E4B33A] text-xs font-semibold text-tn-text">
+                <span className="h-6.5 px-3 flex items-center rounded-full bg-tn-ochre text-xs font-bold text-[#1C1A1B] shadow-xs">
                   Ayakta Alkış
                 </span>
               </div>
@@ -567,8 +629,8 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
               onShare={(r) => setShareReview(r)}
             />
           ) : (
-            <div className="rounded-2xl bg-white/60 border border-dashed border-tn-border p-6 flex flex-col items-center justify-center text-center gap-2">
-              <span className="font-extrabold text-xl">Bu oyuna henüz not eklenmemiş.</span>
+            <div className="rounded-2xl bg-tn-card border border-dashed border-tn-line p-6 flex flex-col items-center justify-center text-center gap-2">
+              <span className="font-extrabold text-xl text-tn-text">Bu oyuna henüz not eklenmemiş.</span>
               <span className="italic text-sm text-tn-muted">
                 Sahne izlenimlerini paylaşan ilk seyirci sen ol!
               </span>
