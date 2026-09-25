@@ -9,10 +9,10 @@ interface SplitCardProps {
 }
 
 const BG_COLORS = {
-  blush: 'bg-[#F4D3CE]',
-  sage: 'bg-[#D6E0D3]',
-  sand: 'bg-[#F1E3C4]',
-  lilac: 'bg-[#D9CFF2]',
+  blush: 'bg-tn-blush',
+  sage: 'bg-tn-sage',
+  sand: 'bg-tn-sand',
+  lilac: 'bg-tn-lilac',
 };
 
 export const SplitCard: React.FC<SplitCardProps> = ({
@@ -22,11 +22,15 @@ export const SplitCard: React.FC<SplitCardProps> = ({
   const bgClass = BG_COLORS[colorVariant] || BG_COLORS.blush;
 
   return (
-    <article className="rounded-2xl overflow-hidden flex flex-col font-serif text-tn-text h-full shadow-sm min-h-[480px]">
+    <Link
+      to={`/oyun/${play.id}`}
+      aria-label={`${play.title} oyun detayına git`}
+      className="rounded-2xl overflow-hidden flex flex-col font-serif text-tn-text h-full shadow-sm min-h-[480px] no-underline block group cursor-pointer hover:shadow-md transition-all border border-tn-line/40"
+    >
       {/* Top half: editorial text */}
       <div className={`${bgClass} p-5 sm:p-5.5 flex flex-col gap-2.5 min-h-[220px] box-border`}>
         <div className="flex justify-between items-center">
-          <span className="h-6.5 px-3 flex items-center border border-tn-ink rounded-full text-xs font-semibold tracking-wide uppercase truncate max-w-[70%]">
+          <span className="h-6.5 px-3 flex items-center border border-tn-text rounded-full text-xs font-semibold tracking-wide uppercase truncate max-w-[70%]">
             {play.genre || 'TİYATRO'}
           </span>
           <span className="text-[15px] font-semibold flex-shrink-0">
@@ -39,7 +43,7 @@ export const SplitCard: React.FC<SplitCardProps> = ({
           </span>
         </div>
 
-        <h3 className="m-0 font-extrabold text-3xl sm:text-[36px] leading-[0.95] tracking-tight line-clamp-2">
+        <h3 className="m-0 font-extrabold text-3xl sm:text-[36px] leading-[0.95] tracking-tight line-clamp-2 group-hover:underline">
           {play.title}
         </h3>
 
@@ -64,21 +68,17 @@ export const SplitCard: React.FC<SplitCardProps> = ({
         }}
       >
         {/* Soft gradient overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
 
-        <span className="relative z-10 text-xs italic text-white/90 font-serif drop-shadow-sm truncate max-w-[70%]">
+        <span className="relative z-10 text-xs italic text-white/95 font-serif drop-shadow-sm truncate max-w-[70%]">
           Afiş · {play.title}
         </span>
 
-        <Link
-          to={`/oyun/${play.id}`}
-          aria-label={`${play.title} detayına git`}
-          className="relative z-10"
-        >
+        <div className="relative z-10 group-hover:scale-105 transition-transform">
           <CircleArrowButton size="md" variant="white" aria-label={`${play.title} sayfasına git`} />
-        </Link>
+        </div>
       </div>
-    </article>
+    </Link>
   );
 };
 

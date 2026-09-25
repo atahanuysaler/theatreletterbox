@@ -6,6 +6,7 @@ interface SearchBarProps {
   totalCount: number;
   isFiltersOpen: boolean;
   onToggleFilters: () => void;
+  activeFiltersCount?: number;
   placeholder?: string;
 }
 
@@ -15,13 +16,14 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   totalCount,
   isFiltersOpen,
   onToggleFilters,
+  activeFiltersCount = 0,
   placeholder = 'Oyun, topluluk, yazar veya oyuncu ara…',
 }) => {
   return (
     <form
       role="search"
       onSubmit={(e) => e.preventDefault()}
-      className="w-full flex items-center gap-2 sm:gap-2.5 h-[56px] sm:h-[68px] px-2 sm:px-2 pl-4 sm:pl-5 bg-tn-surface rounded-2xl transition-shadow focus-within:ring-2 focus-within:ring-tn-red/30"
+      className="w-full flex items-center gap-2 sm:gap-2.5 h-[56px] sm:h-[68px] px-2 sm:px-2 pl-4 sm:pl-5 bg-tn-surface rounded-2xl transition-shadow focus-within:ring-2 focus-within:ring-tn-red/30 border border-tn-line/40"
     >
       {/* Search Icon */}
       <svg
@@ -54,6 +56,17 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         className="flex-grow h-10 sm:h-14 border-none bg-transparent font-serif italic text-lg sm:text-[26px] text-tn-text placeholder:text-tn-muted/70 focus:outline-none px-1"
       />
 
+      {value && (
+        <button
+          type="button"
+          onClick={() => onChange('')}
+          aria-label="Aramayı temizle"
+          className="w-8 h-8 rounded-full flex items-center justify-center text-tn-muted hover:text-tn-text cursor-pointer border-none bg-transparent"
+        >
+          ✕
+        </button>
+      )}
+
       {/* Play Count Badge */}
       <span className="hidden md:inline-block text-sm text-tn-muted px-2.5 whitespace-nowrap">
         <span className="font-extrabold text-tn-text">{totalCount}</span> oyun
@@ -67,15 +80,21 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         aria-controls="filtre-satiri"
         onClick={onToggleFilters}
         className={`h-11 sm:h-[52px] px-3.5 sm:px-5 flex items-center gap-2 rounded-xl border-none font-serif text-sm sm:text-base font-semibold cursor-pointer transition-colors whitespace-nowrap ${
-          isFiltersOpen
+          isFiltersOpen || activeFiltersCount > 0
             ? 'bg-tn-red text-white hover:bg-tn-red/90'
-            : 'bg-tn-ink text-white hover:bg-tn-ink/80'
+            : 'bg-tn-ink text-white hover:bg-tn-ink/80 dark:bg-tn-surface dark:border dark:border-tn-line dark:hover:bg-tn-card'
         }`}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 6h16M7 12h10M10 18h4" />
         </svg>
-        <span>{isFiltersOpen ? 'Filtreleri Gizle' : 'Filtreler'}</span>
+        <span>
+          {isFiltersOpen
+            ? 'Filtreleri Gizle'
+            : activeFiltersCount > 0
+            ? `Filtreler (${activeFiltersCount})`
+            : 'Filtreler'}
+        </span>
       </button>
     </form>
   );

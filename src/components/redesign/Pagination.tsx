@@ -36,7 +36,7 @@ export const Pagination: React.FC<PaginationProps> = ({
           type="button"
           disabled={currentPage === 1}
           onClick={() => onPageChange(currentPage - 1)}
-          className="h-10 px-3.5 rounded-xl border border-tn-border bg-white text-tn-text font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-tn-surface transition-colors cursor-pointer"
+          className="h-10 px-3.5 rounded-xl border border-tn-line bg-white dark:bg-tn-surface text-tn-text font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-tn-card transition-colors cursor-pointer"
         >
           ← Önceki
         </button>
@@ -56,8 +56,8 @@ export const Pagination: React.FC<PaginationProps> = ({
               onClick={() => onPageChange(pageNum)}
               className={`w-10 h-10 rounded-xl font-serif text-sm transition-colors cursor-pointer ${
                 isActive
-                  ? 'bg-tn-ink text-white font-extrabold shadow-xs'
-                  : 'bg-white border border-tn-border text-tn-text hover:bg-tn-surface font-normal'
+                  ? 'bg-tn-red text-white font-extrabold shadow-xs'
+                  : 'bg-white dark:bg-tn-surface border border-tn-line text-tn-text hover:bg-tn-card font-normal'
               }`}
             >
               {pageNum}
@@ -69,7 +69,7 @@ export const Pagination: React.FC<PaginationProps> = ({
           type="button"
           disabled={currentPage === totalPages}
           onClick={() => onPageChange(currentPage + 1)}
-          className="h-10 px-3.5 rounded-xl border border-tn-border bg-white text-tn-text font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-tn-surface transition-colors cursor-pointer"
+          className="h-10 px-3.5 rounded-xl border border-tn-line bg-white dark:bg-tn-surface text-tn-text font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-tn-card transition-colors cursor-pointer"
         >
           Sonraki →
         </button>

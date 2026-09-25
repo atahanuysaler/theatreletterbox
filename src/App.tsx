@@ -53,7 +53,7 @@ const AppContent: React.FC = () => {
   return (
     <div className="min-h-screen w-full bg-tn-page text-tn-text font-serif p-2 sm:p-2.5 box-border flex flex-col items-center selection:bg-tn-red selection:text-white">
       {/* 1440px max width container with 22px border-radius matching DESIGN.md */}
-      <div className="w-full max-w-[1440px] bg-white dark:bg-tn-surface rounded-[22px] p-3 sm:p-4.5 box-border flex flex-col gap-1.5 shadow-sm min-h-screen">
+      <div className="w-full max-w-[1440px] bg-tn-container rounded-[22px] p-3 sm:p-4.5 box-border flex flex-col gap-1.5 shadow-sm min-h-screen border border-tn-line/40">
         {/* Editorial Header */}
         <SiteHeader
           onOpenLogModal={() => handleOpenLogModal()}

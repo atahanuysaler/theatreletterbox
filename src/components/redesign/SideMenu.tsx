@@ -85,7 +85,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
       {/* Drawer surface */}
       <aside
         ref={drawerRef}
-        className="fixed top-2 left-2 bottom-2 w-[calc(100vw-16px)] sm:w-[380px] max-w-[380px] bg-white dark:bg-tn-surface rounded-[20px] shadow-[0_20px_60px_rgba(28,26,27,0.25)] p-4 flex flex-col gap-1.5 font-serif text-tn-text border border-tn-border/50 z-10 overflow-y-auto animate-in slide-in-from-left duration-200"
+        className="fixed top-2 left-2 bottom-2 w-[calc(100vw-16px)] sm:w-[380px] max-w-[380px] bg-tn-container rounded-[20px] shadow-drawer p-4 flex flex-col gap-1.5 font-serif text-tn-text border border-tn-line z-10 overflow-y-auto animate-in slide-in-from-left duration-200"
       >
         {/* Header */}
         <div className="flex justify-between items-center px-1 pt-1 pb-3">

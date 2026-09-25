@@ -25,7 +25,7 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
 
   if (variant === 'vertical') {
     return (
-      <article className="rounded-2xl bg-[#FFFCF7] text-tn-text shadow-[0_1px_2px_rgba(28,26,27,0.06),0_8px_22px_rgba(28,26,27,0.07)] flex flex-col overflow-hidden font-serif border border-[#EBE4DA] h-full">
+      <article className="rounded-2xl bg-tn-ticket text-tn-text shadow-ticket flex flex-col overflow-hidden font-serif border border-tn-line h-full">
         {/* Top ticket header */}
         <div className="p-5 pb-4 flex flex-col gap-2 text-center items-center">
           <span className="text-xs font-semibold tracking-wider text-tn-muted">
@@ -109,7 +109,7 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
 
   // Horizontal variant (default for Bento grid)
   return (
-    <article className="rounded-2xl bg-[#FFFCF7] text-tn-text grid grid-cols-[minmax(0,1fr)_96px] overflow-hidden shadow-sm border border-[#EBE4DA] h-full font-serif">
+    <article className="rounded-2xl bg-tn-ticket text-tn-text grid grid-cols-[minmax(0,1fr)_96px] overflow-hidden shadow-sm border border-tn-line h-full font-serif">
       {/* Left body */}
       <div className="p-4 sm:p-5 flex flex-col gap-2 justify-between">
         <div className="flex justify-between text-[11px] font-semibold tracking-wider text-tn-muted">
@@ -148,7 +148,7 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
       </div>
 
       {/* Right stub perforation */}
-      <div className="border-l-2 border-dashed border-[#D8D2CA] p-3 flex flex-col justify-between items-center text-center bg-[#FAF6F0]">
+      <div className="border-l-2 border-dashed border-[#D8D2CA] dark:border-tn-line-strong p-3 flex flex-col justify-between items-center text-center bg-tn-surface">
         <span className="text-[10px] font-extrabold tracking-wider text-tn-red border-1.5 border-tn-red rounded-md px-1.5 py-0.5 -rotate-6 select-none whitespace-nowrap">
           GİRİŞ ONAYLI
         </span>

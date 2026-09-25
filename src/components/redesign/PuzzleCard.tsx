@@ -22,13 +22,13 @@ export const PuzzleCard: React.FC<PuzzleCardProps> = ({
   bgVariant = 'cream',
   onClick,
 }) => {
-  const bgClass = bgVariant === 'cream' ? 'bg-[#FFFCF7]' : 'bg-[#FAF1DD]';
+  const bgClass = bgVariant === 'cream' ? 'bg-tn-ticket' : 'bg-tn-sand-light';
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-2xl ${bgClass} p-4 sm:p-4.5 flex flex-col justify-between text-left text-tn-text border border-[#E8E1D5] transition-all hover:scale-[1.01] cursor-pointer font-serif min-h-[180px] shadow-xs group`}
+      className={`rounded-2xl ${bgClass} p-4 sm:p-4.5 flex flex-col justify-between text-left text-tn-text border border-tn-line transition-all hover:scale-[1.01] cursor-pointer font-serif min-h-[180px] shadow-xs group`}
     >
       {/* Top badges */}
       <div className="w-full flex justify-between items-center">

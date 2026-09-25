@@ -10,16 +10,16 @@ export const CatalogCard: React.FC<CatalogCardProps> = ({ play }) => {
   return (
     <Link
       to={`/oyun/${play.id}`}
-      className="flex flex-col gap-2 p-1.5 pb-3 rounded-2xl bg-[#F6F3EE] hover:bg-[#EFEAE2] transition-colors text-tn-text no-underline font-serif group"
+      className="flex flex-col gap-2 p-1.5 pb-3 rounded-2xl bg-tn-card hover:bg-tn-surface border border-tn-line/50 transition-colors text-tn-text no-underline font-serif group"
     >
       {/* Poster area */}
       <div
-        className="h-[170px] sm:h-[180px] rounded-xl bg-[#DDD5CB] flex flex-col justify-between items-end p-2 box-border bg-cover bg-center overflow-hidden relative"
+        className="h-[170px] sm:h-[180px] rounded-xl bg-tn-surface flex flex-col justify-between items-end p-2 box-border bg-cover bg-center overflow-hidden relative"
         style={{
           backgroundImage: play.posterUrl ? `url(${play.posterUrl})` : undefined,
         }}
       >
-        <span className="h-6 px-2.5 flex items-center rounded-full bg-white/90 text-xs sm:text-[13px] font-semibold text-tn-text shadow-xs">
+        <span className="h-6 px-2.5 flex items-center rounded-full bg-tn-container/90 text-xs sm:text-[13px] font-semibold text-tn-text shadow-xs">
           ★ {play.rating ? play.rating.toFixed(1) : '5.0'}
         </span>
         {!play.posterUrl && (

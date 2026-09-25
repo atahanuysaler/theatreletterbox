@@ -11,6 +11,7 @@
 
   /* ---- Zeminler / yüzeyler ---- */
   --tn-page: #E9E4DC;           /* masaüstü dış zemin (beyaz konteynerin arkası) */
+  --tn-container-bg: #FFFFFF;   /* konteyner zemini */
   --tn-surface: #F1EDE7;        /* arama, haplar, günlük bloğu, form alanları */
   --tn-card: #F6F3EE;           /* katalog kartı zemini */
   --tn-ticket: #FFFCF7;         /* bilet kağıdı */
@@ -74,4 +75,56 @@
   --tn-touch: 44px;             /* minimum dokunma hedefi */
   --tn-stripe-lilac: repeating-linear-gradient(0deg, #CFC3F1 0 26px, #C0B2EA 26px 28px);
   --tn-barcode: repeating-linear-gradient(90deg, #1C1A1B 0 2px, transparent 2px 4px, #1C1A1B 4px 5px, transparent 5px 8px, #1C1A1B 8px 11px, transparent 11px 13px);
+}
+
+/* ==========================================================================
+   Dark Theme Token Overrides (DESIGN.md §10)
+   ========================================================================== */
+html.dark,
+.dark,
+[data-theme='dark'] {
+  /* ---- Marka ---- */
+  --tn-red: #D62831;            /* koyu modda canlı, yüksek kontrastlı kırmızı */
+  --tn-ink: #FFFFFF;            /* koyu modda ana beyaz/açık renk */
+  --tn-white: #1C1A1B;
+
+  /* ---- Zeminler / yüzeyler ---- */
+  --tn-page: #121011;           /* masaüstü dış zemin */
+  --tn-container-bg: #1B191A;   /* konteyner zemini */
+  --tn-surface: #262324;        /* arama çubuğu, hap butonlar, form alanları */
+  --tn-card: #221F20;           /* katalog kartı zemini */
+  --tn-ticket: #242122;         /* bilet kağıdı */
+  --tn-line: #383435;           /* ince kenarlık */
+  --tn-line-strong: #4D4748;    /* kesik çizgi, pasif yıldız */
+
+  /* ---- Pastel blok renkleri (koyu mod tonları) ---- */
+  --tn-blush: #3A2321;
+  --tn-sage: #202D22;
+  --tn-sand: #362B1B;
+  --tn-sand-light: #2C2316;
+  --tn-lilac: #2B213F;
+  --tn-lilac-strong: #352852;
+  --tn-lilac-stripe: #261C3D;
+  --tn-ochre: #C9961A;
+
+  /* ---- Metin ---- */
+  --tn-text: #F1EDE7;
+  --tn-text-2: #DDD7D0;
+  --tn-text-3: #BDB7AF;
+  --tn-text-muted: #9E9790;
+  --tn-text-faint: #756F69;
+  --tn-text-on-dark-muted: #B8B0A8;
+  --tn-text-on-blush: #F4D3CE;
+  --tn-text-on-sage: #D6E0D3;
+
+  /* ---- Gölge ---- */
+  --tn-shadow-seg: 0 1px 3px rgba(0,0,0,.5);
+  --tn-shadow-ticket: 0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.5);
+  --tn-shadow-float: 0 2px 8px rgba(0,0,0,.5);
+  --tn-shadow-bar: 0 4px 24px rgba(0,0,0,.6);
+  --tn-shadow-drawer: 0 20px 60px rgba(0,0,0,.7);
+  --tn-scrim: rgba(0,0,0,.65);
+
+  --tn-stripe-lilac: repeating-linear-gradient(0deg, #352852 0 26px, #261C3D 26px 28px);
+  --tn-barcode: repeating-linear-gradient(90deg, #F1EDE7 0 2px, transparent 2px 4px, #F1EDE7 4px 5px, transparent 5px 8px, #F1EDE7 8px 11px, transparent 11px 13px);
 }

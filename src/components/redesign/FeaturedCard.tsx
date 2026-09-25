@@ -13,7 +13,11 @@ export const FeaturedCard: React.FC<FeaturedCardProps> = ({
   badgeText = 'Ayakta Alkış',
 }) => {
   return (
-    <article className="rounded-2xl bg-tn-red text-white p-6 box-border flex flex-col justify-between shadow-sm min-h-[440px] h-full font-serif">
+    <Link
+      to={`/oyun/${play.id}`}
+      aria-label={`${play.title} oyun detayına git`}
+      className="rounded-2xl bg-tn-red text-white p-6 box-border flex flex-col justify-between shadow-sm min-h-[440px] h-full font-serif no-underline block group cursor-pointer hover:shadow-md transition-all"
+    >
       <div className="flex flex-col gap-4">
         {/* Top Badges */}
         <div className="flex justify-between items-center">
@@ -30,7 +34,7 @@ export const FeaturedCard: React.FC<FeaturedCardProps> = ({
 
         {/* Title & Author */}
         <div>
-          <h2 className="m-0 font-extrabold text-4xl sm:text-5xl lg:text-[60px] leading-[0.92] tracking-tight">
+          <h2 className="m-0 font-extrabold text-4xl sm:text-5xl lg:text-[60px] leading-[0.92] tracking-tight group-hover:underline">
             {play.title}
           </h2>
           <div className="italic text-xl sm:text-2xl lg:text-[28px] leading-tight mt-1 opacity-95">
@@ -53,11 +57,11 @@ export const FeaturedCard: React.FC<FeaturedCardProps> = ({
       {/* Bottom CTA */}
       <div className="flex justify-between items-center pt-4">
         <span className="text-sm font-semibold tracking-wider">OYUNA GİT</span>
-        <Link to={`/oyun/${play.id}`} aria-label={`${play.title} oyun detay sayfası`}>
+        <div className="group-hover:scale-105 transition-transform">
           <CircleArrowButton size="lg" variant="black" aria-label={`${play.title} detayına git`} />
-        </Link>
+        </div>
       </div>
-    </article>
+    </Link>
   );
 };
 

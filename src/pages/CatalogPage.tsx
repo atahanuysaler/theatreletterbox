@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useDeferredValue } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import type { Play, ReviewEntry, UserProfile, CuratedList } from '../types';
 import { storageService } from '../services/storage';
 import { useAuthSafe } from '../context/AuthContext';
@@ -280,6 +280,9 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
         totalCount={plays.length}
         isFiltersOpen={isFiltersOpen}
         onToggleFilters={() => setIsFiltersOpen(!isFiltersOpen)}
+        activeFiltersCount={
+          (selectedGenre ? 1 : 0) + (selectedCompany ? 1 : 0) + (selectedActor ? 1 : 0)
+        }
       />
 
       {/* 4. Filter Row */}
@@ -323,31 +326,32 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
           )}
 
           {featuredPlay && (
-            <div
-              className="lg:col-span-2 rounded-2xl p-5 flex flex-col justify-between min-h-[320px] lg:min-h-[440px] bg-cover bg-center relative overflow-hidden"
+            <Link
+              to={`/oyun/${featuredPlay.id}`}
+              className="lg:col-span-2 rounded-2xl p-5 flex flex-col justify-between min-h-[320px] lg:min-h-[440px] bg-cover bg-center relative overflow-hidden no-underline text-white group cursor-pointer hover:shadow-md transition-shadow"
               style={{
                 backgroundColor: '#DDD5CB',
                 backgroundImage: featuredPlay.posterUrl ? `url(${featuredPlay.posterUrl})` : undefined,
               }}
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20 group-hover:from-black/90 transition-colors pointer-events-none" />
 
-              <span className="self-end relative z-10 h-7.5 px-3 flex items-center rounded-full bg-white/80 backdrop-blur-xs text-xs sm:text-[13px] italic text-[#5E5852]">
+              <span className="self-end relative z-10 h-7.5 px-3 flex items-center rounded-full bg-white/80 dark:bg-tn-container/80 backdrop-blur-xs text-xs sm:text-[13px] italic text-[#5E5852] dark:text-tn-text">
                 Sahne fotoğrafı · {featuredPlay.title}
               </span>
 
               <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
-                <span className="text-sm sm:text-base text-white/95 max-w-[520px] italic drop-shadow-sm line-clamp-3">
+                <span className="text-sm sm:text-base text-white/95 max-w-[520px] italic drop-shadow-sm line-clamp-3 group-hover:underline">
                   {featuredPlay.synopsis ||
                     'Gece yarısı iki çocuğuyla sığınacak yer arayan Aydan, bir lunaparkta çalışan Hasret’in evine girer…'}
                 </span>
                 {featuredPlay.cast && featuredPlay.cast.length > 0 && (
-                  <span className="h-7.5 px-3 flex items-center rounded-full bg-white/90 text-xs sm:text-[13px] font-semibold text-tn-text whitespace-nowrap shadow-xs">
+                  <span className="h-7.5 px-3 flex items-center rounded-full bg-white/90 dark:bg-tn-container/90 text-xs sm:text-[13px] font-semibold text-tn-text whitespace-nowrap shadow-xs">
                     {featuredPlay.cast.slice(0, 2).join(' · ')}
                   </span>
                 )}
               </div>
-            </div>
+            </Link>
           )}
 
           {/* Row 2: 3 Split Cards */}

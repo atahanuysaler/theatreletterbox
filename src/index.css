@@ -8,54 +8,54 @@
    IBM Carbon Light & Tiyatronot Editorial Design Tokens
    ========================================================================== */
 :root {
-  --color-canvas: 252 252 251;
-  --color-layer-01: 245 245 243;
-  --color-layer-02: 236 236 232;
-  --color-overlay: 22 22 22;
-  --color-text-primary: 22 22 22;
-  --color-text-secondary: 82 82 82;
-  --color-text-tertiary: 141 141 141;
+  --color-canvas: 255 255 255;
+  --color-layer-01: 241 237 231;
+  --color-layer-02: 246 243 238;
+  --color-overlay: 28 26 27;
+  --color-text-primary: 28 26 27;
+  --color-text-secondary: 110 104 98;
+  --color-text-tertiary: 154 146 138;
   --color-text-inverse: 255 255 255;
-  --color-theatre-curtain: 158 27 34;
-  --color-theatre-curtain-hover: 186 27 35;
-  --color-theatre-gold: 229 169 27;
-  --color-stage-spotlight: 229 169 27;
-  --color-interactive-primary: 15 98 254;
-  --color-interactive-hover: 3 83 233;
-  --color-interactive-active: 0 45 156;
+  --color-theatre-curtain: 186 27 35;
+  --color-theatre-curtain-hover: 160 22 29;
+  --color-theatre-gold: 228 179 58;
+  --color-stage-spotlight: 228 179 58;
+  --color-interactive-primary: 186 27 35;
+  --color-interactive-hover: 160 22 29;
+  --color-interactive-active: 130 18 24;
   --color-success-mint: 25 128 56;
-  --color-border-subtle: 224 224 224;
-  --color-border-strong: 141 141 141;
+  --color-border-subtle: 226 220 212;
+  --color-border-strong: 216 210 202;
 
   /* Font Stacks */
-  --font-serif: 'Newsreader', 'Playfair Display', Georgia, serif;
-  --font-sans: 'IBM Plex Sans', Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, Monaco, 'Cascadia Mono', monospace;
+  --font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
 /* ==========================================================================
-   IBM Carbon Dark & Tiyatronot Dark Mode Tokens
+   Tiyatronot Dark Mode Tokens
    ========================================================================== */
 html.dark,
 .dark {
-  --color-canvas: 18 18 18;
-  --color-layer-01: 32 32 32;
-  --color-layer-02: 48 48 48;
+  --color-canvas: 26 24 25;
+  --color-layer-01: 38 35 36;
+  --color-layer-02: 34 31 32;
   --color-overlay: 0 0 0;
-  --color-text-primary: 244 244 244;
-  --color-text-secondary: 198 198 198;
-  --color-text-tertiary: 141 141 141;
-  --color-text-inverse: 22 22 22;
-  --color-theatre-curtain: 200 30 38;
+  --color-text-primary: 241 237 231;
+  --color-text-secondary: 189 183 175;
+  --color-text-tertiary: 158 151 144;
+  --color-text-inverse: 28 26 27;
+  --color-theatre-curtain: 214 40 49;
   --color-theatre-curtain-hover: 235 50 58;
-  --color-theatre-gold: 241 194 27;
-  --color-stage-spotlight: 241 194 27;
-  --color-interactive-primary: 69 137 255;
-  --color-interactive-hover: 120 169 255;
-  --color-interactive-active: 15 98 254;
+  --color-theatre-gold: 201 150 26;
+  --color-stage-spotlight: 201 150 26;
+  --color-interactive-primary: 214 40 49;
+  --color-interactive-hover: 235 50 58;
+  --color-interactive-active: 186 27 35;
   --color-success-mint: 66 190 101;
-  --color-border-subtle: 52 52 52;
-  --color-border-strong: 111 111 111;
+  --color-border-subtle: 54 50 51;
+  --color-border-strong: 77 71 72;
 }
 
 /* ==========================================================================

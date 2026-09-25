@@ -48,7 +48,7 @@ export const TicketComposer: React.FC<TicketComposerProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl bg-[#FFFCF7] border-2 border-[#CFC3F1] p-5 box-border flex flex-col gap-3 font-serif text-tn-text shadow-sm h-full"
+      className="rounded-2xl bg-tn-ticket border-2 border-tn-lilac-strong p-5 box-border flex flex-col gap-3 font-serif text-tn-text shadow-sm h-full"
     >
       {/* Header */}
       <div className="flex justify-between items-center">
@@ -122,7 +122,7 @@ export const TicketComposer: React.FC<TicketComposerProps> = ({
             onClick={() => setSeatInfo(option)}
             className={`flex-grow h-9 border-none rounded-lg font-serif text-sm cursor-pointer transition-all ${
               seatInfo === option
-                ? 'bg-white shadow-[0_1px_3px_rgba(28,26,27,0.15)] font-semibold text-tn-text'
+                ? 'bg-white dark:bg-tn-container shadow-seg font-semibold text-tn-text'
                 : 'bg-transparent text-tn-muted hover:text-tn-text'
             }`}
           >

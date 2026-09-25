@@ -403,7 +403,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
             </div>
           </section>
 
-          <section className="rounded-2xl bg-[#F4D3CE] p-5 sm:p-5.5 flex flex-col gap-2.5">
+          <section className="rounded-2xl bg-tn-blush p-5 sm:p-5.5 flex flex-col gap-2.5 border border-tn-line/40">
             <span className="text-xs font-extrabold tracking-wider text-tn-text">
               TİYATRO KÜNYESİ
             </span>
@@ -486,7 +486,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
           </div>
 
           {/* Filter Pills */}
-          <div className="flex gap-1 p-1 rounded-full bg-white text-xs sm:text-sm">
+          <div className="flex gap-1 p-1 rounded-full bg-white dark:bg-tn-card border border-tn-line/40 text-xs sm:text-sm">
             <button
               type="button"
               onClick={() => setReviewFilter('latest')}
@@ -526,7 +526,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
         {/* 3 Columns Grid: Col 1 Summary, Col 2 Real Ticket, Col 3 SenDeYazOval / TicketComposer */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-1.5 min-h-[540px]">
           {/* Col 1: Summary Card */}
-          <div className="rounded-2xl bg-white p-5 sm:p-6 flex flex-col justify-between shadow-xs border border-tn-border/50">
+          <div className="rounded-2xl bg-white dark:bg-tn-card p-5 sm:p-6 flex flex-col justify-between shadow-xs border border-tn-line/60">
             <div className="flex flex-col gap-1.5">
               <span className="italic text-base sm:text-[17px] text-tn-muted">
                 Seyirci ortalaması

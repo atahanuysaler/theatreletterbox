@@ -61,7 +61,7 @@ export const LeaderboardSnippet: React.FC<LeaderboardSnippetProps> = ({
             <Link
               key={u.uid}
               to={`/profil/${u.uid}`}
-              className="flex items-center justify-between p-2.5 rounded-xl bg-white/80 hover:bg-white transition-colors text-tn-text no-underline text-sm"
+              className="flex items-center justify-between p-2.5 rounded-xl bg-white/80 dark:bg-tn-surface/80 hover:bg-white dark:hover:bg-tn-surface transition-colors text-tn-text no-underline text-sm border border-transparent dark:border-tn-line/40"
             >
               <div className="flex items-center gap-2">
                 <span className="font-extrabold w-5 text-center text-tn-red">

@@ -87,7 +87,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
           {/* Desktop links */}
           <Link
             to="/oyun-ekle"
-            className="hidden md:flex h-11 px-4 items-center rounded-full bg-tn-surface text-[15px] font-normal hover:bg-tn-border transition-colors text-tn-text no-underline whitespace-nowrap"
+            className="hidden md:flex h-11 px-4 items-center rounded-full bg-tn-surface border border-tn-line/40 text-[15px] font-normal hover:bg-tn-line transition-colors text-tn-text no-underline whitespace-nowrap"
           >
             Oyun Ekle
           </Link>
@@ -95,7 +95,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
           {user ? (
             <Link
               to="/profil"
-              className="hidden sm:flex h-11 px-3 sm:px-4 items-center gap-2 rounded-full bg-tn-surface text-[15px] hover:bg-tn-border transition-colors text-tn-text no-underline whitespace-nowrap"
+              className="hidden sm:flex h-11 px-3 sm:px-4 items-center gap-2 rounded-full bg-tn-surface border border-tn-line/40 text-[15px] hover:bg-tn-line transition-colors text-tn-text no-underline whitespace-nowrap"
             >
               {user.photoURL && (
                 <img src={user.photoURL} alt={user.displayName} className="w-5 h-5 rounded-full object-cover" />
@@ -106,7 +106,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             <button
               type="button"
               onClick={() => loginWithGoogle?.()}
-              className="hidden sm:flex h-11 px-4 items-center rounded-full bg-tn-surface text-[15px] hover:bg-tn-border transition-colors text-tn-text cursor-pointer border-none whitespace-nowrap"
+              className="hidden sm:flex h-11 px-4 items-center rounded-full bg-tn-surface border border-tn-line/40 text-[15px] hover:bg-tn-line transition-colors text-tn-text cursor-pointer whitespace-nowrap"
             >
               Giriş Yap
             </button>

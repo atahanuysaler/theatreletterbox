@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Bookmark, Sparkles, Check, Eye, Plus, Theater, ArrowRight, Layers } from 'lucide-react';
 import { storageService } from '../services/storage';
-import { useAuth } from '../context/AuthContext';
+import { useAuthSafe } from '../context/AuthContext';
 import { CURATED_LISTS } from '../data/curatedListsData';
 import type { Play, CuratedList } from '../types';
+import CatalogCard from '../components/redesign/CatalogCard';
 
 interface ListsPageProps {
   onOpenLogModal?: (play: Play) => void;
 }
 
-export const ListsPage: React.FC<ListsPageProps> = ({ onOpenLogModal }) => {
-  const { user, updateProfile, loginWithGoogle } = useAuth();
+export const ListsPage: React.FC<ListsPageProps> = () => {
   const [plays, setPlays] = useState<Play[]>([]);
   const [curatedLists, setCuratedLists] = useState<CuratedList[]>(CURATED_LISTS);
   const [loading, setLoading] = useState(true);
@@ -24,263 +22,115 @@ export const ListsPage: React.FC<ListsPageProps> = ({ onOpenLogModal }) => {
       storageService.getCuratedLists()
     ]).then(([pList, cLists]) => {
       if (isMounted) {
-        setPlays(pList);
+        setPlays(pList || []);
         if (cLists && cLists.length > 0) {
           setCuratedLists(cLists);
-          setSelectedListId(prev => (cLists.some(l => l.id === prev) ? prev : cLists[0].id));
+          setSelectedListId((prev) => (cLists.some((l) => l.id === prev) ? prev : cLists[0].id));
         }
         setLoading(false);
       }
     });
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const selectedList = curatedLists.find(l => l.id === selectedListId) || curatedLists[0];
+  const selectedList = curatedLists.find((l) => l.id === selectedListId) || curatedLists[0];
+  const listPlays = plays.filter((p) => selectedList?.playIds.includes(p.id));
 
-  const listPlays = plays.filter(p => selectedList?.playIds.includes(p.id));
+  const listColors: Array<'ink' | 'lilac' | 'sage' | 'red'> = ['ink', 'lilac', 'sage', 'red'];
 
-  const handleToggleSeen = async (playId: string) => {
-    if (!user) {
-      try {
-        await loginWithGoogle();
-      } catch (err) {
-        console.log('[ListsPage] Google login cancelled:', err);
-      }
-      return;
-    }
-    try {
-      const res = await storageService.toggleSeenPlay(user.uid, playId);
-      const newSeen = res.seen
-        ? [...(user.seenPlayIds || []), playId]
-        : (user.seenPlayIds || []).filter(id => id !== playId);
-      await updateProfile({
-        seenPlayIds: newSeen,
-        xp: res.newXp,
-        level: res.newLevel,
-        badges: res.unlockedBadges.length > 0 ? [...(user.badges || []), ...res.unlockedBadges] : user.badges
-      });
-    } catch (err) {
-      console.error('Failed to toggle seen:', err);
-    }
-  };
-
-  const handleToggleWatchlist = async (playId: string) => {
-    if (!user) {
-      try {
-        await loginWithGoogle();
-      } catch (err) {
-        console.log('[ListsPage] Google login cancelled:', err);
-      }
-      return;
-    }
-    try {
-      const updatedList = await storageService.toggleWatchlistPlay(user.uid, playId);
-      await updateProfile({ watchlistPlayIds: updatedList });
-    } catch (err) {
-      console.error('Failed to toggle watchlist:', err);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="w-full min-h-[400px] flex items-center justify-center font-serif text-tn-muted">
+        <span className="italic text-lg animate-pulse">Seçkiler yükleniyor…</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Editorial Header */}
-      <div className="border-b border-border-subtle pb-6 space-y-2">
-        <div className="flex items-center gap-2 text-theatre-curtain font-mono text-xs font-semibold uppercase tracking-wider">
-          <Layers className="w-4 h-4" />
-          <span>Küratörlü Seçkiler</span>
-        </div>
-        <h1 className="font-serif font-black text-2xl sm:text-3xl text-text-primary">
-          Tiyatro Listeleri & Özel Koleksiyonlar
+    <div className="w-full flex flex-col gap-6 py-4 font-serif text-tn-text">
+      {/* Header */}
+      <div className="border-b border-tn-line pb-4">
+        <span className="text-xs font-extrabold tracking-wider text-tn-red uppercase">
+          KÜRATÖRLÜ SEÇKİLER
+        </span>
+        <h1 className="m-0 mt-1 font-extrabold text-3xl sm:text-5xl leading-tight">
+          Tiyatro Listeleri
         </h1>
-        <p className="text-xs sm:text-sm text-text-secondary max-w-2xl font-sans">
+        <p className="m-0 mt-1 text-base sm:text-lg italic text-tn-muted max-w-2xl">
           Tiyatronot editörleri ve topluluk tarafından hazırlanan tematik seçkiler. İster tek kişilik oyunların peşine düşün, ister Kadıköy sahnelerinin nabzını tutun.
         </p>
       </div>
 
-      {/* Curated Lists Tabs / Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {curatedLists.map((list) => {
-          const isSelected = list.id === selectedListId;
-          const previewPlays = plays.filter(p => list.playIds.includes(p.id)).slice(0, 3);
+      {/* List Selector Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+        {curatedLists.map((list, idx) => {
+          const isSelected = list.id === selectedList?.id;
+          const bgColors = ['bg-tn-ink text-white', 'bg-tn-lilac text-tn-text', 'bg-tn-sage text-tn-text', 'bg-tn-red text-white'];
+          const colorClass = bgColors[idx % 4];
 
           return (
             <button
               key={list.id}
               type="button"
               onClick={() => setSelectedListId(list.id)}
-              className={`p-4 rounded-md border text-left flex flex-col justify-between transition-all duration-150 cursor-pointer ${
-                isSelected
-                  ? 'bg-layer-02 border-theatre-curtain shadow-xs ring-1 ring-theatre-curtain/30'
-                  : 'bg-canvas border-border-subtle hover:border-border-strong hover:bg-layer-01'
+              className={`min-h-[160px] p-5 rounded-2xl flex flex-col justify-between text-left cursor-pointer transition-all border font-serif ${colorClass} ${
+                isSelected ? 'ring-3 ring-tn-red scale-[1.02] shadow-md' : 'opacity-85 hover:opacity-100 hover:scale-[1.01]'
               }`}
             >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-layer-01 border border-border-subtle text-text-secondary font-medium">
-                    {list.category}
-                  </span>
-                  <span className="text-[10px] font-mono text-theatre-curtain font-bold">
-                    {list.playIds.length} Oyun
-                  </span>
-                </div>
-                <h3 className="font-serif font-bold text-base text-text-primary line-clamp-1">
+              <div className="flex justify-between items-center w-full">
+                <span className="text-xs font-extrabold tracking-wider uppercase opacity-85">
+                  {list.category || 'SEÇKİ'}
+                </span>
+                <span className="text-xs italic">{list.playIds.length} oyun</span>
+              </div>
+              <div>
+                <h3 className="m-0 font-extrabold text-xl sm:text-2xl leading-tight">
                   {list.title}
                 </h3>
-                <p className="text-xs text-text-secondary line-clamp-2 font-sans">
-                  {list.description}
-                </p>
               </div>
-
-              {/* Mini Poster Preview Avatars */}
-              <div className="flex items-center gap-1.5 pt-4 mt-2 border-t border-border-subtle/50">
-                <div className="flex -space-x-2 overflow-hidden">
-                  {previewPlays.map((p) => (
-                    <img
-                      key={p.id}
-                      src={p.posterUrl}
-                      alt={p.title}
-                      className="inline-block h-8 w-6 rounded-xs object-cover ring-1 ring-canvas"
-                    />
-                  ))}
-                </div>
-                <span className="text-[10px] font-mono text-text-tertiary ml-auto">
-                  {list.curator}
-                </span>
-              </div>
+              <span className="text-xs italic opacity-85">
+                {list.curator || '— Tiyatronot'}
+              </span>
             </button>
           );
         })}
       </div>
 
-      {/* Selected List Detail Section */}
+      {/* Selected List Active View */}
       {selectedList && (
-        <div className="space-y-6 pt-4">
-          <div className="bg-layer-01/60 border border-border-subtle rounded-md p-6 space-y-2">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <span className="text-xs font-mono text-theatre-curtain font-bold uppercase tracking-wider">
-                  {selectedList.category} · {selectedList.curator}
-                </span>
-                <h2 className="font-serif font-black text-xl sm:text-2xl text-text-primary mt-0.5">
-                  {selectedList.title}
-                </h2>
-              </div>
-              <span className="text-xs font-mono text-text-tertiary">
-                Koleksiyonda {listPlays.length} Oyun Bulunuyor
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-text-secondary font-sans leading-relaxed">
+        <section className="rounded-2xl bg-tn-surface p-5 sm:p-6 flex flex-col gap-4 border border-tn-line">
+          <div>
+            <span className="text-xs font-extrabold uppercase text-tn-red">
+              SEÇİLİ LİSTE · {selectedList.category || 'ÖZEL SEÇKİ'}
+            </span>
+            <h2 className="m-0 mt-1 font-extrabold text-3xl sm:text-4xl">
+              {selectedList.title}
+            </h2>
+            <p className="m-0 mt-2 text-base sm:text-lg italic text-tn-muted max-w-3xl leading-relaxed">
               {selectedList.description}
             </p>
           </div>
 
-          {/* Plays in List */}
-          {loading ? (
-            <div className="py-12 text-center text-xs font-mono text-text-tertiary">
-              Oyunlar yükleniyor...
-            </div>
-          ) : listPlays.length === 0 ? (
-            <div className="py-12 text-center text-xs font-mono text-text-tertiary">
-              Bu listede henüz oyun bulunamadı.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {listPlays.map((play) => {
-                const isSeen = user?.seenPlayIds?.includes(play.id) || false;
-                const isWatchlisted = user?.watchlistPlayIds?.includes(play.id) || false;
-
-                return (
-                  <div
-                    key={play.id}
-                    className="p-4 bg-canvas border border-border-subtle hover:border-border-strong rounded-md flex gap-4 transition-all"
-                  >
-                    {/* Poster */}
-                    <Link to={`/oyun/${play.id}`} className="flex-shrink-0">
-                      <div className="w-20 aspect-[2/3] rounded-xs overflow-hidden bg-layer-01 border border-border-subtle">
-                        {play.posterUrl ? (
-                          <img
-                            src={play.posterUrl}
-                            alt={play.title}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-text-tertiary">
-                            <Theater className="w-6 h-6 opacity-40" />
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-
-                    {/* Content */}
-                    <div className="flex-1 flex flex-col justify-between min-w-0">
-                      <div>
-                        <div className="flex items-center justify-between gap-2">
-                          <Link
-                            to={`/oyun/${play.id}`}
-                            className="font-serif font-bold text-base text-text-primary hover:text-theatre-curtain transition-colors truncate"
-                          >
-                            {play.title}
-                          </Link>
-                          <span className="font-mono text-xs font-semibold text-stage-spotlight flex-shrink-0">
-                            ★ {play.rating ? play.rating.toFixed(1) : '—'}
-                          </span>
-                        </div>
-                        <div className="text-xs text-text-secondary font-mono truncate">
-                          {play.playwright} · {play.company}
-                        </div>
-                        <div className="text-[11px] text-text-tertiary font-mono pt-1 truncate">
-                          {play.venue} · {play.year}
-                        </div>
-                      </div>
-
-                      {/* Quick Actions */}
-                      <div className="flex items-center gap-2 pt-3 border-t border-border-subtle/60 mt-2">
-                        {/* Seen Toggle */}
-                        <button
-                          type="button"
-                          onClick={() => handleToggleSeen(play.id)}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono rounded-md border transition-colors cursor-pointer ${
-                            isSeen
-                              ? 'bg-success-mint text-white border-success-mint'
-                              : 'bg-layer-01 hover:bg-layer-02 text-text-primary border-border-subtle'
-                          }`}
-                        >
-                          <Check className="w-3 h-3" />
-                          <span>{isSeen ? 'İzlendi' : 'İzledim'}</span>
-                        </button>
-
-                        {/* Watchlist Toggle */}
-                        <button
-                          type="button"
-                          onClick={() => handleToggleWatchlist(play.id)}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono rounded-md border transition-colors cursor-pointer ${
-                            isWatchlisted
-                              ? 'bg-theatre-curtain text-white border-theatre-curtain'
-                              : 'bg-layer-01 hover:bg-layer-02 text-text-primary border-border-subtle'
-                          }`}
-                        >
-                          <Bookmark className="w-3 h-3" />
-                          <span>{isWatchlisted ? 'İzlemek İstediklerimde' : 'İzlemek İstiyorum'}</span>
-                        </button>
-
-                        {onOpenLogModal && (
-                          <button
-                            type="button"
-                            onClick={() => onOpenLogModal(play)}
-                            className="ml-auto inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono rounded-md bg-layer-01 hover:bg-layer-02 border border-border-subtle text-text-primary transition-colors cursor-pointer"
-                          >
-                            <Plus className="w-3 h-3 text-theatre-curtain" />
-                            <span>Not Al</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+          {/* Plays in list */}
+          <div className="pt-2">
+            <h3 className="m-0 font-extrabold text-xl mb-3">
+              Listede Yer Alan Oyunlar ({listPlays.length})
+            </h3>
+            {listPlays.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                {listPlays.map((play) => (
+                  <CatalogCard key={play.id} play={play} />
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center italic text-tn-muted">
+                Bu listede henüz oyun bulunmuyor.
+              </div>
+            )}
+          </div>
+        </section>
       )}
     </div>
   );
