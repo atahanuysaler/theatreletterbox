@@ -273,7 +273,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
         </h1>
       </section>
 
-      {/* 3. Search Bar */}
+      {/* 3. Search Bar with Controls */}
       <SearchBar
         value={searchQuery}
         onChange={handleSearchChange}
@@ -283,9 +283,12 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
         activeFiltersCount={
           (selectedGenre ? 1 : 0) + (selectedCompany ? 1 : 0) + (selectedActor ? 1 : 0)
         }
+        selectedSort={sortBy}
+        onSortChange={setSortBy}
+        onClearFilters={handleClearFilters}
       />
 
-      {/* 4. Filter Row */}
+      {/* 4. Collapsible Filter Row (Contains genres, company, actor, and active filter pills) */}
       <FilterRow
         isOpen={isFiltersOpen}
         selectedGenre={selectedGenre}
@@ -301,19 +304,6 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
         onSortChange={setSortBy}
         onClearFilters={handleClearFilters}
       />
-
-      {/* 5. Colored Hashtag Chips */}
-      <nav aria-label="Katalog etiketleri" className="flex flex-wrap gap-1.5 py-1.5 pb-3">
-        {GENRES.map((genre, idx) => (
-          <HashtagChip
-            key={genre}
-            label={genre}
-            index={idx}
-            isSelected={selectedGenre === genre}
-            onClick={() => handleGenreChipClick(genre)}
-          />
-        ))}
-      </nav>
 
       {/* 6. Bento Grid (visible when not searching) */}
       {!searchQuery && !selectedGenre && !selectedCompany && !selectedActor && (
