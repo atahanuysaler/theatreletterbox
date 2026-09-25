@@ -14,16 +14,16 @@ export const LeaderboardSnippet: React.FC<LeaderboardSnippetProps> = ({
   return (
     <section
       id="liderler"
-      className="rounded-2xl bg-[#F4D3CE] p-5 sm:p-5.5 flex flex-col gap-3.5 font-serif text-tn-text h-full shadow-sm"
+      className="rounded-2xl bg-tn-blush p-5 sm:p-5.5 flex flex-col gap-3.5 font-serif text-tn-text h-full shadow-sm"
     >
       <div>
         <span className="text-xs font-extrabold tracking-wider text-tn-text">
           SAHNE LİDERLERİ
         </span>
-        <h2 className="m-0 mt-1 font-normal text-3xl sm:text-[36px] leading-tight">
+        <h2 className="m-0 mt-1 font-normal text-3xl sm:text-[36px] leading-tight text-tn-text">
           Tiyatronot <span className="font-extrabold">Sıralaması</span>
         </h2>
-        <p className="m-0 mt-2 italic text-sm sm:text-base leading-snug text-[#4A4541]">
+        <p className="m-0 mt-2 italic text-sm sm:text-base leading-snug text-tn-text-2">
           En çok oyun izleyen, en kapsamlı notları tutan ve tiyatro pasaportunu dolduran sahne müdavimleri.
         </p>
       </div>
@@ -71,7 +71,7 @@ export const LeaderboardSnippet: React.FC<LeaderboardSnippetProps> = ({
                   {u.displayName || 'Tiyatrosever'}
                 </span>
               </div>
-              <span className="text-xs italic text-[#4A4541]">
+              <span className="text-xs italic text-tn-text-2">
                 {u.seenPlayIds?.length || 0} oyun · {u.xp || 0} XP
               </span>
             </Link>

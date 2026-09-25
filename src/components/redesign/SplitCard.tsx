@@ -63,7 +63,7 @@ export const SplitCard: React.FC<SplitCardProps> = ({
       <div
         className="flex-grow rounded-2xl relative p-4 flex justify-between items-end bg-cover bg-center overflow-hidden min-h-[200px]"
         style={{
-          backgroundColor: '#D9CFC5',
+          backgroundColor: '#2B2927',
           backgroundImage: play.posterUrl ? `url(${play.posterUrl})` : undefined,
         }}
       >

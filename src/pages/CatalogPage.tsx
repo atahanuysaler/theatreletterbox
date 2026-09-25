@@ -428,22 +428,22 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
           {/* Row 4: Col 1-2 Daily Puzzles, Col 3 Leaders */}
           <section
             id="bulmacalar"
-            className="lg:col-span-2 rounded-2xl bg-[#F1E3C4] p-5 sm:p-5.5 flex flex-col gap-3.5 shadow-sm"
+            className="lg:col-span-2 rounded-2xl bg-tn-sand dark:bg-tn-sand p-5 sm:p-5.5 flex flex-col gap-3.5 shadow-sm"
           >
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2">
               <div>
                 <span className="text-xs font-extrabold tracking-wider text-tn-text">
                   GÜNLÜK TİYATRO BULMACALARI
                 </span>
-                <h2 className="m-0 mt-1 font-extrabold text-3xl sm:text-[40px] leading-tight">
+                <h2 className="m-0 mt-1 font-extrabold text-3xl sm:text-[40px] leading-tight text-tn-text">
                   Bulmacalar{' '}
-                  <span className="font-normal italic text-lg sm:text-2xl text-[#4A4541]">
+                  <span className="font-normal italic text-lg sm:text-2xl text-tn-text-2">
                     — sahne hafızanı tazele, XP kazan.
                   </span>
                 </h2>
               </div>
-              <span className="italic text-xs sm:text-sm text-[#5E5852] whitespace-nowrap">
-                Her gece 00:00’da yenilenir
+              <span className="italic text-xs sm:text-sm text-tn-text-3 whitespace-nowrap">
+                Her gece 00:00'da yenilenir
               </span>
             </div>
 
