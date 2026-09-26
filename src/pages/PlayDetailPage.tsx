@@ -257,7 +257,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
   const castList = play.cast || [];
   const topCast = castList.slice(0, 3);
   const remainingCast = castList.slice(3);
-  const visibleRemainingCast = isCastExpanded ? remainingCast : remainingCast.slice(0, 12);
+  const visibleRemainingCast = isCastExpanded ? remainingCast : remainingCast.slice(0, 6);
 
   return (
     <div className="w-full flex flex-col gap-1.5 font-serif text-tn-text">
@@ -522,13 +522,13 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
               {visibleRemainingCast.map((actor) => (
                 <CastChip key={actor} actorName={actor} />
               ))}
-              {remainingCast.length > 12 && (
+              {remainingCast.length > 6 && (
                 <button
                   type="button"
                   onClick={() => setIsCastExpanded(!isCastExpanded)}
                   className="h-[34px] px-3.5 rounded-full bg-white/20 text-white text-sm font-semibold hover:bg-white/30 cursor-pointer border-none transition-colors"
                 >
-                  {isCastExpanded ? 'Daha Az Göster' : `Tüm kadroyu göster (+${remainingCast.length - 12})`}
+                  {isCastExpanded ? 'Daha Az Göster' : `Tüm kadroyu göster (+${remainingCast.length - 6})`}
                 </button>
               )}
             </div>

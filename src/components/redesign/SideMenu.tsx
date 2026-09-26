@@ -25,14 +25,40 @@ export const SideMenu: React.FC<SideMenuProps> = ({
   const isDark = themeContext?.isDark ?? false;
   const toggleTheme = themeContext?.toggleTheme ?? (() => {});
 
+  const drawerRef = useRef<HTMLElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
-  // Esc key + body scroll lock
+  // Esc key + focus trap + body scroll lock
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+
+      if (e.key === 'Tab' && drawerRef.current) {
+        const focusable = drawerRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+
+        const firstElement = focusable[0];
+        const lastElement = focusable[focusable.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
@@ -74,6 +100,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
 
       {/* Drawer — sits above the backdrop */}
       <aside
+        ref={drawerRef}
         className="fixed top-2 left-2 bottom-2 z-[999] w-[calc(100vw-16px)] sm:w-[380px] max-w-[380px] rounded-[20px] shadow-drawer p-4 flex flex-col gap-1.5 font-serif border overflow-y-auto animate-in slide-in-from-left duration-200"
         role="dialog"
         aria-modal="true"

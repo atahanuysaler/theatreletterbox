@@ -52,7 +52,11 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlSearchQuery = searchParams.get('q') || '';
-  const urlGenreQuery = searchParams.get('genre') || '';
+  const urlGenreQuery = searchParams.get('genre') || searchParams.get('tur') || '';
+  const urlCompanyQuery = searchParams.get('company') || searchParams.get('topluluk') || '';
+  const urlActorQuery = searchParams.get('actor') || searchParams.get('oyuncu') || '';
+  const urlSortQuery = (searchParams.get('sort') as SortOption) || 'rating_desc';
+  const urlFiltersOpen = searchParams.get('filters') === 'open';
 
   const auth = useAuthSafe();
   const activeUserId = auth?.user?.uid;
@@ -67,11 +71,23 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
   const deferredSearchQuery = useDeferredValue(searchQuery);
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(urlFiltersOpen);
   const [selectedGenre, setSelectedGenre] = useState(urlGenreQuery);
-  const [selectedCompany, setSelectedCompany] = useState('');
-  const [selectedActor, setSelectedActor] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('rating_desc');
+  const [selectedCompany, setSelectedCompany] = useState(urlCompanyQuery);
+  const [selectedActor, setSelectedActor] = useState(urlActorQuery);
+  const [sortBy, setSortBy] = useState<SortOption>(urlSortQuery);
+
+  // Synchronize state with URL query parameters
+  useEffect(() => {
+    const params: Record<string, string> = {};
+    if (searchQuery) params.q = searchQuery;
+    if (selectedGenre) params.genre = selectedGenre;
+    if (selectedCompany) params.company = selectedCompany;
+    if (selectedActor) params.actor = selectedActor;
+    if (sortBy && sortBy !== 'rating_desc') params.sort = sortBy;
+    if (isFiltersOpen) params.filters = 'open';
+    setSearchParams(params, { replace: true });
+  }, [searchQuery, selectedGenre, selectedCompany, selectedActor, sortBy, isFiltersOpen, setSearchParams]);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
