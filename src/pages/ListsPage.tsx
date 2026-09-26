@@ -125,8 +125,8 @@ export const ListsPage: React.FC<ListsPageProps> = () => {
                 ))}
               </div>
             ) : (
-              <div className="p-8 text-center italic text-tn-muted">
-                Bu listede henüz oyun bulunmuyor.
+              <div className="p-8 text-center italic text-tn-muted font-serif">
+                Bu listede henüz oyun bulunamadı.
               </div>
             )}
           </div>

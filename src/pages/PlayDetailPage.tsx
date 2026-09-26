@@ -605,11 +605,13 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
               onShare={(r) => setShareReview(r)}
             />
           ) : (
-            <div className="rounded-2xl bg-tn-card border border-dashed border-tn-line p-6 flex flex-col items-center justify-center text-center gap-2">
-              <span className="font-extrabold text-xl text-tn-text">Bu oyuna henüz not eklenmemiş.</span>
-              <span className="italic text-sm text-tn-muted">
-                Sahne izlenimlerini paylaşan ilk seyirci sen ol!
+            <div className="rounded-2xl bg-tn-card border border-dashed border-tn-line p-6 flex flex-col items-center justify-center text-center gap-3 font-serif">
+              <span className="font-extrabold text-xl text-tn-text">
+                Henüz Seyirci Notu Yok
               </span>
+              <p className="m-0 italic text-sm sm:text-base text-tn-muted leading-relaxed">
+                Bu yapım için henüz bir seyirci notu kaydedilmemiş. Oyunu izlediyseniz sahne deneyiminizi, koltuk görüşünüzü ve izlenimlerinizi ilk siz paylaşın.
+              </p>
             </div>
           )}
 
