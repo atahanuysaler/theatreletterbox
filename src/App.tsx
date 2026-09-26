@@ -15,6 +15,7 @@ import ProfilePage from './pages/ProfilePage';
 import ContactPage from './pages/ContactPage';
 import AddPlayPage from './pages/AddPlayPage';
 import NotFoundPage from './pages/NotFoundPage';
+import DevComponentsPage from './pages/DevComponentsPage';
 import LogModal from './components/LogModal';
 import DailyQuoteModal from './components/DailyQuoteModal';
 import { AuthProvider, useAuthSafe } from './context/AuthContext';
@@ -104,6 +105,7 @@ const AppContent: React.FC = () => {
             <Route path="/iletisim" element={<ContactPage />} />
             <Route path="/oyun-ekle" element={<AddPlayPage />} />
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/dev/components" element={<DevComponentsPage />} />
             <Route path="/404" element={<NotFoundPage />} />
             <Route path="*" element={<Navigate to="/404" replace />} />
           </Routes>

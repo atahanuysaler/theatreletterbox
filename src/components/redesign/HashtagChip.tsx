@@ -3,12 +3,12 @@ import React from 'react';
 export type HashtagColor = 'red' | 'blush' | 'ink' | 'ochre' | 'lilac' | 'sage';
 
 const COLOR_CLASSES: Record<HashtagColor, string> = {
-  red: 'bg-[#BA1B23] text-white hover:bg-[#a0161d]',
-  blush: 'bg-[#F4D3CE] text-[#1C1A1B] hover:bg-[#ebd5d0]',
-  ink: 'bg-[#1C1A1B] text-white hover:bg-[#333031]',
-  ochre: 'bg-[#E4B33A] text-[#1C1A1B] hover:bg-[#d6a52f]',
-  lilac: 'bg-[#D9CFF2] text-[#1C1A1B] hover:bg-[#cec2ea]',
-  sage: 'bg-[#D6E0D3] text-[#1C1A1B] hover:bg-[#c6d3c2]',
+  red: 'bg-tn-red text-white hover:bg-tn-red/90',
+  blush: 'bg-tn-blush text-tn-ink hover:opacity-90',
+  ink: 'bg-tn-ink text-white hover:bg-tn-ink/90',
+  ochre: 'bg-tn-ochre text-tn-ink hover:opacity-90',
+  lilac: 'bg-tn-lilac text-tn-ink hover:opacity-90',
+  sage: 'bg-tn-sage text-tn-ink hover:opacity-90',
 };
 
 export const COLOR_CYCLE: HashtagColor[] = ['red', 'blush', 'ink', 'ochre', 'lilac', 'sage'];
@@ -39,7 +39,7 @@ export const HashtagChip: React.FC<HashtagChipProps> = ({
     <button
       type="button"
       onClick={onClick}
-      className={`h-[34px] px-3.5 flex items-center rounded-full text-[15px] font-semibold transition-all cursor-pointer whitespace-nowrap ${colorClass} ${
+      className={`h-[34px] min-h-[34px] px-3.5 flex items-center rounded-full text-[15px] font-semibold transition-all cursor-pointer whitespace-nowrap border-none ${colorClass} ${
         isSelected ? 'ring-2 ring-tn-ink ring-offset-2 scale-105 shadow-sm' : ''
       } ${className}`}
     >

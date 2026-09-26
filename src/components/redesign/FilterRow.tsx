@@ -1,9 +1,17 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import HashtagChip from './HashtagChip';
-import { X, RotateCcw, Building2, Users } from 'lucide-react';
+import { X, RotateCcw, Building2, Users, ArrowUpDown, Check } from 'lucide-react';
 import { normalizeSearchText } from '../../utils/textUtils';
 
 export type SortOption = 'rating_desc' | 'rating_asc' | 'year_desc' | 'reviews_desc' | 'title_asc';
+
+export const SORT_OPTIONS: { key: SortOption; label: string }[] = [
+  { key: 'rating_desc', label: 'En Yüksek Puan' },
+  { key: 'year_desc', label: 'En Yeni' },
+  { key: 'reviews_desc', label: 'En Çok Not Alan' },
+  { key: 'title_asc', label: 'İsme Göre (A-Z)' },
+  { key: 'rating_asc', label: 'En Düşük Puan' },
+];
 
 interface FilterTextInputProps {
   label: string;
@@ -44,8 +52,8 @@ const FilterTextInput: React.FC<FilterTextInputProps> = ({
   }, [value, options]);
 
   return (
-    <div ref={containerRef} className="relative flex-1 min-w-[180px]">
-      <div className="relative flex items-center h-11 px-3.5 rounded-xl border border-tn-line bg-white dark:bg-tn-card text-tn-text focus-within:ring-2 focus-within:ring-tn-red/30 transition-all shadow-2xs">
+    <div ref={containerRef} className="relative flex-1 min-w-[200px]">
+      <div className="relative flex items-center h-10 px-3.5 rounded-xl border border-tn-line bg-white dark:bg-tn-card text-tn-text focus-within:ring-2 focus-within:ring-tn-red/30 transition-all shadow-2xs">
         {icon && <span className="mr-2 flex-shrink-0">{icon}</span>}
         <input
           type="text"
@@ -127,16 +135,133 @@ export const FilterRow: React.FC<FilterRowProps> = ({
   selectedActor,
   onActorChange,
   actorOptions,
+  selectedSort,
+  onSortChange,
   onClearFilters,
 }) => {
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
+        setIsSortOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
   const hasActiveFilters = Boolean(selectedGenre || selectedCompany || selectedActor);
+  const currentSortLabel = SORT_OPTIONS.find((s) => s.key === selectedSort)?.label || 'Sırala';
 
   return (
     <div
       id="filtre-satiri"
       className="w-full flex flex-col gap-2 font-serif text-tn-text transition-all"
     >
-      {/* Collapsible Filter Panel (Appears when toggled on) */}
+      {/* Top Bar: Hints or Active Summary + ALWAYS VISIBLE Sort button (DESIGN.md §7.3) */}
+      <div className="flex justify-between items-center min-h-[40px] px-1 gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          {!isOpen && !hasActiveFilters && (
+            <span className="italic text-sm sm:text-[15px] text-tn-faint select-none">
+              Tür, topluluk, oyuncu ve yapım ekibine göre daraltmak için Filtreler'i aç.
+            </span>
+          )}
+
+          {!isOpen && hasActiveFilters && (
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="text-tn-muted italic mr-1">Aktif filtreler:</span>
+              {selectedGenre && (
+                <span className="inline-flex items-center gap-1.5 bg-tn-surface border border-tn-line px-2.5 py-1 rounded-full font-serif text-tn-text">
+                  <span>Tür: <strong>{selectedGenre}</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => onGenreChange('')}
+                    className="hover:text-tn-red cursor-pointer border-none bg-transparent p-0 flex items-center"
+                    aria-label="Türü kaldır"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {selectedCompany && (
+                <span className="inline-flex items-center gap-1.5 bg-tn-surface border border-tn-line px-2.5 py-1 rounded-full font-serif text-tn-text">
+                  <span>Topluluk: <strong>{selectedCompany}</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => onCompanyChange('')}
+                    className="hover:text-tn-red cursor-pointer border-none bg-transparent p-0 flex items-center"
+                    aria-label="Topluluğu kaldır"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {selectedActor && (
+                <span className="inline-flex items-center gap-1.5 bg-tn-surface border border-tn-line px-2.5 py-1 rounded-full font-serif text-tn-text">
+                  <span>Oyuncu: <strong>{selectedActor}</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => onActorChange('')}
+                    className="hover:text-tn-red cursor-pointer border-none bg-transparent p-0 flex items-center"
+                    aria-label="Oyuncuyu kaldır"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {onClearFilters && (
+                <button
+                  type="button"
+                  onClick={onClearFilters}
+                  className="text-tn-red hover:opacity-80 italic ml-1 cursor-pointer border-none bg-transparent font-medium"
+                >
+                  Tümünü Temizle
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Sort Dropdown (Always visible on desktop) */}
+        <div ref={sortRef} className="relative flex-shrink-0 ml-auto">
+          <button
+            type="button"
+            onClick={() => setIsSortOpen(!isSortOpen)}
+            className="h-10 px-3.5 rounded-xl border border-tn-line bg-white dark:bg-tn-card text-tn-text font-serif text-[15px] flex items-center gap-1.5 cursor-pointer hover:bg-tn-surface transition-colors shadow-2xs"
+          >
+            <span className="italic text-tn-muted">Sıralama:</span>
+            <span className="font-semibold">{currentSortLabel}</span>
+            <span className="text-xs text-tn-muted ml-0.5">▾</span>
+          </button>
+
+          {isSortOpen && (
+            <div className="absolute top-full right-0 mt-1 w-52 rounded-xl bg-white dark:bg-tn-card border border-tn-line shadow-lg z-30 py-1 divide-y divide-tn-line/40 font-serif">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => {
+                    onSortChange(opt.key);
+                    setIsSortOpen(false);
+                  }}
+                  className={`w-full text-left px-3.5 py-2 text-sm flex justify-between items-center transition-colors cursor-pointer border-none bg-transparent ${
+                    selectedSort === opt.key
+                      ? 'bg-tn-surface font-bold text-tn-red'
+                      : 'text-tn-text hover:bg-tn-surface'
+                  }`}
+                >
+                  <span>{opt.label}</span>
+                  {selectedSort === opt.key && <Check className="w-4 h-4 text-tn-red" />}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Expanded Filter Panel (When toggled on) */}
       {isOpen && (
         <div className="w-full p-4 sm:p-5 rounded-2xl bg-tn-surface border border-tn-line flex flex-col gap-4 animate-in fade-in duration-200 shadow-xs">
           {/* Section 1: Oyun Türü (Genres) */}
@@ -156,15 +281,15 @@ export const FilterRow: React.FC<FilterRowProps> = ({
               )}
             </div>
 
-            {/* Genre Hashtag Chips inside the Filter Toggle */}
+            {/* Genre Hashtag Chips */}
             <div className="flex flex-wrap gap-1.5 items-center">
               <button
                 type="button"
                 onClick={() => onGenreChange('')}
-                className={`h-8 px-3 rounded-full text-xs sm:text-sm font-serif cursor-pointer transition-colors border ${
+                className={`h-[34px] px-3.5 rounded-full text-xs sm:text-sm font-serif cursor-pointer transition-colors border ${
                   !selectedGenre
-                    ? 'bg-tn-ink text-white dark:bg-white dark:text-[#1C1A1B] font-bold border-transparent shadow-xs'
-                    : 'bg-white/80 dark:bg-tn-card text-tn-text border-tn-line hover:bg-white dark:hover:bg-tn-surface'
+                    ? 'bg-tn-ink text-white font-bold border-transparent shadow-xs'
+                    : 'bg-white dark:bg-tn-card text-tn-text border-tn-line hover:bg-white dark:hover:bg-tn-surface'
                 }`}
               >
                 Tümü
@@ -181,9 +306,8 @@ export const FilterRow: React.FC<FilterRowProps> = ({
             </div>
           </div>
 
-          {/* Section 2: Topluluk & Oyuncu Text Boxes */}
+          {/* Section 2: Topluluk & Oyuncu Inputs */}
           <div className="pt-3 border-t border-tn-line/60 flex flex-wrap gap-2.5 items-center">
-            {/* Company text box */}
             <FilterTextInput
               label="Topluluk"
               placeholder="Topluluk ara veya seç…"
@@ -193,7 +317,6 @@ export const FilterRow: React.FC<FilterRowProps> = ({
               icon={<Building2 className="w-4 h-4 text-tn-muted" />}
             />
 
-            {/* Actor text box */}
             <FilterTextInput
               label="Oyuncu"
               placeholder="Oyuncu ara veya seç…"
@@ -203,73 +326,17 @@ export const FilterRow: React.FC<FilterRowProps> = ({
               icon={<Users className="w-4 h-4 text-tn-muted" />}
             />
 
-            {/* Reset Filters */}
             {hasActiveFilters && onClearFilters && (
               <button
                 type="button"
                 onClick={onClearFilters}
-                className="h-11 px-4 rounded-xl bg-tn-red/10 text-tn-red text-sm font-semibold hover:bg-tn-red/20 transition-colors cursor-pointer border border-tn-red/20 whitespace-nowrap ml-auto flex items-center gap-1.5"
+                className="h-10 px-4 rounded-xl bg-tn-red/10 text-tn-red text-sm font-semibold hover:bg-tn-red/20 transition-colors cursor-pointer border border-tn-red/20 whitespace-nowrap ml-auto flex items-center gap-1.5"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Filtreleri Sıfırla</span>
               </button>
             )}
           </div>
-        </div>
-      )}
-
-      {/* Active Filter Pills Bar (When toggle is closed, but filters are active) */}
-      {!isOpen && hasActiveFilters && (
-        <div className="flex flex-wrap items-center gap-1.5 py-1 px-1 text-xs">
-          <span className="text-tn-muted italic mr-1">Aktif filtreler:</span>
-          {selectedGenre && (
-            <span className="inline-flex items-center gap-1.5 bg-tn-surface border border-tn-line px-2.5 py-1 rounded-full font-serif text-tn-text shadow-2xs">
-              <span>Tür: <strong>{selectedGenre}</strong></span>
-              <button
-                type="button"
-                onClick={() => onGenreChange('')}
-                className="hover:text-tn-red cursor-pointer border-none bg-transparent p-0 flex items-center"
-                aria-label="Türü kaldır"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-          {selectedCompany && (
-            <span className="inline-flex items-center gap-1.5 bg-tn-surface border border-tn-line px-2.5 py-1 rounded-full font-serif text-tn-text shadow-2xs">
-              <span>Topluluk: <strong>{selectedCompany}</strong></span>
-              <button
-                type="button"
-                onClick={() => onCompanyChange('')}
-                className="hover:text-tn-red cursor-pointer border-none bg-transparent p-0 flex items-center"
-                aria-label="Topluluğu kaldır"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-          {selectedActor && (
-            <span className="inline-flex items-center gap-1.5 bg-tn-surface border border-tn-line px-2.5 py-1 rounded-full font-serif text-tn-text shadow-2xs">
-              <span>Oyuncu: <strong>{selectedActor}</strong></span>
-              <button
-                type="button"
-                onClick={() => onActorChange('')}
-                className="hover:text-tn-red cursor-pointer border-none bg-transparent p-0 flex items-center"
-                aria-label="Oyuncuyu kaldır"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-          {onClearFilters && (
-            <button
-              type="button"
-              onClick={onClearFilters}
-              className="text-tn-red hover:opacity-80 italic ml-1 cursor-pointer border-none bg-transparent font-medium transition-opacity"
-            >
-              Tümünü Temizle
-            </button>
-          )}
         </div>
       )}
     </div>

@@ -61,14 +61,13 @@ export const SplitCard: React.FC<SplitCardProps> = ({
 
       {/* Bottom half: poster + action */}
       <div
-        className="flex-grow rounded-2xl relative p-4 flex justify-between items-end bg-cover bg-center overflow-hidden min-h-[200px]"
+        className="flex-grow rounded-2xl relative p-4 flex justify-between items-end bg-cover bg-center overflow-hidden min-h-[200px] bg-tn-ink"
         style={{
-          backgroundColor: '#2B2927',
           backgroundImage: play.posterUrl ? `url(${play.posterUrl})` : undefined,
         }}
       >
         {/* Soft gradient overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent pointer-events-none" />
 
         <span className="relative z-10 text-xs italic text-white/95 font-serif drop-shadow-sm truncate max-w-[70%]">
           Afiş · {play.title}

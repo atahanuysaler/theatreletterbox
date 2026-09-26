@@ -13,25 +13,25 @@ interface CuratedListCardProps {
 
 const STYLES = {
   ink: {
-    container: 'bg-[#1C1A1B] text-white',
+    container: 'bg-tn-ink text-white',
     pill: 'border-white text-white',
     subtitle: 'opacity-80 text-white',
     desc: 'opacity-90 text-white',
   },
   lilac: {
-    container: 'bg-[#D9CFF2] text-tn-text',
-    pill: 'border-tn-ink text-tn-text',
+    container: 'bg-tn-lilac text-tn-text',
+    pill: 'border-tn-text text-tn-text',
     subtitle: 'opacity-80 text-tn-text',
     desc: 'opacity-90 text-tn-text',
   },
   sage: {
-    container: 'bg-[#D6E0D3] text-tn-text',
-    pill: 'border-tn-ink text-tn-text',
+    container: 'bg-tn-sage text-tn-text',
+    pill: 'border-tn-text text-tn-text',
     subtitle: 'opacity-80 text-tn-text',
     desc: 'opacity-90 text-tn-text',
   },
   red: {
-    container: 'bg-[#BA1B23] text-white',
+    container: 'bg-tn-red text-white',
     pill: 'border-white text-white',
     subtitle: 'opacity-80 text-white',
     desc: 'opacity-90 text-white',
@@ -77,8 +77,11 @@ export const CuratedListCard: React.FC<CuratedListCardProps> = ({
         </p>
       </div>
 
-      {/* Curator */}
-      <span className="italic text-xs sm:text-sm">{curator}</span>
+      {/* Curator Footer */}
+      <div className="pt-2 border-t border-current/15 flex justify-between items-center text-xs">
+        <span className="italic opacity-85">Küratör: {curator}</span>
+        <span className="font-semibold text-sm">Seçkiyi İncele →</span>
+      </div>
     </Link>
   );
 };

@@ -28,9 +28,9 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             aria-label="Menüyü aç"
             aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen(true)}
-            className="flex-shrink-0 w-11 h-11 rounded-full bg-tn-surface border-none cursor-pointer flex items-center justify-center hover:bg-tn-border transition-colors text-tn-text"
+            className="flex-shrink-0 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-tn-surface border-none cursor-pointer flex items-center justify-center hover:bg-tn-line transition-colors text-tn-text"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 7h16M4 12h16M4 17h16" />
             </svg>
           </button>
@@ -54,11 +54,10 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
 
         {/* Right: Actions */}
         <div className="flex justify-end gap-1.5 sm:gap-2 items-center flex-shrink-0">
-
-          {/* Desktop links */}
+          {/* Desktop link: Oyun Ekle */}
           <Link
             to="/oyun-ekle"
-            className="hidden md:flex h-11 px-4 items-center rounded-full bg-tn-surface border border-tn-line/40 text-[15px] font-normal hover:bg-tn-line transition-colors text-tn-text no-underline whitespace-nowrap"
+            className="hidden md:flex min-h-[44px] h-11 px-4 items-center rounded-full bg-tn-surface border border-tn-line/40 text-[15px] font-normal hover:bg-tn-line transition-colors text-tn-text no-underline whitespace-nowrap"
           >
             Oyun Ekle
           </Link>
@@ -66,7 +65,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
           {user ? (
             <Link
               to="/profil"
-              className="hidden sm:flex h-11 px-3 sm:px-4 items-center gap-2 rounded-full bg-tn-surface border border-tn-line/40 text-[15px] hover:bg-tn-line transition-colors text-tn-text no-underline whitespace-nowrap"
+              className="hidden sm:flex min-h-[44px] h-11 px-3 sm:px-4 items-center gap-2 rounded-full bg-tn-surface border border-tn-line/40 text-[15px] hover:bg-tn-line transition-colors text-tn-text no-underline whitespace-nowrap"
             >
               {user.photoURL && (
                 <img src={user.photoURL} alt={user.displayName} className="w-5 h-5 rounded-full object-cover" />
@@ -77,7 +76,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             <button
               type="button"
               onClick={() => loginWithGoogle?.()}
-              className="hidden sm:flex h-11 px-4 items-center rounded-full bg-tn-surface border border-tn-line/40 text-[15px] hover:bg-tn-line transition-colors text-tn-text cursor-pointer whitespace-nowrap"
+              className="hidden sm:flex min-h-[44px] h-11 px-4 items-center rounded-full bg-tn-surface border border-tn-line/40 text-[15px] hover:bg-tn-line transition-colors text-tn-text cursor-pointer whitespace-nowrap"
             >
               Giriş Yap
             </button>
@@ -87,14 +86,14 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
           <button
             type="button"
             onClick={onOpenLogModal}
-            className="h-10 sm:h-11 px-3.5 sm:px-5 flex items-center rounded-full bg-[#BA1B23] text-white text-[15px] font-semibold hover:bg-[#9B161D] transition-colors cursor-pointer border-2 border-[#BA1B23] whitespace-nowrap shadow-sm"
+            className="min-h-[44px] h-11 px-4 sm:px-5 flex items-center rounded-full bg-tn-red text-white text-[15px] font-semibold hover:bg-tn-red/90 transition-colors cursor-pointer border-none whitespace-nowrap shadow-xs"
           >
             Not Ekle
           </button>
         </div>
       </header>
 
-      {/* Drawer */}
+      {/* SideMenu Drawer */}
       <SideMenu
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}

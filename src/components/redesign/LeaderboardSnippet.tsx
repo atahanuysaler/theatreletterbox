@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { UserProfile } from '../../types';
+import LeaderboardEmpty from './LeaderboardEmpty';
 
 interface LeaderboardSnippetProps {
   topUsers?: UserProfile[];
@@ -17,7 +18,7 @@ export const LeaderboardSnippet: React.FC<LeaderboardSnippetProps> = ({
       className="rounded-2xl bg-tn-blush p-5 sm:p-5.5 flex flex-col gap-3.5 font-serif text-tn-text h-full shadow-sm"
     >
       <div>
-        <span className="text-xs font-extrabold tracking-wider text-tn-text">
+        <span className="text-xs font-extrabold tracking-wider text-tn-text uppercase">
           SAHNE LİDERLERİ
         </span>
         <h2 className="m-0 mt-1 font-normal text-3xl sm:text-[36px] leading-tight text-tn-text">
@@ -78,26 +79,13 @@ export const LeaderboardSnippet: React.FC<LeaderboardSnippetProps> = ({
           ))}
           <Link
             to="/liderler"
-            className="text-center text-xs font-semibold hover:text-tn-red text-tn-text mt-1 transition-colors"
+            className="text-center text-xs font-semibold hover:text-tn-red text-tn-text mt-1 transition-colors no-underline"
           >
             Tüm Sıralamayı Gör →
           </Link>
         </div>
       ) : (
-        <div className="flex-grow rounded-xl border-1.5 border-dashed border-tn-ink/35 flex flex-col items-center justify-center gap-1.5 text-center p-4 min-h-[140px]">
-          <span className="text-[11px] font-semibold tracking-wider text-[#6B4A45]">
-            SIRA · TİYATROSEVER · KADEME · İZLENEN · XP
-          </span>
-          <span className="font-extrabold text-xl text-tn-text">
-            Henüz sıralamada kimse yok.
-          </span>
-          <Link
-            to="/liderler"
-            className="italic text-base text-tn-red font-semibold hover:opacity-85 transition-opacity"
-          >
-            İlk sen ol!
-          </Link>
-        </div>
+        <LeaderboardEmpty />
       )}
     </section>
   );

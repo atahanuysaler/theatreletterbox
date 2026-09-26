@@ -2,11 +2,13 @@ import React from 'react';
 
 interface SenDeYazOvalProps {
   onClick: () => void;
+  subtitle?: string;
   className?: string;
 }
 
 export const SenDeYazOval: React.FC<SenDeYazOvalProps> = ({
   onClick,
+  subtitle = 'Bu gece ne izledin? Not bırak',
   className = '',
 }) => {
   return (
@@ -25,8 +27,8 @@ export const SenDeYazOval: React.FC<SenDeYazOvalProps> = ({
         <span className="font-extrabold text-5xl sm:text-[60px] leading-[0.9] text-center tracking-tight text-tn-text">
           SEN DE<br />YAZ
         </span>
-        <span className="italic text-base sm:text-lg text-tn-text font-medium opacity-90">
-          Bu gece ne izledin? Not bırak
+        <span className="italic text-base sm:text-lg text-tn-text font-medium opacity-90 underline decoration-tn-text/40">
+          {subtitle}
         </span>
       </button>
     </div>

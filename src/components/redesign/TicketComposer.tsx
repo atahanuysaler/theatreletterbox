@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import SegmentedControl from './SegmentedControl';
+import Switch from './Switch';
 
 interface TicketComposerProps {
   playTitle: string;
@@ -48,7 +50,7 @@ export const TicketComposer: React.FC<TicketComposerProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl bg-tn-ticket border-2 border-tn-lilac-strong p-5 box-border flex flex-col gap-3 font-serif text-tn-text shadow-sm h-full"
+      className="rounded-2xl bg-tn-ticket border-2 border-tn-lilac-strong p-5 box-border flex flex-col gap-3.5 font-serif text-tn-text shadow-sm h-full"
     >
       {/* Header */}
       <div className="flex justify-between items-center">
@@ -88,7 +90,7 @@ export const TicketComposer: React.FC<TicketComposerProps> = ({
         </label>
       </div>
 
-      {/* Star Rating Picker */}
+      {/* Star Rating Picker (44px touch targets) */}
       <div className="flex items-center gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <button
@@ -97,7 +99,7 @@ export const TicketComposer: React.FC<TicketComposerProps> = ({
             data-action="s.pick"
             aria-label={`${star} yıldız`}
             onClick={() => setRating(star)}
-            className={`w-10 h-10 border-none bg-transparent p-0 text-3xl leading-none cursor-pointer transition-transform hover:scale-110 ${
+            className={`min-w-[44px] min-h-[44px] w-11 h-11 border-none bg-transparent p-0 text-3xl leading-none cursor-pointer transition-transform hover:scale-110 flex items-center justify-center ${
               star <= rating ? 'text-tn-red' : 'text-tn-line-strong'
             }`}
           >
@@ -107,28 +109,16 @@ export const TicketComposer: React.FC<TicketComposerProps> = ({
         <span className="font-extrabold text-2xl ml-2 text-tn-text">{rating}.0</span>
       </div>
 
-      {/* Koltuk Görüşü Segmented Control */}
-      <div
-        role="radiogroup"
-        aria-label="Koltuk görüşü"
-        className="flex gap-1 p-1 rounded-xl bg-tn-surface border border-tn-line/50 text-sm"
-      >
-        {(['Kusursuz', 'İyi', 'Kısıtlı'] as const).map((option) => (
-          <button
-            key={option}
-            type="button"
-            role="radio"
-            aria-checked={seatInfo === option}
-            onClick={() => setSeatInfo(option)}
-            className={`flex-grow h-9 border-none rounded-lg font-serif text-sm cursor-pointer transition-all ${
-              seatInfo === option
-                ? 'bg-white dark:bg-tn-card shadow-xs font-bold text-tn-text'
-                : 'bg-transparent text-tn-muted hover:text-tn-text'
-            }`}
-          >
-            {option}
-          </button>
-        ))}
+      {/* Koltuk Görüşü: SegmentedControl */}
+      <div className="flex flex-col gap-1">
+        <span className="text-xs italic text-tn-muted">Koltuk Görüşü</span>
+        <SegmentedControl
+          ariaLabel="Koltuk görüşü"
+          options={['Kusursuz', 'İyi', 'Kısıtlı'] as const}
+          value={seatInfo}
+          onChange={(val) => setSeatInfo(val as 'Kusursuz' | 'İyi' | 'Kısıtlı')}
+          className="w-full justify-between"
+        />
       </div>
 
       {/* Review Textarea */}
@@ -146,27 +136,16 @@ export const TicketComposer: React.FC<TicketComposerProps> = ({
 
       {/* Footer: Spoiler switch + submit */}
       <div className="flex justify-between items-center pt-1">
-        <button
-          type="button"
-          role="switch"
-          aria-checked={hasSpoilers}
-          onClick={() => setHasSpoilers(!hasSpoilers)}
-          className="flex items-center gap-2 h-10 border-none bg-transparent p-0 font-serif text-sm text-tn-text cursor-pointer"
-        >
-          <span
-            className={`w-10 h-6 rounded-full p-0.5 flex items-center transition-colors ${
-              hasSpoilers ? 'bg-tn-red justify-end' : 'bg-tn-line-strong justify-start'
-            }`}
-          >
-            <span className="w-5 h-5 rounded-full bg-white shadow-xs" />
-          </span>
-          <span className="italic text-xs sm:text-sm">Spoiler içeriyor</span>
-        </button>
+        <Switch
+          checked={hasSpoilers}
+          onChange={setHasSpoilers}
+          label="Spoiler içeriyor"
+        />
 
         <button
           type="submit"
           disabled={isSubmitting || !reviewText.trim()}
-          className="h-10 px-5 rounded-xl bg-tn-red text-white border-none font-serif text-base font-semibold cursor-pointer hover:bg-tn-red/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-xs"
+          className="min-h-[44px] h-11 px-5 rounded-xl bg-tn-red text-white border-none font-serif text-base font-semibold cursor-pointer hover:bg-tn-red/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-xs"
         >
           {isSubmitting ? 'Kaydediliyor…' : 'Bileti Kaydet'}
         </button>
