@@ -108,44 +108,60 @@ html.dark,
     }
   }
 
-  /* Editorial Headings: Classical Play Scripts & Theatre Playbills */
+  /* Editorial Headings: Classical Play Scripts & Theatre Playbills (DESIGN.md §4) */
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-serif);
-    color: rgb(var(--color-text-primary));
-    font-weight: 600;
-    letter-spacing: -0.015em;
-    line-height: 1.25;
+    font-family: var(--tn-font, 'Newsreader', Georgia, serif);
+    color: var(--tn-text, #1C1A1B);
+    font-weight: 800;
     margin: 0;
   }
 
   h1 {
     font-size: 2.25rem; /* 36px */
     letter-spacing: -0.02em;
+    line-height: 0.98;
   }
 
-  @media (min-width: 768px) {
+  @media (min-width: 1200px) {
     h1 {
-      font-size: 2.5rem; /* 40px */
+      font-size: 4rem; /* 64px-82px per layout */
+      line-height: 0.95;
     }
   }
 
   h2 {
-    font-size: 1.875rem; /* 30px */
+    font-size: 1.75rem; /* 28px */
     letter-spacing: -0.015em;
+    line-height: 1.05;
+  }
+
+  @media (min-width: 1200px) {
+    h2 {
+      font-size: 2.75rem; /* 44px */
+      line-height: 1;
+    }
   }
 
   h3 {
-    font-size: 1.5rem; /* 24px */
+    font-size: 1.5rem; /* 24px-32px */
     letter-spacing: -0.01em;
+    line-height: 1;
+  }
+
+  @media (min-width: 1200px) {
+    h3 {
+      font-size: 2.25rem; /* 36px-40px */
+      line-height: 0.95;
+    }
   }
 
   h4 {
     font-size: 1.25rem; /* 20px */
   }
 
-  /* Metadata & Timing: Crisp Monospace */
+  /* Single font family: Newsreader across all UI elements */
   code, pre, kbd, samp {
-    font-family: var(--font-mono);
+    font-family: var(--tn-font, 'Newsreader', Georgia, serif);
   }
 
   /* Links */
