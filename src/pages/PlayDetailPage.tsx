@@ -12,6 +12,7 @@ import SenDeYazOval from '../components/redesign/SenDeYazOval';
 import TicketComposer from '../components/redesign/TicketComposer';
 import CastChip from '../components/redesign/CastChip';
 import CatalogCard from '../components/redesign/CatalogCard';
+import RatingSummary from '../components/redesign/RatingSummary';
 import StickyActionBar from '../components/redesign/StickyActionBar';
 import Footer from '../components/redesign/Footer';
 import SocialShareModal from '../components/SocialShareModal';
@@ -588,38 +589,12 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
 
         {/* 3 Columns Grid: Col 1 Summary, Col 2 Real Ticket, Col 3 SenDeYazOval / TicketComposer */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-1.5 min-h-[540px]">
-          {/* Col 1: Summary Card */}
-          <div className="rounded-2xl bg-white dark:bg-tn-card p-5 sm:p-6 flex flex-col justify-between shadow-xs border border-tn-line text-tn-text">
-            <div className="flex flex-col gap-1.5">
-              <span className="italic text-base sm:text-[17px] text-tn-muted">
-                Seyirci ortalaması
-              </span>
-              <span className="font-extrabold text-7xl sm:text-[96px] leading-[0.85] tracking-tight text-tn-text">
-                {play.rating ? play.rating.toFixed(1) : '5.0'}
-              </span>
-              <span className="text-xl sm:text-[22px] tracking-widest text-tn-red">
-                ★★★★★
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-2 pt-4 border-t border-tn-line text-base sm:text-[17px]">
-              <div className="flex justify-between pb-2 border-b border-tn-line/70">
-                <span className="italic text-tn-muted">Temsil notu</span>
-                <span className="font-extrabold text-tn-text">{reviews.length}</span>
-              </div>
-              <div className="flex justify-between pb-2 border-b border-tn-line/70">
-                <span className="italic text-tn-muted">Katalogdaki puan</span>
-                <span className="font-extrabold text-tn-text">
-                  {play.rating ? play.rating.toFixed(1) : '5.0'} · {play.reviewCount || 1} not
-                </span>
-              </div>
-              <div className="flex justify-between items-center pt-1">
-                <span className="italic text-tn-muted">Rozet</span>
-                <span className="h-6.5 px-3 flex items-center rounded-full bg-tn-ochre text-xs font-bold text-[#1C1A1B] shadow-xs">
-                  Ayakta Alkış
-                </span>
-              </div>
-            </div>
+          {/* Col 1: Rating Summary Component */}
+          <div className="h-full">
+            <RatingSummary
+              rating={play.rating || 5.0}
+              reviewCount={reviews.length || play.reviewCount || 1}
+            />
           </div>
 
           {/* Col 2: Real Ticket (First Review or Sample) */}
@@ -650,6 +625,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
               />
             ) : (
               <SenDeYazOval
+                subtitle="Biletini kes, notunu bırak"
                 onClick={() => setIsComposerOpen(true)}
               />
             )}
@@ -699,6 +675,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
       <StickyActionBar
         playTitle={play.title}
         rating={play.rating}
+        reviewCount={reviews.length || play.reviewCount || 1}
         onOpenLogModal={() => {
           setIsComposerOpen(true);
           const el = document.getElementById('gunluk');
