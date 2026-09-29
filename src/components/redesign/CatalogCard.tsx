@@ -38,17 +38,22 @@ export const CatalogCard: React.FC<CatalogCardProps> = ({ play }) => {
         <h4 className="m-0 font-extrabold text-base sm:text-[19px] leading-tight group-hover:text-tn-red transition-colors line-clamp-1 text-tn-text">
           {play.title}
         </h4>
-        <span className="italic text-xs sm:text-sm text-tn-text-2 truncate">
+        <span className="italic text-xs sm:text-sm text-tn-text-2 dark:text-tn-text/90 truncate">
           {play.playwright || 'Yazar belirtilmemiş'}
         </span>
         {play.director && (
-          <span className="text-xs text-tn-muted truncate leading-snug">
+          <span className="text-xs text-tn-muted dark:text-tn-text-2 truncate leading-snug">
             Yön. {play.director}
           </span>
         )}
         {play.company && (
           <span className="text-xs font-semibold text-tn-text truncate leading-snug">
             {play.company}
+          </span>
+        )}
+        {play.cast && play.cast.length > 0 && (
+          <span className="text-xs text-tn-muted dark:text-tn-text-2 truncate leading-snug">
+            {play.cast.slice(0, 3).join(', ')}
           </span>
         )}
 

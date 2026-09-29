@@ -1,32 +1,15 @@
-import React, { useState, useEffect, useMemo, useRef, useDeferredValue } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import type { Play, ReviewEntry, UserProfile, CuratedList } from '../types';
+import React, { useState, useEffect, useMemo, useDeferredValue } from 'react';
+import { useSearchParams, useLocation } from 'react-router-dom';
+import type { Play } from '../types';
 import { storageService } from '../services/storage';
-import { useAuthSafe } from '../context/AuthContext';
 import { normalizeSearchText } from '../utils/textUtils';
 
 // Redesign components
-import SiteHeader from '../components/redesign/SiteHeader';
 import SearchBar from '../components/redesign/SearchBar';
-import FilterRow, { SortOption } from '../components/redesign/FilterRow';
-import HashtagChip from '../components/redesign/HashtagChip';
-import SplitCard from '../components/redesign/SplitCard';
-import SenDeYazOval from '../components/redesign/SenDeYazOval';
-import TicketNote from '../components/redesign/TicketNote';
-import PuzzleCard from '../components/redesign/PuzzleCard';
-import LeaderboardSnippet from '../components/redesign/LeaderboardSnippet';
-import CuratedListCard from '../components/redesign/CuratedListCard';
+import FilterRow, { SortOption, SORT_OPTIONS } from '../components/redesign/FilterRow';
 import CatalogCard from '../components/redesign/CatalogCard';
 import Pagination from '../components/redesign/Pagination';
-import Footer from '../components/redesign/Footer';
-import MobileTabBar from '../components/redesign/MobileTabBar';
-
-// Interactive Modals
-import DailyQuoteModal from '../components/DailyQuoteModal';
-import OyuncuDedektifiModal from '../components/OyuncuDedektifiModal';
-import TriviaModal from '../components/TriviaModal';
-import WordPuzzleModal from '../components/WordPuzzleModal';
-import SocialShareModal from '../components/SocialShareModal';
+import LoadMoreButton from '../components/redesign/LoadMoreButton';
 
 const GENRES = [
   'Trajedi & Dram',
@@ -46,26 +29,21 @@ interface CatalogPageProps {
   onOpenDailyQuote?: () => void;
 }
 
-export const CatalogPage: React.FC<CatalogPageProps> = ({
-  onOpenLogModal,
-  onOpenDailyQuote,
-}) => {
+export const CatalogPage: React.FC<CatalogPageProps> = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const shouldAutoFocus = Boolean((location.state as { autoFocus?: boolean } | null)?.autoFocus);
+
   const urlSearchQuery = searchParams.get('q') || '';
   const urlGenreQuery = searchParams.get('genre') || searchParams.get('tur') || '';
   const urlCompanyQuery = searchParams.get('company') || searchParams.get('topluluk') || '';
   const urlActorQuery = searchParams.get('actor') || searchParams.get('oyuncu') || '';
-  const urlSortQuery = (searchParams.get('sort') as SortOption) || 'rating_desc';
+  const urlSortParam = searchParams.get('sort');
+  const urlSortQuery = (urlSortParam as SortOption) || 'rating_desc';
   const urlFiltersOpen = searchParams.get('filters') === 'open';
-
-  const auth = useAuthSafe();
-  const activeUserId = auth?.user?.uid;
 
   // Data states
   const [plays, setPlays] = useState<Play[]>([]);
-  const [reviews, setReviews] = useState<ReviewEntry[]>([]);
-  const [curatedLists, setCuratedLists] = useState<CuratedList[]>([]);
-  const [topUsers, setTopUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Filter & Search states
@@ -74,8 +52,25 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
   const [isFiltersOpen, setIsFiltersOpen] = useState(urlFiltersOpen);
   const [selectedGenre, setSelectedGenre] = useState(urlGenreQuery);
   const [selectedCompany, setSelectedCompany] = useState(urlCompanyQuery);
+  const deferredCompanyQuery = useDeferredValue(selectedCompany);
   const [selectedActor, setSelectedActor] = useState(urlActorQuery);
+  const deferredActorQuery = useDeferredValue(selectedActor);
   const [sortBy, setSortBy] = useState<SortOption>(urlSortQuery);
+  const [isSortActive, setIsSortActive] = useState<boolean>(Boolean(urlSortParam));
+
+  // Clear autoFocus state after consumption so back-navigation doesn't unexpectedly refocus
+  useEffect(() => {
+    if (shouldAutoFocus) {
+      window.history.replaceState({}, document.title);
+    }
+  }, [shouldAutoFocus]);
+
+  // Synchronize search query if URL changes externally
+  useEffect(() => {
+    if (urlSearchQuery !== searchQuery) {
+      setSearchQuery(urlSearchQuery);
+    }
+  }, [urlSearchQuery]);
 
   // Synchronize state with URL query parameters
   useEffect(() => {
@@ -84,42 +79,27 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
     if (selectedGenre) params.genre = selectedGenre;
     if (selectedCompany) params.company = selectedCompany;
     if (selectedActor) params.actor = selectedActor;
-    if (sortBy && sortBy !== 'rating_desc') params.sort = sortBy;
+    if (isSortActive && sortBy) params.sort = sortBy;
     if (isFiltersOpen) params.filters = 'open';
     setSearchParams(params, { replace: true });
-  }, [searchQuery, selectedGenre, selectedCompany, selectedActor, sortBy, isFiltersOpen, setSearchParams]);
+  }, [searchQuery, selectedGenre, selectedCompany, selectedActor, sortBy, isSortActive, isFiltersOpen, setSearchParams]);
 
-  // Pagination
+  // Pagination & Progressive Loading
   const [currentPage, setCurrentPage] = useState(1);
+  const [mobileVisibleCount, setMobileVisibleCount] = useState(10);
   const pageSize = 30;
-
-  // Modals state
-  const [isDailyQuoteOpen, setIsDailyQuoteOpen] = useState(false);
-  const [isActorDetectiveOpen, setIsActorDetectiveOpen] = useState(false);
-  const [isTriviaOpen, setIsTriviaOpen] = useState(false);
-  const [isWordPuzzleOpen, setIsWordPuzzleOpen] = useState(false);
-  const [shareReview, setShareReview] = useState<ReviewEntry | null>(null);
 
   // Initial load
   useEffect(() => {
     let isMounted = true;
     const fetchData = async () => {
       try {
-        const [loadedPlays, loadedReviews, loadedLists, loadedUsers] = await Promise.all([
-          storageService.getPlays(),
-          storageService.getReviews(),
-          storageService.getCuratedLists().catch(() => []),
-          storageService.getAllUsers().catch(() => []),
-        ]);
-
+        const loadedPlays = await storageService.getPlays();
         if (isMounted) {
           setPlays(loadedPlays || []);
-          setReviews(loadedReviews || []);
-          setCuratedLists(loadedLists || []);
-          setTopUsers(loadedUsers || []);
         }
       } catch (err) {
-        console.error('[CatalogPage] Failed to fetch data:', err);
+        console.error('[CatalogPage] Failed to fetch plays:', err);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -131,30 +111,24 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
     };
   }, []);
 
-  // Sync with search URL
-  useEffect(() => {
-    if (urlSearchQuery !== searchQuery) {
-      setSearchQuery(urlSearchQuery);
-    }
-  }, [urlSearchQuery]);
-
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
     setCurrentPage(1);
-    if (val.trim()) {
-      setSearchParams({ q: val }, { replace: true });
-    } else {
-      setSearchParams({}, { replace: true });
-    }
+    setMobileVisibleCount(10);
   };
 
-  const handleGenreChipClick = (genre: string) => {
-    if (selectedGenre === genre) {
-      setSelectedGenre('');
-    } else {
-      setSelectedGenre(genre);
-    }
+  const handleSortChange = (newSort: SortOption) => {
+    setSortBy(newSort);
+    setIsSortActive(true);
     setCurrentPage(1);
+    setMobileVisibleCount(10);
+  };
+
+  const handleResetSort = () => {
+    setSortBy('rating_desc');
+    setIsSortActive(false);
+    setCurrentPage(1);
+    setMobileVisibleCount(10);
   };
 
   const handleClearFilters = () => {
@@ -162,83 +136,95 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
     setSelectedCompany('');
     setSelectedActor('');
     setSearchQuery('');
+    setSortBy('rating_desc');
+    setIsSortActive(false);
+    setIsFiltersOpen(false);
     setSearchParams({}, { replace: true });
     setCurrentPage(1);
+    setMobileVisibleCount(10);
   };
 
   // Derive filter options
   const companyOptions = useMemo(() => {
     const set = new Set<string>();
     plays.forEach((p) => {
-      if (p.company?.trim()) set.add(p.company.trim());
+      if (p.company?.trim() && p.company.trim().toLowerCase() !== 'belirtilmemiş') {
+        set.add(p.company.trim());
+      }
+      if (p.director?.trim() && p.director.trim().toLowerCase() !== 'belirtilmemiş') {
+        set.add(p.director.trim());
+      }
+      if (p.playwright?.trim() && p.playwright.trim().toLowerCase() !== 'belirtilmemiş') {
+        set.add(p.playwright.trim());
+      }
     });
-    return Array.from(set).sort();
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'tr'));
   }, [plays]);
 
   const actorOptions = useMemo(() => {
     const set = new Set<string>();
     plays.forEach((p) => {
       p.cast?.forEach((c) => {
-        if (c?.trim()) set.add(c.trim());
+        if (c?.trim() && c.trim().toLowerCase() !== 'belirtilmemiş') {
+          set.add(c.trim());
+        }
       });
     });
-    return Array.from(set).slice(0, 50).sort();
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'tr'));
   }, [plays]);
 
-  // Filtering & Sorting
+  // Filtered & Sorted Plays
   const filteredPlays = useMemo(() => {
     let result = [...plays];
 
-    // Search query
-    const q = normalizeSearchText(deferredSearchQuery.trim());
-    if (q) {
+    // Text search query
+    if (deferredSearchQuery.trim()) {
+      const q = normalizeSearchText(deferredSearchQuery);
       result = result.filter((p) => {
-        const titleNorm = normalizeSearchText(p.title);
-        const origTitleNorm = normalizeSearchText(p.originalTitle || '');
-        const writerNorm = normalizeSearchText(p.playwright || '');
-        const directorNorm = normalizeSearchText(p.director || '');
-        const companyNorm = normalizeSearchText(p.company || '');
-        const castNorm = (p.cast || []).map((c) => normalizeSearchText(c));
-
-        if (titleNorm.includes(q)) return true;
-        if (origTitleNorm.includes(q)) return true;
-        if (writerNorm.includes(q)) return true;
-        if (directorNorm.includes(q)) return true;
-        if (companyNorm.includes(q)) return true;
-        if (castNorm.some((c) => c.includes(q))) return true;
-
-        return false;
+        const titleMatch = normalizeSearchText(p.title).includes(q);
+        const playwrightMatch = p.playwright ? normalizeSearchText(p.playwright).includes(q) : false;
+        const companyMatch = p.company ? normalizeSearchText(p.company).includes(q) : false;
+        const castMatch = p.cast ? p.cast.some((c) => normalizeSearchText(c).includes(q)) : false;
+        const directorMatch = p.director ? normalizeSearchText(p.director).includes(q) : false;
+        return titleMatch || playwrightMatch || companyMatch || castMatch || directorMatch;
       });
     }
 
     // Genre filter
     if (selectedGenre) {
-      const gNorm = normalizeSearchText(selectedGenre);
+      const normalizedGenre = normalizeSearchText(selectedGenre);
       result = result.filter((p) => {
-        const pGenre = normalizeSearchText(p.genre || '');
-        const tags = (p.tags || []).map((t) => normalizeSearchText(t));
-        return pGenre.includes(gNorm) || tags.some((t) => t.includes(gNorm));
+        if (!p.genre) return false;
+        return normalizeSearchText(p.genre).includes(normalizedGenre);
       });
     }
 
-    // Company filter (supports text box search)
-    if (selectedCompany.trim()) {
-      const cNorm = normalizeSearchText(selectedCompany.trim());
-      result = result.filter((p) => normalizeSearchText(p.company || '').includes(cNorm));
+    // Production / Company / Director / Playwright filter
+    if (deferredCompanyQuery.trim()) {
+      const q = normalizeSearchText(deferredCompanyQuery);
+      result = result.filter((p) => {
+        const companyMatch = p.company ? normalizeSearchText(p.company).includes(q) : false;
+        const directorMatch = p.director ? normalizeSearchText(p.director).includes(q) : false;
+        const playwrightMatch = p.playwright ? normalizeSearchText(p.playwright).includes(q) : false;
+        return companyMatch || directorMatch || playwrightMatch;
+      });
     }
 
-    // Actor filter (supports text box search)
-    if (selectedActor.trim()) {
-      const aNorm = normalizeSearchText(selectedActor.trim());
-      result = result.filter((p) => (p.cast || []).some((actor) => normalizeSearchText(actor).includes(aNorm)));
+    // Actor / Play's Cast filter
+    if (deferredActorQuery.trim()) {
+      const q = normalizeSearchText(deferredActorQuery);
+      result = result.filter((p) => {
+        if (!p.cast || p.cast.length === 0) return false;
+        return p.cast.some((c) => c && normalizeSearchText(c).includes(q));
+      });
     }
 
-    // Sorting
+    // Sort
     result.sort((a, b) => {
       if (sortBy === 'rating_desc') {
-        const diff = (b.rating || 0) - (a.rating || 0);
-        if (diff !== 0) return diff;
-        return (b.reviewCount || 0) - (a.reviewCount || 0);
+        const scoreA = (a.rating || 0) * 1000 + (a.reviewCount || 0);
+        const scoreB = (b.rating || 0) * 1000 + (b.reviewCount || 0);
+        return scoreB - scoreA;
       }
       if (sortBy === 'rating_asc') {
         return (a.rating || 0) - (b.rating || 0);
@@ -256,311 +242,103 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
     });
 
     return result;
-  }, [plays, deferredSearchQuery, selectedGenre, selectedCompany, selectedActor, sortBy]);
+  }, [plays, deferredSearchQuery, selectedGenre, deferredCompanyQuery, deferredActorQuery, sortBy]);
 
-  // Paginated Catalog
+  // Paginated Catalog (Desktop)
   const totalPages = Math.ceil(filteredPlays.length / pageSize);
   const paginatedPlays = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filteredPlays.slice(start, start + pageSize);
   }, [filteredPlays, currentPage, pageSize]);
 
-  // Bento highlights
-  const featuredPlay = useMemo(() => {
-    return plays.find((p) => p.rating === 5 && p.posterUrl) || plays[0];
-  }, [plays]);
+  // Mobile Catalog Progressive Slice
+  const mobilePlays = useMemo(() => {
+    return filteredPlays.slice(0, mobileVisibleCount);
+  }, [filteredPlays, mobileVisibleCount]);
 
-  const splitCardPlays = useMemo(() => {
-    return plays
-      .filter((p) => p.id !== featuredPlay?.id && p.posterUrl)
-      .slice(0, 3);
-  }, [plays, featuredPlay]);
-
-  const recentReviews = useMemo(() => {
-    return reviews.slice(0, 2);
-  }, [reviews]);
+  const currentSortLabel = SORT_OPTIONS.find((s) => s.key === sortBy)?.label || 'En Yüksek Puan';
 
   return (
-    <div className="w-full flex flex-col gap-1.5 font-serif text-tn-text">
-      {/* 2. Intro Slogan */}
-      <section className="flex justify-between items-end gap-10 py-2.5 sm:py-4 px-1 sm:px-1.5">
-        <h1 className="m-0 font-normal text-3xl sm:text-5xl lg:text-[64px] leading-[0.95] tracking-tight max-w-[900px]">
-          Türk tiyatrosunun <span className="font-extrabold">kataloğu,</span> senin{' '}
-          <span className="italic text-tn-red">sahne not defterin.</span>
-        </h1>
+    <div className="w-full flex flex-col gap-2 sm:gap-3 font-serif text-tn-text">
+      {/* 1. Dedicated Catalogue Header */}
+      <section className="flex justify-between items-end gap-5 py-1.5 sm:py-3 px-1 sm:px-1.5">
+        <div>
+          <h1 className="m-0 font-extrabold text-4xl sm:text-5xl lg:text-[56px] leading-[0.96] tracking-tight">
+            Katalog
+          </h1>
+          <p className="m-0 text-tn-muted italic text-base sm:text-lg mt-1">
+            Türk tiyatrosundaki tüm oyunlar, topluluklar ve yapımlar.
+          </p>
+        </div>
       </section>
 
-      {/* 3. Search Bar with Controls */}
+      {/* 2. Search Bar with Controls */}
       <SearchBar
         value={searchQuery}
         onChange={handleSearchChange}
+        autoFocus={shouldAutoFocus}
         totalCount={plays.length}
         isFiltersOpen={isFiltersOpen}
         onToggleFilters={() => setIsFiltersOpen(!isFiltersOpen)}
         activeFiltersCount={
-          (selectedGenre ? 1 : 0) + (selectedCompany ? 1 : 0) + (selectedActor ? 1 : 0)
+          (selectedGenre ? 1 : 0) + (selectedCompany.trim() ? 1 : 0) + (selectedActor.trim() ? 1 : 0)
         }
         selectedSort={sortBy}
-        onSortChange={setSortBy}
+        onSortChange={handleSortChange}
+        isSortActive={isSortActive}
+        onResetSort={handleResetSort}
         onClearFilters={handleClearFilters}
       />
 
-      {/* 4. Collapsible Filter Row (Contains genres, company, actor, and active filter pills) */}
+      {/* 3. Filter Row (collapsible genre chips panel) */}
       <FilterRow
         isOpen={isFiltersOpen}
+        onToggleFilters={() => setIsFiltersOpen(!isFiltersOpen)}
+        totalCount={filteredPlays.length}
         selectedGenre={selectedGenre}
-        onGenreChange={setSelectedGenre}
+        onGenreChange={(genre) => {
+          setSelectedGenre(genre);
+          setCurrentPage(1);
+          setMobileVisibleCount(10);
+        }}
         genreOptions={GENRES}
         selectedCompany={selectedCompany}
-        onCompanyChange={setSelectedCompany}
+        onCompanyChange={(company) => {
+          setSelectedCompany(company);
+          setCurrentPage(1);
+          setMobileVisibleCount(10);
+        }}
         companyOptions={companyOptions}
         selectedActor={selectedActor}
-        onActorChange={setSelectedActor}
+        onActorChange={(actor) => {
+          setSelectedActor(actor);
+          setCurrentPage(1);
+          setMobileVisibleCount(10);
+        }}
         actorOptions={actorOptions}
         selectedSort={sortBy}
-        onSortChange={setSortBy}
+        onSortChange={handleSortChange}
         onClearFilters={handleClearFilters}
       />
 
-      {/* 6. Bento Grid (visible when not searching) */}
-      {!searchQuery && !selectedGenre && !selectedCompany && !selectedActor && (
-        <main className="grid grid-cols-1 lg:grid-cols-3 gap-1.5">
-          {/* Row 1: Col 1–3 — One big clickable link for the featured play */}
-          {featuredPlay && (
-            <Link
-              to={`/oyun/${featuredPlay.id}`}
-              className="lg:col-span-3 grid grid-cols-1 lg:grid-cols-3 gap-1.5 no-underline group min-h-[440px]"
-              aria-label={`${featuredPlay.title} oyun detayına git`}
-            >
-              {/* Col 1: Editorial card */}
-              <div className="rounded-2xl bg-tn-red text-white p-6 box-border flex flex-col justify-between shadow-sm min-h-[440px] font-serif group-hover:shadow-md transition-all">
-                <div className="flex flex-col gap-4">
-                  <div className="flex justify-between items-center">
-                    <span className="h-6.5 px-3 flex items-center border border-white/75 rounded-full text-[13px] italic">
-                      Ayakta Alkış
-                    </span>
-                    <span className="text-base font-semibold">
-                      ★ {featuredPlay.rating ? featuredPlay.rating.toFixed(1) : '5.0'}{' '}
-                      <span className="font-normal italic opacity-85">
-                        ({featuredPlay.reviewCount || 1} not)
-                      </span>
-                    </span>
-                  </div>
-                  <div>
-                    <h2 className="m-0 font-extrabold text-4xl sm:text-5xl lg:text-[60px] leading-[0.92] tracking-tight">
-                      {featuredPlay.title}
-                    </h2>
-                    <div className="italic text-xl sm:text-2xl lg:text-[28px] leading-tight mt-1 opacity-95">
-                      {featuredPlay.playwright || 'Yazar belirtilmemiş'}
-                    </div>
-                  </div>
-                  <p className="m-0 text-base sm:text-[17px] leading-snug opacity-90">
-                    {featuredPlay.director ? `Yön. ${featuredPlay.director}` : ''}
-                    {featuredPlay.company ? ` · ${featuredPlay.company}` : ''}
-                    {featuredPlay.duration ? ` · ${featuredPlay.duration} dk` : ''}
-                    <br />
-                    <span className="italic">
-                      {featuredPlay.genre || 'Tiyatro'} {featuredPlay.year ? `— ${featuredPlay.year}` : ''}
-                    </span>
-                  </p>
-                </div>
-                <div className="flex justify-between items-center pt-4">
-                  <span className="text-sm font-semibold tracking-wider">OYUNA GİT</span>
-                  <div className="group-hover:scale-110 transition-transform w-10 h-10 rounded-full bg-black flex items-center justify-center text-white font-bold text-lg leading-none">→</div>
-                </div>
-              </div>
-
-              {/* Col 2–3: Scene preview */}
-              <div
-                className="lg:col-span-2 rounded-2xl p-5 flex flex-col justify-between min-h-[320px] lg:min-h-[440px] bg-cover bg-center relative overflow-hidden text-white group-hover:shadow-md transition-shadow"
-                style={{
-                  backgroundColor: '#2B2927',
-                  backgroundImage: featuredPlay.posterUrl ? `url(${featuredPlay.posterUrl})` : undefined,
-                }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/25 pointer-events-none" />
-                <span className="self-end relative z-10 h-7.5 px-3 flex items-center rounded-full bg-white/80 dark:bg-tn-container/80 backdrop-blur-xs text-xs sm:text-[13px] italic text-[#5E5852] dark:text-tn-text">
-                  Sahne fotoğrafı · {featuredPlay.title}
-                </span>
-                <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
-                  <span className="text-sm sm:text-base text-white/95 max-w-[520px] italic drop-shadow-sm line-clamp-3">
-                    {featuredPlay.synopsis ||
-                      'Gece yarısı iki çocuğuyla sığınacak yer arayan Aydan, bir lunaparkta çalışan Hasret\u2019in evine girer\u2026'}
-                  </span>
-                  {featuredPlay.cast && featuredPlay.cast.length > 0 && (
-                    <span className="h-7.5 px-3 flex items-center rounded-full bg-white/90 dark:bg-tn-container/90 text-xs sm:text-[13px] font-semibold text-tn-text whitespace-nowrap shadow-xs">
-                      {featuredPlay.cast.slice(0, 2).join(' · ')}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Link>
-          )}
-
-          {/* Row 2: 3 Split Cards */}
-          {splitCardPlays.map((p, idx) => {
-            const variants: Array<'blush' | 'sage' | 'sand'> = ['blush', 'sage', 'sand'];
-            return (
-              <div key={p.id} className="min-h-[460px]">
-                <SplitCard play={p} colorVariant={variants[idx % 3]} />
-              </div>
-            );
-          })}
-
-          {/* Row 3: Col 1 SEN DE YAZ oval, Col 2-3 Latest Ticket Notes */}
-          <div className="lg:col-span-1 min-h-[380px]">
-            <SenDeYazOval onClick={() => onOpenLogModal?.(null)} />
-          </div>
-
-          <section className="lg:col-span-2 rounded-2xl bg-tn-ink text-white p-5 sm:p-5.5 flex flex-col gap-3.5 shadow-sm min-h-[380px]">
-            <div className="flex justify-between items-baseline">
-              <h2 className="m-0 font-normal text-3xl sm:text-[42px] leading-none text-white">
-                Son <span className="font-extrabold">Seyirci</span>{' '}
-                <span className="italic text-[#E2DCD4]">Notları</span>
-              </h2>
-              <span className="italic text-sm text-[#B8B0A8]">Seyirci Günlüğü’nden</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 flex-grow">
-              {recentReviews.length > 0 ? (
-                recentReviews.map((r) => (
-                  <TicketNote
-                    key={r.id}
-                    review={r}
-                    variant="horizontal"
-                    onShare={(rev) => setShareReview(rev)}
-                  />
-                ))
-              ) : (
-                <div className="col-span-2 rounded-xl border border-white/20 p-6 flex flex-col items-center justify-center text-center">
-                  <span className="italic text-base text-white/80">
-                    Henüz seyirci notu bırakılmamış. İlk notu sen yaz!
-                  </span>
-                </div>
+      {/* 4. Full Catalog Grid */}
+      <section className="flex flex-col gap-1.5 mt-2 sm:mt-4">
+        <div className="flex justify-between items-end px-1 sm:px-1.5 pb-2">
+          <div>
+            <h2 className="m-0 font-normal text-2xl sm:text-3xl leading-none tracking-tight">
+              <span className="font-extrabold">{filteredPlays.length}</span>{' '}
+              <span className="italic text-tn-muted">oyun listeleniyor</span>
+              {searchQuery && (
+                <span className="italic text-tn-red ml-1">· "{searchQuery}"</span>
               )}
+            </h2>
+            <div className="sm:hidden italic text-sm text-tn-muted mt-1">
+              Sıralama: {currentSortLabel}
             </div>
-          </section>
-
-          {/* Row 4: Col 1-2 Daily Puzzles, Col 3 Leaders */}
-          <section
-            id="bulmacalar"
-            className="lg:col-span-2 rounded-2xl bg-tn-sand dark:bg-tn-sand p-5 sm:p-5.5 flex flex-col gap-3.5 shadow-sm"
-          >
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2">
-              <div>
-                <span className="text-xs font-extrabold tracking-wider text-tn-text">
-                  GÜNLÜK TİYATRO BULMACALARI
-                </span>
-                <h2 className="m-0 mt-1 font-extrabold text-3xl sm:text-[40px] leading-tight text-tn-text">
-                  Bulmacalar{' '}
-                  <span className="font-normal italic text-lg sm:text-2xl text-tn-text-2">
-                    — sahne hafızanı tazele, XP kazan.
-                  </span>
-                </h2>
-              </div>
-              <span className="italic text-xs sm:text-sm text-tn-text-3 whitespace-nowrap">
-                Her gece 00:00'da yenilenir
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 flex-grow">
-              <PuzzleCard
-                title="Günün Repliği"
-                subtitle="Replik Tahmin Bulmacası"
-                description="Kült oyunlardan seçilen unutulmaz repliği en az tahminle ve ipuçlarıyla bul."
-                badge="HER GÜN YENİ"
-                xpReward={30}
-                estimatedTime="~2 dk"
-                bgVariant="cream"
-                onClick={() => setIsDailyQuoteOpen(true)}
-              />
-              <PuzzleCard
-                title="Oyuncu Dedektifi"
-                subtitle="Usta Oyuncu Tahmini"
-                description="Usta oyuncuları rolleri, efsane tiradları ve kariyer ipuçlarıyla keşfet."
-                badge="YENİ"
-                xpReward={30}
-                estimatedTime="2 dk"
-                bgVariant="sand"
-                onClick={() => setIsActorDetectiveOpen(true)}
-              />
-              <PuzzleCard
-                title="Sahne Trivia"
-                subtitle="Günlük Tiyatro Bilgi Testi"
-                description="Tiyatro tarihi, yazarlar, prömiyerler ve sahne arkası üzerine 5 soru."
-                badge="BİLGİ YARIŞI"
-                xpReward={25}
-                estimatedTime="2 dk"
-                bgVariant="sand"
-                onClick={() => setIsTriviaOpen(true)}
-              />
-              <PuzzleCard
-                title="Perde Arkası: Kelime"
-                subtitle="Tiyatro Jargonu & Terimler"
-                description="Tirad, fuaye, sufle, kulis… sahne jargonunu harf ve anlam ipuçlarıyla çöz."
-                badge="KELİME OYUNU"
-                xpReward={25}
-                estimatedTime="2 dk"
-                bgVariant="cream"
-                onClick={() => setIsWordPuzzleOpen(true)}
-              />
-            </div>
-          </section>
-
-          <div className="lg:col-span-1">
-            <LeaderboardSnippet topUsers={topUsers} />
           </div>
-        </main>
-      )}
 
-      {/* 7. Curated Lists (when not filtered) */}
-      {!searchQuery && !selectedGenre && !selectedCompany && !selectedActor && (
-        <section id="listeler" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 my-2">
-          <CuratedListCard
-            category="BÖLGE & MEKÂN"
-            playCount={4}
-            title="Kadıköy Sahnelerinde Bu Sezon"
-            description="Moda Sahnesi, Oyun Atölyesi, Kadıköy Emek ve Boa Sahne’de parlayan alternatif ve bağımsız seçki."
-            curator="— Tiyatronot Editör Masası"
-            colorVariant="ink"
-          />
-          <CuratedListCard
-            category="PERFORMANS"
-            playCount={3}
-            title="Tek Kişilik Dev Performanslar"
-            description="Bütün sahneyi tek bir nefesle dolduran çağdaş ve klasik monolog başyapıtları."
-            curator="— Tiyatro Kulübü"
-            colorVariant="lilac"
-          />
-          <CuratedListCard
-            category="YERLİ METİN"
-            playCount={3}
-            title="Çağdaş Türk Tiyatrosu Seçkisi"
-            description="Haldun Taner, Turgut Özakman ve yeni kuşak yerli yazarların unutulmaz metinleri."
-            curator="— Dramaturg Gözü"
-            colorVariant="sage"
-          />
-          <CuratedListCard
-            category="DÜNYA KLASİĞİ"
-            playCount={3}
-            title="Klasiklerin Çağdaş Yorumları"
-            description="Shakespeare, Çehov, Beckett ve Molière’in günümüz yönetmenlerince cesur yorumları."
-            curator="— Sahne Notu"
-            colorVariant="red"
-          />
-        </section>
-      )}
-
-      {/* 8. Full Catalog Grid */}
-      <section className="flex flex-col gap-1.5 mt-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-1 px-1.5 pb-2">
-          <h2 className="m-0 font-normal text-3xl sm:text-5xl leading-none tracking-tight">
-            <span className="font-extrabold">Katalog</span>{' '}
-            <span className="italic text-tn-muted">
-              {searchQuery ? `— "${searchQuery}" için sonuçlar` : '— tüm oyunlar'}
-            </span>
-          </h2>
-          <span className="text-xs sm:text-sm text-tn-muted">
+          {/* Desktop count indicator */}
+          <span className="hidden sm:inline text-xs sm:text-sm text-tn-muted">
             <span className="italic">Toplam</span>{' '}
             <span className="font-extrabold text-tn-text">{filteredPlays.length}</span>{' '}
             <span className="italic">
@@ -570,15 +348,25 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
           </span>
         </div>
 
-        {/* 6-column grid on desktop, 2-column on mobile */}
-        {paginatedPlays.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5">
-            {paginatedPlays.map((play) => (
-              <CatalogCard key={play.id} play={play} />
-            ))}
-          </div>
+        {/* Catalog plays listing */}
+        {filteredPlays.length > 0 ? (
+          <>
+            {/* Desktop / Tablet Grid: 30 plays per page */}
+            <div className="hidden sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5">
+              {paginatedPlays.map((play) => (
+                <CatalogCard key={play.id} play={play} />
+              ))}
+            </div>
+
+            {/* Mobile Grid: 2 columns, continuous slice */}
+            <div className="sm:hidden grid grid-cols-2 gap-1.5">
+              {mobilePlays.map((play) => (
+                <CatalogCard key={play.id} play={play} />
+              ))}
+            </div>
+          </>
         ) : (
-          <div className="rounded-2xl border-2 border-dashed border-tn-border p-10 flex flex-col items-center justify-center text-center gap-2 font-serif min-h-[220px]">
+          <div className="rounded-2xl border-2 border-dashed border-tn-line p-10 flex flex-col items-center justify-center text-center gap-2 font-serif min-h-[220px]">
             <span className="font-extrabold text-2xl text-tn-text">
               Aradığınız kriterlere uygun oyun bulunamadı.
             </span>
@@ -595,56 +383,27 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({
           </div>
         )}
 
-        {/* Pagination */}
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={(page) => {
-            setCurrentPage(page);
-            window.scrollTo({ top: 600, behavior: 'smooth' });
-          }}
-          onLoadMore={() => {
-            if (currentPage < totalPages) {
-              setCurrentPage((p) => p + 1);
-            }
-          }}
-          hasMore={currentPage < totalPages}
-        />
-      </section>
+        {/* Desktop Pagination (Numbers and Arrows only, no page jumps) */}
+        <div className="hidden sm:block">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => {
+              setCurrentPage(page);
+            }}
+          />
+        </div>
 
-      {/* Modals */}
-      <DailyQuoteModal isOpen={isDailyQuoteOpen} onClose={() => setIsDailyQuoteOpen(false)} />
-      <OyuncuDedektifiModal isOpen={isActorDetectiveOpen} onClose={() => setIsActorDetectiveOpen(false)} />
-      <TriviaModal isOpen={isTriviaOpen} onClose={() => setIsTriviaOpen(false)} />
-      <WordPuzzleModal isOpen={isWordPuzzleOpen} onClose={() => setIsWordPuzzleOpen(false)} />
-      {shareReview && (
-        <SocialShareModal
-          isOpen={Boolean(shareReview)}
-          onClose={() => setShareReview(null)}
-          review={shareReview}
-          play={
-            plays.find((p) => p.id === shareReview.playId) || {
-              id: shareReview.playId,
-              title: shareReview.playTitle,
-              originalTitle: '',
-              playwright: '',
-              director: '',
-              cast: [],
-              company: '',
-              duration: 90,
-              hasIntermission: false,
-              year: 2026,
-              genre: 'Tiyatro',
-              venue: shareReview.venue || '',
-              posterUrl: shareReview.playPosterUrl || '',
-              synopsis: '',
-              rating: shareReview.rating || 5,
-              reviewCount: 1,
-              tags: [],
-            }
-          }
-        />
-      )}
+        {/* Mobile Load More Button */}
+        {mobileVisibleCount < filteredPlays.length && (
+          <div className="sm:hidden w-full pt-2">
+            <LoadMoreButton
+              onClick={() => setMobileVisibleCount((prev) => prev + 10)}
+              remainingCount={Math.max(0, filteredPlays.length - mobileVisibleCount)}
+            />
+          </div>
+        )}
+      </section>
     </div>
   );
 };

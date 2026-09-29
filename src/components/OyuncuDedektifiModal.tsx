@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { X, CheckCircle2, XCircle, Share2, Sparkles, User, HelpCircle, Trophy, RefreshCw } from 'lucide-react';
+import { X, CheckCircle2, XCircle, Share2, Sparkles, RefreshCw } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { storageService } from '../services/storage';
 import { useAuth } from '../context/AuthContext';
@@ -11,8 +11,8 @@ interface OyuncuDedektifiModalProps {
   onClose: () => void;
 }
 
-const TODAY = new Date().toISOString().slice(0, 10);
-const STORAGE_KEY = `tiyatronot_actor_detective_${TODAY}`;
+const TODAY_ISO = new Date().toISOString().slice(0, 10);
+const STORAGE_KEY = `tiyatronot_actor_detective_${TODAY_ISO}`;
 
 export const OyuncuDedektifiModal: React.FC<OyuncuDedektifiModalProps> = ({ isOpen, onClose }) => {
   const { user, updateProfile } = useAuth();
@@ -20,16 +20,20 @@ export const OyuncuDedektifiModal: React.FC<OyuncuDedektifiModalProps> = ({ isOp
   const [currentIndex, setCurrentIndex] = useState(0);
   const [guess, setGuess] = useState('');
   const [attempts, setAttempts] = useState<string[]>([]);
-  const [revealedCluesCount, setRevealedCluesCount] = useState(1);
   const [completed, setCompleted] = useState(false);
   const [won, setWon] = useState(false);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const formattedDate = new Intl.DateTimeFormat('tr-TR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).format(new Date());
+
   const activeActor = actorsList[currentIndex] || null;
 
-  // Load actors and today's state
   useEffect(() => {
     if (!isOpen) return;
     setLoading(true);
@@ -50,14 +54,12 @@ export const OyuncuDedektifiModal: React.FC<OyuncuDedektifiModalProps> = ({ isOp
             setAttempts(s.attempts || []);
             setCompleted(s.completed || false);
             setWon(s.won || false);
-            setRevealedCluesCount(s.revealedCluesCount || 1);
             setCurrentIndex(startingIdx);
           } else {
             setCurrentIndex(startingIdx);
             setAttempts([]);
             setCompleted(false);
             setWon(false);
-            setRevealedCluesCount(1);
           }
         } catch {
           setCurrentIndex(startingIdx);
@@ -79,17 +81,9 @@ export const OyuncuDedektifiModal: React.FC<OyuncuDedektifiModalProps> = ({ isOp
     setCurrentIndex(nextIdx);
     setAttempts([]);
     setGuess('');
-    setRevealedCluesCount(1);
     setCompleted(false);
     setWon(false);
     setTimeout(() => inputRef.current?.focus(), 100);
-  };
-
-  const handleRevealClue = () => {
-    if (!activeActor) return;
-    if (revealedCluesCount < activeActor.clues.length) {
-      setRevealedCluesCount(prev => prev + 1);
-    }
   };
 
   const handleSubmit = useCallback(async (e?: React.FormEvent) => {
@@ -100,7 +94,7 @@ export const OyuncuDedektifiModal: React.FC<OyuncuDedektifiModalProps> = ({ isOp
     const normGuess = normalizeSearchText(trimmed);
     const normTarget = normalizeSearchText(activeActor.actorName);
 
-    const isMatch = normGuess === normTarget || normTarget.includes(normGuess) && normGuess.length > 5;
+    const isMatch = normGuess === normTarget || (normTarget.includes(normGuess) && normGuess.length >= 5);
     const newAttempts = [...attempts, trimmed];
     setAttempts(newAttempts);
     setGuess('');
@@ -112,7 +106,7 @@ export const OyuncuDedektifiModal: React.FC<OyuncuDedektifiModalProps> = ({ isOp
         particleCount: 60,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#BA1B23', '#F1C21B', '#198038'],
+        colors: ['#BA1B23', '#E4B33A', '#198038'],
       });
 
       if (user && updateProfile) {
@@ -123,234 +117,228 @@ export const OyuncuDedektifiModal: React.FC<OyuncuDedektifiModalProps> = ({ isOp
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         actorId: activeActor.id,
+        attempts: newAttempts,
         completed: true,
         won: true,
+      }));
+    } else if (newAttempts.length >= 4) {
+      setCompleted(true);
+      setWon(false);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        actorId: activeActor.id,
         attempts: newAttempts,
-        revealedCluesCount,
-        currentIndex,
+        completed: true,
+        won: false,
       }));
     } else {
-      // Reveal next clue on wrong guess if available
-      if (revealedCluesCount < activeActor.clues.length) {
-        setRevealedCluesCount(prev => prev + 1);
-      }
-
-      // Max 4 attempts allowed
-      if (newAttempts.length >= 4) {
-        setCompleted(true);
-        setWon(false);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          actorId: activeActor.id,
-          completed: true,
-          won: false,
-          attempts: newAttempts,
-          revealedCluesCount: activeActor.clues.length,
-          currentIndex,
-        }));
-      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        actorId: activeActor.id,
+        attempts: newAttempts,
+        completed: false,
+        won: false,
+      }));
     }
-  }, [guess, activeActor, completed, attempts, revealedCluesCount, user, updateProfile, currentIndex]);
+  }, [guess, activeActor, completed, attempts, user, updateProfile]);
 
   const handleShare = () => {
     if (!activeActor) return;
-    const text = won
-      ? `🕵️‍♂️ Oyuncu Dedektifi'ni ${attempts.length}. tahminde bildim!\n🎭 Oyuncu: ${activeActor.actorName}\n✨ Sen de tiyatro hafızanı test et: https://tiyatronot.com/bulmacalar`
-      : `🕵️‍♂️ Oyuncu Dedektifi tiyatro bulmacasını çözüyorum! Sen de katıl: https://tiyatronot.com/bulmacalar`;
-    navigator.clipboard.writeText(text).then(() => {
+    const shareText = `🎭 Tiyatronot Oyuncu Dedektifi (${formattedDate})\nUsta oyuncuyu ${attempts.length}/4 tahminde ${won ? 'buldum! 🕵️‍♂️' : 'bulamadım 🎭'}\ntiyatronot.com`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: 'Tiyatronot Oyuncu Dedektifi',
+        text: shareText,
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(shareText);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+      setTimeout(() => setCopied(false), 2500);
+    }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-      <div className="bg-canvas border border-border-strong rounded-md shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/65 backdrop-blur-xs animate-fade-in cursor-pointer"
+        onClick={onClose}
+        aria-hidden
+      />
+
+      {/* Modal Card matching Frame 07 */}
+      <div className="relative z-10 w-full max-w-[460px] bg-white dark:bg-[#1E1B1D] text-[#1C1A1B] dark:text-[#F3EFEA] rounded-[20px] shadow-2xl p-6 border border-black/5 dark:border-white/10 overflow-hidden font-serif my-auto animate-fade-in flex flex-col gap-4">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-border-subtle bg-layer-01 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="text-xl">🕵️‍♂️</span>
-            <div>
-              <h3 className="font-serif font-bold text-base text-text-primary leading-tight flex items-center gap-2">
-                <span>Oyuncu Dedektifi</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-sm bg-theatre-curtain/10 text-theatre-curtain font-bold">
-                  +30 XP
-                </span>
-              </h3>
-              <p className="text-[11px] text-text-tertiary font-mono">
-                {actorsList.length > 0 ? `Usta Oyuncu ${currentIndex + 1} / ${actorsList.length}` : 'Usta Tiyatrocu Tahmini'}
-              </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="h-5 px-2.5 flex items-center rounded-full border border-[#1C1A1B]/35 dark:border-white/35 text-[10px] font-bold tracking-wider uppercase text-[#1C1A1B] dark:text-white">
+                YENİ · 30 XP
+              </span>
+              <span className="text-xs italic text-tn-muted dark:text-[#A8A199]">{formattedDate}</span>
             </div>
+            <h3 className="font-serif font-extrabold text-[26px] text-[#1C1A1B] dark:text-white mt-1.5 leading-tight">
+              Oyuncu Dedektifi
+            </h3>
+            <p className="font-serif italic text-xs text-tn-muted dark:text-[#A8A199] mt-0.5">
+              Usta tiyatrocuyu ipuçlarından bul
+            </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-text-tertiary hover:text-text-primary rounded cursor-pointer"
+            className="w-7 h-7 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 flex items-center justify-center text-neutral-500 hover:text-black dark:text-neutral-300 dark:hover:text-white transition-colors cursor-pointer"
             aria-label="Kapat"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-5 overflow-y-auto space-y-4 flex-1">
-          {loading ? (
-            <div className="py-12 text-center text-xs font-mono text-text-tertiary animate-pulse">
-              Oyuncu ipuçları yükleniyor...
+        {loading ? (
+          <div className="py-12 text-center text-xs italic text-tn-muted animate-pulse">
+            Oyuncu ipuçları yükleniyor...
+          </div>
+        ) : !activeActor ? (
+          <div className="py-8 text-center text-xs italic text-tn-muted">
+            Henüz kayıtlı oyuncu bulmacası bulunmuyor.
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {/* Mystery Top Card */}
+            <div className="bg-[#1C1A1B] text-white rounded-[14px] p-3.5 px-4 flex items-center gap-3 shadow-xs">
+              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-bold text-base text-amber-300 shrink-0">
+                ?
+              </div>
+              <div className="flex flex-col">
+                <div className="font-serif font-bold text-sm text-white leading-tight">
+                  Bu oyuncu kim?
+                </div>
+                <div className="font-serif italic text-[11px] text-white/70 mt-0.5">
+                  Her yanlış tahmin yeni bir ipucu açar · {Math.min(attempts.length + 1, 4)} / 4
+                </div>
+              </div>
             </div>
-          ) : !activeActor ? (
-            <div className="py-12 text-center text-xs font-mono text-text-tertiary">
-              Henüz kayıtlı oyuncu bulmacası bulunmuyor.
+
+            {/* Card 1: Karakter & Rol Portresi */}
+            <div className="bg-[#FDF2EE] dark:bg-[#2D1F21] rounded-[12px] p-3 px-3.5 border border-[#F5DDD5] dark:border-[#422B2E]">
+              <span className="text-[10px] font-extrabold tracking-wider uppercase text-[#C14436] dark:text-[#E87366] block mb-1">
+                KARAKTER & ROL PORTRESİ
+              </span>
+              <p className="font-serif text-xs sm:text-[13px] text-[#1C1A1B] dark:text-neutral-200 leading-snug m-0">
+                {activeActor.title}
+              </p>
             </div>
-          ) : (
-            <>
-              {/* Clue Headline */}
-              <div className="p-3.5 bg-layer-01 border border-border-subtle rounded-sm">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-theatre-curtain font-bold">
-                  Karakter & Rol Portresi
+
+            {/* Card 2: Rol Aldığı Öne Çıkan Sahne Eserleri */}
+            <div className="bg-[#EDF5EE] dark:bg-[#1E2920] rounded-[12px] p-3 px-3.5 border border-[#D8EADB] dark:border-[#2C3E30]">
+              <span className="text-[10px] font-extrabold tracking-wider uppercase text-[#2E7D32] dark:text-[#66BB6A] block mb-1">
+                ROL ALDIĞI ÖNE ÇIKAN SAHNE ESERLERİ
+              </span>
+              <p className="font-serif font-bold text-xs sm:text-[13px] text-[#1C1A1B] dark:text-white leading-snug m-0">
+                {activeActor.famousPlays[0]}
+              </p>
+            </div>
+
+            {/* Next Locked Clue or Revealed Clues */}
+            {attempts.length === 0 && !completed && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-[10px] bg-neutral-100/70 dark:bg-white/5 border border-dashed border-neutral-300 dark:border-white/10 text-xs italic text-neutral-400 dark:text-neutral-500">
+                <span>🔒 Kariyer ipucu — yanlış tahminde açılır</span>
+              </div>
+            )}
+
+            {attempts.length >= 1 && (
+              <div className="bg-[#EFEFF8] dark:bg-[#222132] rounded-[12px] p-3 px-3.5 border border-[#DDDCEF] dark:border-[#383652] text-xs animate-fade-in">
+                <span className="text-[10px] font-extrabold tracking-wider uppercase text-[#574FA5] dark:text-[#A49DEC] block mb-1">
+                  KARİYER İPUCU
                 </span>
-                <h4 className="font-serif font-bold text-sm sm:text-base text-text-primary mt-0.5 leading-snug">
-                  "{activeActor.title}"
-                </h4>
+                <p className="font-serif text-[#1C1A1B] dark:text-white m-0 leading-snug">
+                  {activeActor.clues[1] || activeActor.famousPlays.slice(1).join(', ')}
+                </p>
               </div>
+            )}
 
-              {/* Known Plays Chips */}
-              {activeActor.famousPlays && activeActor.famousPlays.length > 0 && (
-                <div className="space-y-1.5">
-                  <span className="text-[11px] font-mono text-text-secondary uppercase font-semibold">
-                    Rol Aldığı Öne Çıkan Sahne Eserleri:
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {activeActor.famousPlays.map((p, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2.5 py-1 text-xs bg-layer-01 hover:bg-layer-02 border border-border-subtle rounded-xs text-text-primary font-mono"
-                      >
-                        🎭 {p}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Clues Timeline */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-mono text-text-secondary uppercase font-semibold">
-                    Dedektif İpuçları ({revealedCluesCount} / {activeActor.clues.length})
-                  </span>
-                  {!completed && revealedCluesCount < activeActor.clues.length && (
-                    <button
-                      type="button"
-                      onClick={handleRevealClue}
-                      className="text-[11px] font-mono text-theatre-curtain hover:underline cursor-pointer"
-                    >
-                      + İpucu Aç
-                    </button>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  {activeActor.clues.slice(0, revealedCluesCount).map((clue, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3 bg-canvas border border-border-subtle rounded-sm text-xs text-text-primary leading-relaxed flex items-start gap-2.5 animate-fade-in"
-                    >
-                      <span className="w-5 h-5 rounded-full bg-theatre-curtain/10 text-theatre-curtain text-[11px] font-mono font-bold flex items-center justify-center shrink-0">
-                        {idx + 1}
-                      </span>
-                      <p>{clue}</p>
-                    </div>
-                  ))}
-                </div>
+            {attempts.length === 1 && !completed && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-[10px] bg-neutral-100/70 dark:bg-white/5 border border-dashed border-neutral-300 dark:border-white/10 text-xs italic text-neutral-400 dark:text-neutral-500">
+                <span>🔒 Flaş ipucu — sonraki yanlış tahminde açılır</span>
               </div>
+            )}
 
-              {/* Hint Box if revealed */}
-              {activeActor.hint && (completed || revealedCluesCount >= 3) && (
-                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-sm text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
-                  <HelpCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <p><strong className="font-mono">Flaş İpucu:</strong> {activeActor.hint}</p>
+            {attempts.length >= 2 && activeActor.hint && (
+              <div className="bg-amber-500/10 dark:bg-amber-500/15 rounded-[12px] p-3 px-3.5 border border-amber-500/30 text-xs animate-fade-in">
+                <span className="text-[10px] font-extrabold tracking-wider uppercase text-amber-700 dark:text-amber-300 block mb-1">
+                  FLAŞ İPUCU
+                </span>
+                <p className="font-serif text-[#1C1A1B] dark:text-white m-0 leading-snug">
+                  {activeActor.hint}
+                </p>
+              </div>
+            )}
+
+            {/* Result Screen or Guess Form */}
+            {completed ? (
+              <div className={`p-4 rounded-[14px] border text-center space-y-3 animate-fade-in ${
+                won
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-200'
+                  : 'bg-red-500/10 border-red-500/30 text-red-800 dark:text-red-200'
+              }`}>
+                <div className="flex items-center justify-center gap-2">
+                  {won ? <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> : <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />}
+                  <h4 className="font-serif font-extrabold text-lg m-0">
+                    {won ? 'Tebrikler, bildiniz!' : 'Deneme hakkınız bitti!'}
+                  </h4>
                 </div>
-              )}
-
-              {/* Game Result Screen */}
-              {completed ? (
-                <div className={`p-4 rounded-sm border text-center space-y-3 animate-fade-in ${
-                  won
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-200'
-                    : 'bg-red-500/10 border-red-500/30 text-red-800 dark:text-red-200'
-                }`}>
-                  <div className="flex items-center justify-center gap-2">
-                    {won ? <CheckCircle2 className="w-6 h-6 text-emerald-600" /> : <XCircle className="w-6 h-6 text-red-600" />}
-                    <h4 className="font-serif font-bold text-lg">
-                      {won ? 'Tebrikler, Bildiniz!' : 'Deneme Hakkı Bitti!'}
-                    </h4>
-                  </div>
-                  <p className="text-sm font-semibold">
-                    Doğru Cevap: <span className="underline decoration-theatre-curtain text-base">{activeActor.actorName}</span>
+                <p className="text-sm font-semibold m-0">
+                  Doğru Cevap: <span className="underline decoration-[#BA1B23] text-base">{activeActor.actorName}</span>
+                </p>
+                {won && (
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold m-0 flex items-center justify-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>+30 XP kazandınız!</span>
                   </p>
-                  {won && (
-                    <p className="text-xs font-mono text-emerald-600 dark:text-emerald-400">
-                      +{30} XP kazandınız! Sahne hafızanız parlıyor.
-                    </p>
-                  )}
-                  <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
+                )}
+                <div className="pt-1 flex items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="flex-1 flex items-center justify-center gap-1.5 bg-[#BA1B23] hover:bg-[#A0161D] text-white py-2.5 text-xs font-bold rounded-[10px] transition-colors cursor-pointer"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>{copied ? 'Kopyalandı!' : 'Skorunu Paylaş'}</span>
+                  </button>
+                  {actorsList.length > 1 && (
                     <button
                       type="button"
-                      onClick={handleShare}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-layer-01 hover:bg-layer-02 border border-border-subtle rounded-sm text-xs font-mono text-text-primary cursor-pointer transition-colors"
+                      onClick={handleNextActor}
+                      className="px-4 py-2.5 bg-neutral-200 hover:bg-neutral-300 dark:bg-white/10 dark:hover:bg-white/20 text-[#1C1A1B] dark:text-white rounded-[10px] text-xs font-bold cursor-pointer transition-colors flex items-center gap-1"
                     >
-                      <Share2 className="w-3.5 h-3.5" />
-                      <span>{copied ? 'Kopyalandı!' : 'Skoru Paylaş'}</span>
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Sıradaki</span>
                     </button>
-                    {actorsList.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={handleNextActor}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white rounded-sm text-xs font-semibold cursor-pointer shadow-xs transition-colors"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                        <span>Sıradaki Usta Oyuncu</span>
-                      </button>
-                    )}
-                  </div>
+                  )}
                 </div>
-              ) : (
-                /* Guess Input Form */
-                <form onSubmit={handleSubmit} className="space-y-3 pt-2">
-                  <div className="flex gap-2">
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={guess}
-                      onChange={e => setGuess(e.target.value)}
-                      placeholder="Oyuncunun adı ve soyadı..."
-                      className="flex-1 bg-layer-01 border border-border-strong px-3 py-2 text-xs font-sans text-text-primary rounded-sm focus:outline-none focus:border-theatre-curtain"
-                    />
-                    <button
-                      type="submit"
-                      disabled={!guess.trim()}
-                      className="px-4 py-2 bg-theatre-curtain hover:bg-theatre-curtain-hover disabled:opacity-50 text-white text-xs font-semibold rounded-sm transition-colors cursor-pointer shadow-xs shrink-0"
-                    >
-                      Tahmin Et
-                    </button>
-                  </div>
-
-                  {/* Remaining attempts indicator */}
-                  <div className="flex items-center justify-between text-[11px] font-mono text-text-tertiary">
-                    <span>Kalan Hak: {4 - attempts.length} / 4</span>
-                    {attempts.length > 0 && (
-                      <span className="text-red-500">
-                        Son tahminler: {attempts.join(', ')}
-                      </span>
-                    )}
-                  </div>
-                </form>
-              )}
-            </>
-          )}
-        </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="flex gap-2 pt-1">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={guess}
+                  onChange={e => setGuess(e.target.value)}
+                  placeholder="Oyuncunun adı..."
+                  className="flex-1 bg-white dark:bg-black/20 border border-neutral-300 dark:border-neutral-700 px-3.5 py-2.5 text-xs text-[#1C1A1B] dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#BA1B23] rounded-[10px]"
+                />
+                <button
+                  type="submit"
+                  disabled={!guess.trim()}
+                  className="px-4 py-2.5 bg-[#BA1B23] hover:bg-[#A0161D] disabled:opacity-50 text-white text-xs font-bold rounded-[10px] transition-colors cursor-pointer shrink-0"
+                >
+                  Tahmin Et
+                </button>
+              </form>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

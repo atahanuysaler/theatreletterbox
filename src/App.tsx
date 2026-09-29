@@ -4,6 +4,7 @@ import SiteHeader from './components/redesign/SiteHeader';
 import Footer from './components/redesign/Footer';
 import MobileTabBar from './components/redesign/MobileTabBar';
 
+import HomePage from './pages/HomePage';
 import CatalogPage from './pages/CatalogPage';
 import IzlediklerimPage from './pages/IzlediklerimPage';
 import LeaderboardPage from './pages/LeaderboardPage';
@@ -52,9 +53,9 @@ const AppContent: React.FC = () => {
   const isPlayDetailPage = location.pathname.startsWith('/oyun/');
 
   return (
-    <div className="min-h-screen w-full bg-tn-page text-tn-text font-serif p-2 sm:p-2.5 box-border flex flex-col items-center selection:bg-tn-red selection:text-white">
+    <div className="min-h-screen w-full bg-white dark:bg-tn-container md:bg-tn-page text-tn-text font-serif p-0 md:p-[10px] box-border flex flex-col items-center selection:bg-tn-red selection:text-white">
       {/* 1440px max width container with 22px border-radius matching DESIGN.md */}
-      <div className="w-full max-w-[1440px] bg-tn-container rounded-[22px] p-3 sm:p-4.5 box-border flex flex-col gap-1.5 shadow-sm min-h-screen border border-tn-line/40">
+      <div className="w-full max-w-[1440px] bg-white dark:bg-tn-container rounded-none md:rounded-[22px] p-2 md:p-[18px_16px_16px] box-border flex flex-col gap-1.5 shadow-none md:shadow-sm min-h-screen border-none md:border md:border-tn-line/40">
         {/* Editorial Header */}
         <SiteHeader
           onOpenLogModal={() => handleOpenLogModal()}
@@ -62,10 +63,19 @@ const AppContent: React.FC = () => {
         />
 
         {/* Main Viewport Content */}
-        <main className="flex-1 w-full pb-16 md:pb-2">
+        <main className="flex-1 w-full pb-4 md:pb-2">
           <Routes>
             <Route
               path="/"
+              element={
+                <HomePage
+                  onOpenLogModal={handleOpenLogModal}
+                  onOpenDailyQuote={handleOpenDailyQuote}
+                />
+              }
+            />
+            <Route
+              path="/katalog"
               element={
                 <CatalogPage
                   onOpenLogModal={handleOpenLogModal}
@@ -111,8 +121,10 @@ const AppContent: React.FC = () => {
           </Routes>
         </main>
 
-        {/* Editorial Footer */}
-        <Footer />
+        {/* Editorial Footer - with safe clearance for fixed mobile bottom nav */}
+        <div className="w-full pb-[100px] md:pb-0">
+          <Footer />
+        </div>
       </div>
 
       {/* Mobile Tab Bar (Bottom Nav - hidden on PlayDetail where StickyActionBar is used) */}

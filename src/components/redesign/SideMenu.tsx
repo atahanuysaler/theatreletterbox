@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthSafe } from '../../context/AuthContext';
@@ -27,6 +27,22 @@ export const SideMenu: React.FC<SideMenuProps> = ({
 
   const drawerRef = useRef<HTMLElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Smooth sliding animation states
+  const [shouldRender, setShouldRender] = useState(isOpen);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      const timer = setTimeout(() => setIsVisible(true), 25);
+      return () => clearTimeout(timer);
+    } else {
+      setIsVisible(false);
+      const timer = setTimeout(() => setShouldRender(false), 350);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   // Esc key + focus trap + body scroll lock
   useEffect(() => {
@@ -72,11 +88,11 @@ export const SideMenu: React.FC<SideMenuProps> = ({
     };
   }, [isOpen, onClose]);
 
-  // Don't render portal at all when closed
-  if (!isOpen) return null;
+  if (!shouldRender) return null;
 
   const navLinks = [
-    { label: 'Katalog', path: '/' },
+    { label: 'Ana Sayfa', path: '/' },
+    { label: 'Katalog', path: '/katalog' },
     { label: 'İzlediklerim', path: '/izlediklerim' },
     { label: 'İzlemek İstediklerim', path: '/izlemek-istediklerim' },
     { label: 'Küratörlü Listeler', path: '/listeler' },
@@ -91,17 +107,21 @@ export const SideMenu: React.FC<SideMenuProps> = ({
 
   return createPortal(
     <>
-      {/* Backdrop — separate element, fills the full viewport */}
+      {/* Backdrop — smooth fade transition */}
       <div
-        className="fixed inset-0 z-[998] bg-black/60 backdrop-blur-sm"
+        className={`fixed inset-0 z-[998] bg-black/60 backdrop-blur-xs transition-opacity duration-350 ease-out ${
+          isVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Drawer — sits above the backdrop */}
+      {/* Drawer — smooth sliding transition from left */}
       <aside
         ref={drawerRef}
-        className="fixed top-2 left-2 bottom-2 z-[999] w-[calc(100vw-16px)] sm:w-[380px] max-w-[380px] rounded-[20px] shadow-drawer p-4 flex flex-col gap-1.5 font-serif border overflow-y-auto animate-in slide-in-from-left duration-200"
+        className={`fixed top-2 left-2 bottom-2 z-[999] w-[calc(100vw-16px)] sm:w-[380px] max-w-[380px] rounded-[20px] shadow-2xl p-4 flex flex-col gap-1.5 font-serif border overflow-y-auto transition-transform duration-350 ease-out transform ${
+          isVisible ? 'translate-x-0' : '-translate-x-[110%]'
+        }`}
         role="dialog"
         aria-modal="true"
         aria-label="Yan Menü"
@@ -113,21 +133,22 @@ export const SideMenu: React.FC<SideMenuProps> = ({
       >
         {/* Header with Logo */}
         <div className="flex justify-between items-center px-1 pt-1 pb-3">
-          <div className="flex items-center gap-2.5">
+          <Link
+            to="/"
+            onClick={onClose}
+            className="flex items-center gap-2.5 text-tn-text no-underline hover:text-tn-red transition-colors"
+          >
             <img src="/logo.png" alt="Tiyatronot Logo" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
-            <div className="flex flex-col">
-              <span className="font-extrabold text-[24px] tracking-tight leading-none" style={{ color: 'var(--tn-text)' }}>
-                TİYATRO<span style={{ color: 'var(--tn-red)' }}>·</span>NOT
-              </span>
-              <span className="italic text-xs" style={{ color: 'var(--tn-text-muted)' }}>dijital oyun günlüğü</span>
-            </div>
-          </div>
+            <span className="font-extrabold text-[24px] tracking-tight leading-none" style={{ color: 'var(--tn-text)' }}>
+              TİYATRO<span style={{ color: 'var(--tn-red)' }}>·</span>NOT
+            </span>
+          </Link>
           <button
             ref={closeBtnRef}
             type="button"
             onClick={onClose}
             aria-label="Menüyü kapat"
-            className="w-11 h-11 rounded-full flex items-center justify-center cursor-pointer border-none transition-colors"
+            className="w-11 h-11 rounded-full flex items-center justify-center cursor-pointer border-none transition-colors hover:bg-tn-line"
             style={{ backgroundColor: 'var(--tn-surface)', color: 'var(--tn-text)' }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

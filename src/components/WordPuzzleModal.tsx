@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { X, CheckCircle2, XCircle, Share2, Sparkles, BookOpen, RefreshCw, HelpCircle } from 'lucide-react';
+import { X, CheckCircle2, XCircle, RefreshCw, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { storageService } from '../services/storage';
 import { useAuth } from '../context/AuthContext';
@@ -22,6 +22,12 @@ export const WordPuzzleModal: React.FC<WordPuzzleModalProps> = ({ isOpen, onClos
   const [showHint, setShowHint] = useState(false);
   const [loading, setLoading] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const formattedDate = new Intl.DateTimeFormat('tr-TR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).format(new Date());
 
   useEffect(() => {
     if (!isOpen) return;
@@ -73,10 +79,10 @@ export const WordPuzzleModal: React.FC<WordPuzzleModalProps> = ({ isOpen, onClos
       setCompleted(true);
       setWon(true);
       confetti({
-        particleCount: 50,
-        spread: 60,
+        particleCount: 60,
+        spread: 70,
         origin: { y: 0.6 },
-        colors: ['#BA1B23', '#F1C21B', '#198038'],
+        colors: ['#BA1B23', '#E4B33A', '#198038'],
       });
       if (user && updateProfile) {
         try {
@@ -92,149 +98,149 @@ export const WordPuzzleModal: React.FC<WordPuzzleModalProps> = ({ isOpen, onClos
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-      <div className="bg-canvas border border-border-strong rounded-md shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/65 backdrop-blur-xs animate-fade-in cursor-pointer"
+        onClick={onClose}
+        aria-hidden
+      />
+
+      {/* Modal Dialog */}
+      <div className="relative z-10 w-full max-w-[460px] bg-white dark:bg-[#1E1B1D] text-[#1C1A1B] dark:text-[#F3EFEA] rounded-[20px] shadow-2xl p-6 border border-black/5 dark:border-white/10 overflow-hidden font-serif my-auto animate-fade-in flex flex-col gap-4">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-border-subtle bg-layer-01 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="text-xl">📜</span>
-            <div>
-              <h3 className="font-serif font-bold text-base text-text-primary leading-tight flex items-center gap-2">
-                <span>Perde Arkası: Kelime</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-sm bg-theatre-curtain/10 text-theatre-curtain font-bold">
-                  +25 XP
-                </span>
-              </h3>
-              <p className="text-[11px] text-text-tertiary font-mono">
-                {words.length > 0 ? `Tiyatro Jargonu & Terim ${currentIdx + 1} / ${words.length}` : 'Kelime Bulmacası'}
-              </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="h-5 px-2.5 flex items-center rounded-full border border-[#1C1A1B]/35 dark:border-white/35 text-[10px] font-bold tracking-wider uppercase text-[#1C1A1B] dark:text-white">
+                KELİME OYUNU · 25 XP
+              </span>
+              <span className="text-xs italic text-tn-muted dark:text-[#A8A199]">{formattedDate}</span>
             </div>
+            <h3 className="font-serif font-extrabold text-[26px] text-[#1C1A1B] dark:text-white mt-1.5 leading-tight">
+              Perde Arkası: Kelime
+            </h3>
+            <p className="font-serif italic text-xs text-tn-muted dark:text-[#A8A199] mt-0.5">
+              Tiyatro jargonu & terimler
+            </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-text-tertiary hover:text-text-primary rounded cursor-pointer"
+            className="w-7 h-7 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 flex items-center justify-center text-neutral-500 hover:text-black dark:text-neutral-300 dark:hover:text-white transition-colors cursor-pointer"
             aria-label="Kapat"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-5 overflow-y-auto space-y-4 flex-1">
-          {loading ? (
-            <div className="py-12 text-center text-xs font-mono text-text-tertiary animate-pulse">
-              Kelimeler yükleniyor...
+        {loading ? (
+          <div className="py-12 text-center text-xs italic text-tn-muted animate-pulse">
+            Kelimeler yükleniyor...
+          </div>
+        ) : !activeWord ? (
+          <div className="py-8 text-center text-xs italic text-tn-muted">
+            Kayıtlı terim bulunamadı.
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {/* Definition */}
+            <div className="bg-[#FAF2E6] dark:bg-[#28221B] rounded-[14px] p-4.5 border border-[#EBDCC5]/70 dark:border-[#3D352B]">
+              <span className="text-[10px] uppercase tracking-wider text-[#A26D2B] dark:text-[#E4B33A] font-extrabold block mb-1">
+                {activeWord.category || 'Tiyatro Kavramı'} · Tanım
+              </span>
+              <p className="text-sm sm:text-base text-[#1C1A1B] dark:text-white leading-relaxed font-serif m-0 italic">
+                “{activeWord.definition}”
+              </p>
             </div>
-          ) : !activeWord ? (
-            <div className="py-12 text-center text-xs font-mono text-text-tertiary">
-              Kayıtlı terim bulunamadı.
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Definition */}
-              <div className="p-4 bg-layer-01 border border-border-subtle rounded-sm space-y-1.5">
-                <span className="text-[10px] font-mono uppercase text-theatre-curtain font-bold">
-                  {activeWord.category || 'Tiyatro Kavramı'} · Tanım
-                </span>
-                <p className="text-xs sm:text-sm text-text-primary leading-relaxed font-serif">
-                  "{activeWord.definition}"
-                </p>
-              </div>
 
-              {/* Letter Blocks Indicator */}
-              <div className="flex items-center justify-center gap-2 py-3">
-                {Array.from(activeWord.word).map((char, idx) => (
-                  <div
-                    key={idx}
-                    className="w-10 h-11 border-2 border-border-strong rounded-xs flex items-center justify-center font-mono font-bold text-base sm:text-lg bg-canvas text-text-primary shadow-xs"
-                  >
-                    {completed ? char : (idx === 0 ? char : '_')}
-                  </div>
-                ))}
-              </div>
-
-              {/* Hint */}
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-mono text-text-tertiary">
-                  Uzunluk: {activeWord.word.length} Harf
-                </span>
-                {!showHint ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowHint(true)}
-                    className="text-[11px] font-mono text-theatre-curtain hover:underline cursor-pointer"
-                  >
-                    İpucu Göster
-                  </button>
-                ) : (
-                  <span className="text-[11px] text-amber-700 dark:text-amber-300 font-mono">
-                    💡 {activeWord.clue}
-                  </span>
-                )}
-              </div>
-
-              {/* Completed Screen */}
-              {completed ? (
-                <div className={`p-4 rounded-sm border text-center space-y-3 animate-fade-in ${
-                  won ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-red-500/10 border-red-500/30'
-                }`}>
-                  <div className="flex items-center justify-center gap-2">
-                    {won ? <CheckCircle2 className="w-6 h-6 text-emerald-600" /> : <XCircle className="w-6 h-6 text-red-600" />}
-                    <h4 className="font-serif font-bold text-base">
-                      {won ? 'Tebrikler, Bildiniz!' : 'Deneme Hakkı Bitti!'}
-                    </h4>
-                  </div>
-                  <p className="text-sm font-semibold font-mono">
-                    Doğru Kelime: <span className="text-theatre-curtain text-base">{activeWord.word}</span>
-                  </p>
-                  {won && <p className="text-xs font-mono text-emerald-600">+25 XP kazandınız!</p>}
-                  <div className="pt-2">
-                    <button
-                      type="button"
-                      onClick={handleNextWord}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white text-xs font-semibold rounded-sm transition-colors cursor-pointer shadow-xs"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      <span>Sıradaki Terim</span>
-                    </button>
-                  </div>
+            {/* Letter Blocks Indicator */}
+            <div className="flex items-center justify-center gap-2 py-2 flex-wrap">
+              {Array.from(activeWord.word).map((char, idx) => (
+                <div
+                  key={idx}
+                  className="w-10 h-11 border border-neutral-300 dark:border-neutral-700 rounded-lg flex items-center justify-center font-serif font-extrabold text-lg bg-[#FAF8F5] dark:bg-[#252224] text-[#1C1A1B] dark:text-white shadow-xs"
+                >
+                  {completed ? char : (idx === 0 ? char : '•')}
                 </div>
-              ) : (
-                /* Form */
-                <form onSubmit={handleSubmit} className="space-y-3">
-                  <div className="flex gap-2">
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={guess}
-                      onChange={e => setGuess(e.target.value)}
-                      placeholder="Kelimeyi girin..."
-                      maxLength={activeWord.word.length + 3}
-                      className="flex-1 bg-layer-01 border border-border-strong px-3 py-2 text-xs font-mono uppercase tracking-wider text-text-primary rounded-sm focus:outline-none focus:border-theatre-curtain"
-                    />
-                    <button
-                      type="submit"
-                      disabled={!guess.trim()}
-                      className="px-4 py-2 bg-theatre-curtain hover:bg-theatre-curtain-hover disabled:opacity-50 text-white text-xs font-semibold rounded-sm transition-colors cursor-pointer shadow-xs shrink-0"
-                    >
-                      Tahmin Et
-                    </button>
-                  </div>
+              ))}
+            </div>
 
-                  <div className="flex items-center justify-between text-[11px] font-mono text-text-tertiary">
-                    <span>Kalan Deneme: {5 - attempts.length} / 5</span>
-                    {attempts.length > 0 && (
-                      <span className="text-red-500">
-                        {attempts.join(', ')}
-                      </span>
-                    )}
-                  </div>
-                </form>
+            {/* Hint */}
+            <div className="flex items-center justify-between text-xs px-1">
+              <span className="text-tn-muted italic">
+                Uzunluk: {activeWord.word.length} Harf
+              </span>
+              {!showHint ? (
+                <button
+                  type="button"
+                  onClick={() => setShowHint(true)}
+                  className="text-[#BA1B23] font-bold hover:underline cursor-pointer"
+                >
+                  İpucu Göster
+                </button>
+              ) : (
+                <span className="text-amber-700 dark:text-amber-300 font-semibold flex items-center gap-1">
+                  <span>💡</span> {activeWord.clue}
+                </span>
               )}
             </div>
-          )}
-        </div>
+
+            {/* Completed Screen */}
+            {completed ? (
+              <div className={`p-4 rounded-[14px] border text-center space-y-3 animate-fade-in ${
+                won ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-red-500/10 border-red-500/30'
+              }`}>
+                <div className="flex items-center justify-center gap-2">
+                  {won ? <CheckCircle2 className="w-5 h-5 text-emerald-600" /> : <XCircle className="w-5 h-5 text-red-600" />}
+                  <h4 className="font-serif font-extrabold text-base m-0">
+                    {won ? 'Tebrikler, Bildiniz!' : 'Deneme Hakkı Bitti!'}
+                  </h4>
+                </div>
+                <p className="text-sm font-semibold m-0">
+                  Doğru Kelime: <span className="text-[#BA1B23] text-base font-extrabold">{activeWord.word}</span>
+                </p>
+                {won && (
+                  <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-bold">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>+25 XP kazandınız!</span>
+                  </div>
+                )}
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={handleNextWord}
+                    className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#BA1B23] hover:bg-[#A0161D] text-white text-xs font-bold rounded-[10px] transition-colors cursor-pointer shadow-xs"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Sıradaki Terim</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Form */
+              <form onSubmit={handleSubmit} className="flex gap-2 pt-1">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={guess}
+                  onChange={e => setGuess(e.target.value)}
+                  placeholder="Kelimeyi girin..."
+                  maxLength={activeWord.word.length + 3}
+                  className="flex-1 bg-white dark:bg-black/20 border border-neutral-300 dark:border-neutral-700 px-3.5 py-2.5 text-xs uppercase tracking-wider text-[#1C1A1B] dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#BA1B23] rounded-[10px]"
+                />
+                <button
+                  type="submit"
+                  disabled={!guess.trim()}
+                  className="px-4 py-2.5 bg-[#BA1B23] hover:bg-[#A0161D] disabled:opacity-50 text-white text-xs font-bold rounded-[10px] transition-colors cursor-pointer shrink-0"
+                >
+                  Tahmin Et
+                </button>
+              </form>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -30,14 +30,14 @@ export const LeaderboardSnippet: React.FC<LeaderboardSnippetProps> = ({
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-full bg-white/55 self-start">
+      <div className="flex gap-1 p-1 rounded-full bg-white/55 dark:bg-black/25 self-start border border-white/20 dark:border-tn-line/40">
         <button
           type="button"
           onClick={() => setTab('all')}
           className={`h-8 px-3.5 rounded-full border-none font-serif text-xs sm:text-sm cursor-pointer transition-colors ${
             tab === 'all'
-              ? 'bg-white font-semibold text-tn-text shadow-xs'
-              : 'bg-transparent text-tn-text hover:bg-white/30'
+              ? 'bg-white dark:bg-tn-surface font-semibold text-tn-ink dark:text-tn-text shadow-xs'
+              : 'bg-transparent text-tn-ink dark:text-tn-muted hover:bg-white/30 dark:hover:bg-white/10'
           }`}
         >
           Tüm Zamanlar
@@ -47,8 +47,8 @@ export const LeaderboardSnippet: React.FC<LeaderboardSnippetProps> = ({
           onClick={() => setTab('season')}
           className={`h-8 px-3.5 rounded-full border-none font-serif text-xs sm:text-sm cursor-pointer transition-colors ${
             tab === 'season'
-              ? 'bg-white font-semibold text-tn-text shadow-xs'
-              : 'bg-transparent text-tn-text hover:bg-white/30'
+              ? 'bg-white dark:bg-tn-surface font-semibold text-tn-ink dark:text-tn-text shadow-xs'
+              : 'bg-transparent text-tn-ink dark:text-tn-muted hover:bg-white/30 dark:hover:bg-white/10'
           }`}
         >
           Bu Sezon
@@ -62,24 +62,24 @@ export const LeaderboardSnippet: React.FC<LeaderboardSnippetProps> = ({
             <Link
               key={u.uid}
               to={`/profil/${u.uid}`}
-              className="flex items-center justify-between p-2.5 rounded-xl bg-white/80 dark:bg-tn-surface/80 hover:bg-white dark:hover:bg-tn-surface transition-colors text-tn-text no-underline text-sm border border-transparent dark:border-tn-line/40"
+              className="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-tn-card hover:bg-white/95 dark:hover:bg-tn-surface transition-colors no-underline text-sm border border-black/5 dark:border-tn-line/40 shadow-xs"
             >
               <div className="flex items-center gap-2">
-                <span className="font-extrabold w-5 text-center text-tn-red">
+                <span className="font-extrabold w-5 text-center text-tn-red flex-shrink-0">
                   #{i + 1}
                 </span>
-                <span className="font-semibold truncate max-w-[130px]">
+                <span className="font-semibold truncate max-w-[130px] text-tn-ink dark:text-tn-text">
                   {u.displayName || 'Tiyatrosever'}
                 </span>
               </div>
-              <span className="text-xs italic text-tn-text-2">
+              <span className="text-xs italic text-tn-text-2 dark:text-tn-on-dark-muted flex-shrink-0">
                 {u.seenPlayIds?.length || 0} oyun · {u.xp || 0} XP
               </span>
             </Link>
           ))}
           <Link
             to="/liderler"
-            className="text-center text-xs font-semibold hover:text-tn-red text-tn-text mt-1 transition-colors no-underline"
+            className="text-center text-xs font-semibold hover:text-tn-red text-tn-ink dark:text-tn-text mt-1 transition-colors no-underline"
           >
             Tüm Sıralamayı Gör →
           </Link>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { X, HelpCircle, CheckCircle2, XCircle, Share2, Flame, Sparkles } from 'lucide-react';
+import { X, CheckCircle2, XCircle, Share2, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { storageService } from '../services/storage';
 import { useAuth } from '../context/AuthContext';
@@ -17,8 +17,8 @@ interface AttemptRecord {
   result: GuessResult;
 }
 
-const TODAY = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-const STORAGE_KEY = `tiyatronot_daily_${TODAY}`;
+const TODAY_ISO = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+const STORAGE_KEY = `tiyatronot_daily_${TODAY_ISO}`;
 
 interface SavedState {
   quoteId?: string;
@@ -26,7 +26,6 @@ interface SavedState {
   completed: boolean;
   won: boolean;
   streak: number;
-  revealedHints: string[];
   xpEarned: number;
 }
 
@@ -35,7 +34,6 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
   const [quote, setQuote] = useState<DailyQuote | null>(null);
   const [guess, setGuess] = useState('');
   const [attempts, setAttempts] = useState<AttemptRecord[]>([]);
-  const [revealedHints, setRevealedHints] = useState<string[]>([]);
   const [completed, setCompleted] = useState(false);
   const [won, setWon] = useState(false);
   const [xpEarned, setXpEarned] = useState(0);
@@ -44,6 +42,13 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Formatted date (e.g. 26.09.2026)
+  const formattedDate = new Intl.DateTimeFormat('tr-TR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).format(new Date());
 
   // Load or restore state
   useEffect(() => {
@@ -63,13 +68,11 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
             setCompleted(s.completed ?? false);
             setWon(s.won ?? false);
             setStreak(s.streak ?? 0);
-            setRevealedHints(s.revealedHints ?? []);
             setXpEarned(s.xpEarned ?? 0);
           } else {
             setAttempts([]);
             setCompleted(false);
             setWon(false);
-            setRevealedHints([]);
             setXpEarned(0);
           }
         } catch { /* ignore */ }
@@ -84,20 +87,19 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
   const saveState = useCallback((state: Partial<SavedState>) => {
     const existing: SavedState = {
       quoteId: quote?.id,
-      attempts, completed, won, streak, revealedHints, xpEarned,
+      attempts, completed, won, streak, xpEarned,
       ...state,
     };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
     } catch { /* ignore */ }
-  }, [quote?.id, attempts, completed, won, streak, revealedHints, xpEarned]);
+  }, [quote?.id, attempts, completed, won, streak, xpEarned]);
 
   const handleSubmit = useCallback(async () => {
     const trimmedGuess = guess.trim();
     if (!trimmedGuess || !quote || completed || submitting) return;
     setSubmitting(true);
 
-    // Support both logged in and guest users
     const effectiveUserId = user?.uid || 'guest-tiyatrosever';
     const attemptNumber = attempts.length + 1;
 
@@ -108,9 +110,6 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
         result: result.isCorrect ? 'correct' : 'wrong',
       };
       const newAttempts = [...attempts, newAttempt];
-      const newHints = result.revealedHint
-        ? [...revealedHints, result.revealedHint]
-        : revealedHints;
 
       let newCompleted: boolean = completed;
       let newWon: boolean = won;
@@ -128,7 +127,7 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
             particleCount: 60,
             spread: 70,
             origin: { y: 0.6 },
-            colors: ['#BA1B23', '#F1C21B', '#198038'],
+            colors: ['#BA1B23', '#E4B33A', '#198038'],
           });
         }
 
@@ -142,7 +141,6 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
       }
 
       setAttempts(newAttempts);
-      setRevealedHints(newHints);
       setCompleted(newCompleted);
       setWon(newWon);
       setXpEarned(newXp);
@@ -154,7 +152,6 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
         completed: newCompleted,
         won: newWon,
         streak: newStreak,
-        revealedHints: newHints,
         xpEarned: newXp,
       });
     } catch (err) {
@@ -162,12 +159,12 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
     } finally {
       setSubmitting(false);
     }
-  }, [guess, quote, user, completed, submitting, attempts, revealedHints, won, streak, xpEarned, updateProfile, saveState]);
+  }, [guess, quote, user, completed, submitting, attempts, won, streak, xpEarned, updateProfile, saveState]);
 
   const handleShare = useCallback(async () => {
     if (!quote) return;
     const squares = attempts.map(a => a.result === 'correct' ? '🟩' : '🟥').join('');
-    const text = `🎭 Tiyatronot — Günün Repliği\n${TODAY}\n\n"${quote.quote.slice(0, 60)}..."\n\n${squares}\n\ntiyatronot.com`;
+    const text = `🎭 Tiyatronot — Günün Repliği (${formattedDate})\n"${quote.quote.slice(0, 50)}..."\n${squares}\ntiyatronot.com`;
 
     try {
       if (navigator.share) {
@@ -178,127 +175,166 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
         setTimeout(() => setCopied(false), 2000);
       }
     } catch { /* ignore */ }
-  }, [attempts, quote]);
+  }, [attempts, quote, formattedDate]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/65 backdrop-blur-xs animate-fade-in cursor-pointer"
         onClick={onClose}
         aria-hidden
       />
 
-      {/* Modal Dialog */}
-      <div className="relative z-10 bg-canvas border border-border-subtle shadow-2xl w-full max-w-lg rounded-sm overflow-hidden animate-fade-in">
+      {/* Modal Card matching Frame 05 and 06 */}
+      <div className="relative z-10 w-full max-w-[460px] bg-white dark:bg-[#1E1B1D] text-[#1C1A1B] dark:text-[#F3EFEA] rounded-[20px] shadow-2xl p-6 border border-black/5 dark:border-white/10 overflow-hidden font-serif my-auto animate-fade-in flex flex-col gap-4">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
+        <div className="flex items-start justify-between">
           <div>
-            <div className="flex items-center gap-2 text-theatre-curtain text-xs font-mono font-semibold uppercase tracking-wider">
-              <HelpCircle className="w-4 h-4" />
-              <span>Günün Repliği</span>
+            <div className="flex items-center gap-2">
+              <span className="h-5 px-2.5 flex items-center rounded-full border border-[#1C1A1B]/35 dark:border-white/35 text-[10px] font-bold tracking-wider uppercase text-[#1C1A1B] dark:text-white">
+                HER GÜN YENİ · 30 XP
+              </span>
+              <span className="text-xs italic text-tn-muted dark:text-[#A8A199]">{formattedDate}</span>
             </div>
-            <div className="text-[10px] font-mono text-text-tertiary mt-0.5">{TODAY}</div>
+            <h3 className="font-serif font-extrabold text-[26px] text-[#1C1A1B] dark:text-white mt-1.5 leading-tight">
+              Günün Repliği
+            </h3>
+            <p className="font-serif italic text-xs text-tn-muted dark:text-[#A8A199] mt-0.5">
+              Replik tahmin bulmacası — oyunu bul
+            </p>
           </div>
-          <div className="flex items-center gap-3">
-            {streak > 0 && (
-              <div className="flex items-center gap-1 text-xs font-mono text-theatre-curtain bg-layer-01 px-2 py-0.5 rounded-sm border border-border-subtle font-bold">
-                <Flame className="w-3.5 h-3.5 fill-theatre-curtain" />
-                <span>{streak} gün seri</span>
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 hover:bg-layer-01 rounded-sm transition-colors cursor-pointer"
-              aria-label="Kapat"
-            >
-              <X className="w-4 h-4 text-text-secondary" />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-7 h-7 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 flex items-center justify-center text-neutral-500 hover:text-black dark:text-neutral-300 dark:hover:text-white transition-colors cursor-pointer"
+            aria-label="Kapat"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
 
         {loading ? (
-          <div className="p-12 text-center space-y-2">
-            <div className="text-text-tertiary font-mono text-sm animate-pulse">Replik hazırlanıyor...</div>
+          <div className="py-12 text-center text-xs italic text-tn-muted animate-pulse">
+            Replik hazırlanıyor...
           </div>
         ) : !quote ? (
-          <div className="p-8 text-center text-text-secondary font-mono text-sm">
+          <div className="py-8 text-center text-xs italic text-tn-muted">
             Bugün için replik bulunamadı.
           </div>
         ) : (
-          <div className="p-5 space-y-5">
+          <div className="flex flex-col gap-3.5">
             {/* Quote Card */}
-            <div className="bg-layer-01 border-l-3 border-theatre-curtain p-4 rounded-sm shadow-subtle">
-              <span className="text-[10px] font-mono text-text-tertiary uppercase block mb-1">
-                Sahneden Bir Replik:
+            <div className="bg-[#FAF2E6] dark:bg-[#28221B] rounded-[14px] p-4.5 border border-[#EBDCC5]/70 dark:border-[#3D352B]">
+              <span className="text-[10px] font-extrabold tracking-wider uppercase text-[#A26D2B] dark:text-[#E4B33A] block mb-1">
+                SAHNEDEN BİR REPLİK
               </span>
-              <p className="font-serif italic text-base sm:text-lg text-text-primary leading-relaxed">
-                "{quote.quote}"
+              <p className="font-serif italic font-bold text-[17px] sm:text-[18px] text-[#1C1A1B] dark:text-white leading-snug m-0">
+                “{quote.quote}”
               </p>
             </div>
 
-            {/* Revealed Hints */}
-            {revealedHints.length > 0 && (
-              <div className="space-y-2">
-                {revealedHints.map((hint, i) => (
-                  <div key={i} className="text-xs text-text-primary bg-layer-01 border border-border-subtle p-3 rounded-sm font-mono flex items-start gap-2">
-                    <span className="text-base flex-shrink-0">💡</span>
-                    <span className="mt-0.5">{hint}</span>
-                  </div>
-                ))}
+            {/* Guess Tracker Row */}
+            <div className="flex items-center justify-between text-xs pt-0.5">
+              <div>
+                <span className="font-bold text-[#1C1A1B] dark:text-white">
+                  Tahmin {completed ? attempts.length : Math.min(attempts.length + 1, 3)} / 3
+                </span>
+                <span className="italic text-tn-muted dark:text-[#A8A199]"> · oyunun adını yaz</span>
               </div>
-            )}
-
-            {/* Previous Attempts List */}
-            {attempts.length > 0 && (
-              <div className="space-y-2">
-                {attempts.map((a, i) => (
-                  <div
-                    key={i}
-                    className={`flex items-center gap-2 px-3 py-2 border rounded-sm text-sm ${
-                      a.result === 'correct'
-                        ? 'border-green-400 bg-green-50 text-green-800'
-                        : 'border-red-200 bg-red-50 text-red-700'
-                    }`}
-                  >
-                    {a.result === 'correct'
-                      ? <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
-                      : <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+              <div className="flex items-center gap-1.5">
+                {[0, 1, 2].map((idx) => {
+                  const attempt = attempts[idx];
+                  if (attempt) {
+                    if (attempt.result === 'correct') {
+                      return <span key={idx} className="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block" />;
                     }
-                    <span className="font-mono text-xs flex-1 font-semibold">{a.guess}</span>
-                    <span className="text-[10px] text-text-tertiary font-mono">Tahmin {i + 1} / 3</span>
-                  </div>
-                ))}
+                    return <span key={idx} className="w-2.5 h-2.5 rounded-full bg-[#BA1B23] inline-block" />;
+                  }
+                  if (idx === attempts.length && !completed) {
+                    return <span key={idx} className="w-2.5 h-2.5 rounded-full bg-[#1C1A1B] dark:bg-white inline-block" />;
+                  }
+                  return <span key={idx} className="w-2.5 h-2.5 rounded-full border border-neutral-300 dark:border-neutral-600 inline-block" />;
+                })}
+              </div>
+            </div>
+
+            {/* Wrong Attempts List (Strikethrough with warning badge) */}
+            {attempts.map((a, i) => (
+              a.result === 'wrong' && (
+                <div
+                  key={i}
+                  className="flex items-center justify-between px-3.5 py-2.5 rounded-[12px] bg-[#FBECEB] dark:bg-[#341C1E] border border-[#F3CFCF] dark:border-[#52252A] animate-fade-in"
+                >
+                  <span className="line-through text-neutral-500 dark:text-neutral-400 font-serif text-sm">
+                    {a.guess}
+                  </span>
+                  <span className="text-xs font-bold text-[#BA1B23] dark:text-[#FF6B6B]">
+                    ✕ Yakın ama değil
+                  </span>
+                </div>
+              )
+            ))}
+
+            {/* Clues System: Level 1 and Level 2 */}
+            {attempts.length >= 1 && (
+              <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-[12px] bg-[#EFEFF8] dark:bg-[#222132] border border-[#DDDCEF] dark:border-[#383652] text-xs animate-fade-in">
+                <span className="font-extrabold text-[10px] uppercase tracking-wider text-[#574FA5] dark:text-[#A49DEC] shrink-0">
+                  İPUCU 1
+                </span>
+                <span className="font-serif text-[#1C1A1B] dark:text-white font-semibold">
+                  Yazar: {quote.playwright}
+                </span>
               </div>
             )}
 
-            {/* Game Result Screen (Won or Lost) */}
+            {attempts.length === 1 && !completed && (
+              <div className="flex items-center gap-2 px-3.5 py-2 rounded-[12px] bg-neutral-100/70 dark:bg-white/5 border border-dashed border-neutral-300 dark:border-white/10 text-xs italic text-neutral-400 dark:text-neutral-500">
+                <span>İPUCU 2 · Sonraki yanlış tahminde açılır</span>
+              </div>
+            )}
+
+            {attempts.length >= 2 && (
+              <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-[12px] bg-[#EFEFF8] dark:bg-[#222132] border border-[#DDDCEF] dark:border-[#383652] text-xs animate-fade-in">
+                <span className="font-extrabold text-[10px] uppercase tracking-wider text-[#574FA5] dark:text-[#A49DEC] shrink-0">
+                  İPUCU 2
+                </span>
+                <span className="font-serif text-[#1C1A1B] dark:text-white font-semibold">
+                  Karakter: {quote.character || quote.hint}
+                </span>
+              </div>
+            )}
+
+            {/* Game Result Screen or Guess Form */}
             {completed ? (
-              <div className={`p-5 rounded-sm border text-center space-y-3 ${
-                won ? 'border-green-400 bg-green-50/60' : 'border-red-200 bg-red-50/60'
+              <div className={`p-4 rounded-[14px] border text-center space-y-3 animate-fade-in ${
+                won
+                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200'
+                  : 'border-red-500/30 bg-red-500/10 text-red-800 dark:text-red-200'
               }`}>
-                <div className="text-2xl">{won ? '🎉' : '🎭'}</div>
-                <div className={`font-serif font-bold text-lg ${won ? 'text-green-800' : 'text-red-800'}`}>
-                  {won ? 'Tebrikler, bildin!' : 'Tüm tahmin hakların bitti'}
+                <div className="flex items-center justify-center gap-2">
+                  {won ? <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> : <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />}
+                  <h4 className="font-serif font-extrabold text-lg m-0">
+                    {won ? 'Tebrikler, bildiniz!' : 'Tüm tahmin haklarınız bitti!'}
+                  </h4>
                 </div>
-                <div className="text-xs text-text-secondary font-mono bg-canvas/80 p-2.5 rounded-sm border border-border-subtle inline-block">
-                  Doğru Oyun: <strong className="text-text-primary font-bold">{quote.playTitle}</strong>
-                  <span className="text-text-tertiary ml-1.5">({quote.playwright})</span>
-                </div>
-                {xpEarned > 0 && (
-                  <div className="text-xs font-mono text-theatre-curtain font-bold flex items-center justify-center gap-1">
+                <p className="text-sm font-semibold m-0">
+                  Doğru Oyun: <span className="underline decoration-[#BA1B23] text-base">{quote.playTitle}</span>
+                  <span className="text-xs italic text-tn-muted ml-1">({quote.playwright})</span>
+                </p>
+                {won && (
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold m-0 flex items-center justify-center gap-1">
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>+{xpEarned} XP kazandın!</span>
-                  </div>
+                    <span>+30 XP kazandınız!</span>
+                  </p>
                 )}
-                <div className="pt-2">
+                <div className="pt-1">
                   <button
                     type="button"
                     onClick={handleShare}
-                    className="w-full flex items-center justify-center gap-2 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white py-2.5 text-xs font-semibold rounded-sm transition-colors cursor-pointer"
+                    className="w-full flex items-center justify-center gap-1.5 bg-[#BA1B23] hover:bg-[#A0161D] text-white py-2.5 text-xs font-bold rounded-[10px] transition-colors cursor-pointer"
                   >
                     <Share2 className="w-3.5 h-3.5" />
                     <span>{copied ? 'Panoya Kopyalandı!' : 'Skorunu Paylaş'}</span>
@@ -306,43 +342,30 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
                 </div>
               </div>
             ) : (
-              /* Active Guess Form - Direct Text Input */
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   handleSubmit();
                 }}
-                className="space-y-3"
+                className="flex gap-2 pt-1"
               >
-                <div className="flex items-center justify-between text-xs text-text-secondary font-mono">
-                  <span>Tahmin {attempts.length + 1} / 3:</span>
-                  <span className="text-text-tertiary">Oyun adını yaz ve gönder</span>
-                </div>
-
-                <div>
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={guess}
-                    onChange={(e) => setGuess(e.target.value)}
-                    placeholder="Örn: Lüküs Hayat, Hamlet, Keşanlı Ali..."
-                    className="w-full border border-border-strong bg-canvas px-3.5 py-2.5 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors rounded-sm shadow-xs"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck="false"
-                  />
-                </div>
-
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={guess}
+                  onChange={(e) => setGuess(e.target.value)}
+                  placeholder="Örn. Lüküs Hayat, Hamlet, Keşanlı Ali..."
+                  className="flex-1 bg-white dark:bg-black/20 border border-neutral-300 dark:border-neutral-700 px-3.5 py-2.5 text-xs text-[#1C1A1B] dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-[#BA1B23] rounded-[10px]"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck="false"
+                />
                 <button
                   type="submit"
                   disabled={!guess.trim() || submitting}
-                  className="w-full bg-theatre-curtain hover:bg-theatre-curtain-hover text-white py-2.5 text-xs font-semibold rounded-sm shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                  className="px-4 py-2.5 bg-[#BA1B23] hover:bg-[#A0161D] disabled:opacity-50 text-white text-xs font-bold rounded-[10px] transition-colors cursor-pointer shrink-0"
                 >
-                  {submitting ? (
-                    <span className="font-mono animate-pulse">Kontrol Ediliyor...</span>
-                  ) : (
-                    <span>Tahmini Gönder</span>
-                  )}
+                  {submitting ? '...' : 'Tahmini Gönder'}
                 </button>
               </form>
             )}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
+import { PenLine, Eye, Bookmark, Share2 } from 'lucide-react';
 import type { Play, ReviewEntry } from '../types';
 import { storageService } from '../services/storage';
 import { useAuthSafe } from '../context/AuthContext';
@@ -42,14 +43,41 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
 
   // UI States
   const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const [isLocalLogModalOpen, setIsLocalLogModalOpen] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviewFilter, setReviewFilter] = useState<'latest' | 'top' | 'no_spoiler'>('latest');
   const [isCastExpanded, setIsCastExpanded] = useState(false);
+  const [isSynopsisExpanded, setIsSynopsisExpanded] = useState(false);
   const [shareReview, setShareReview] = useState<ReviewEntry | null>(null);
+
+  const handleOpenModal = () => {
+    if (onOpenLogModal && play) {
+      onOpenLogModal(play);
+    } else {
+      setIsLocalLogModalOpen(true);
+    }
+  };
+
+  const handleShare = () => {
+    if (!play) return;
+    if (navigator.share) {
+      navigator.share({
+        title: `${play.title} - Tiyatronot`,
+        text: `Tiyatronot'ta "${play.title}" oyununu incele!`,
+        url: window.location.href,
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      setFeedbackToast('Oyun bağlantısı kopyalandı!');
+      setTimeout(() => setFeedbackToast(null), 2500);
+    }
+  };
 
   // Load data
   useEffect(() => {
     let isMounted = true;
+    setIsSynopsisExpanded(false);
+    setIsCastExpanded(false);
     const loadPlayData = async () => {
       if (!id) return;
       try {
@@ -86,6 +114,18 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
       isMounted = false;
     };
   }, [id, activeUserId]);
+
+  // Listen for review updates
+  useEffect(() => {
+    const handleReviewUpdated = () => {
+      if (id) {
+        storageService.getReviews(id).then(setReviews);
+        storageService.getPlayById(id).then(p => { if (p) setPlay(p); });
+      }
+    };
+    window.addEventListener('tiyatronot:review-updated', handleReviewUpdated);
+    return () => window.removeEventListener('tiyatronot:review-updated', handleReviewUpdated);
+  }, [id]);
 
   // Handle Seen toggle
   const handleToggleSeen = async () => {
@@ -373,62 +413,55 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
           </div>
 
           {/* Action buttons */}
-          <div className="flex flex-col gap-2 pt-4">
+          <div className="flex flex-col gap-2 pt-3">
+            {/* Not Ekle button - rounded pill similar to header's Not Ekle button */}
             <button
               type="button"
-              onClick={() => {
-                setIsComposerOpen(true);
-                const el = document.getElementById('gunluk');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="h-12 sm:h-13 flex items-center justify-center rounded-xl bg-white text-[#1C1A1B] text-base sm:text-[17px] font-bold hover:bg-white/90 transition-colors cursor-pointer border border-white shadow-sm"
+              onClick={handleOpenModal}
+              className="h-11 sm:h-12 w-full rounded-full bg-white text-[#1C1A1B] hover:bg-white/95 font-serif text-[15px] sm:text-base font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm border-none"
             >
-              Bu Oyuna Not Ekle
+              <PenLine className="w-4 h-4 text-[#BA1B23] flex-shrink-0" />
+              <span>Not Ekle</span>
             </button>
 
-            <div className="grid grid-cols-3 gap-1.5">
+            {/* Icon-only action buttons: İzledim, Listeme Ekle, Paylaş */}
+            <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={handleToggleSeen}
-                className={`h-11 rounded-xl text-sm font-serif cursor-pointer transition-colors ${
+                title={isSeen ? 'İzlendi olarak kaydedildi' : 'İzledim olarak işaretle'}
+                className={`h-11 rounded-full flex items-center justify-center cursor-pointer transition-all ${
                   isSeen
-                    ? 'bg-white text-tn-red font-bold border border-white shadow-xs'
-                    : 'bg-white/20 hover:bg-white/30 text-white font-medium border border-white/30'
+                    ? 'bg-white text-tn-red shadow-sm'
+                    : 'bg-white/20 hover:bg-white/30 text-white border border-white/30'
                 }`}
+                aria-label="İzledim"
               >
-                {isSeen ? '✓ İzlendi' : 'İzledim'}
+                <Eye className={`w-5 h-5 ${isSeen ? 'fill-current' : ''}`} />
               </button>
 
               <button
                 type="button"
                 onClick={handleToggleWatchlist}
-                className={`h-11 rounded-xl text-sm font-serif cursor-pointer transition-colors ${
+                title={isWatchlisted ? 'Listede ekli' : 'Listeme ekle'}
+                className={`h-11 rounded-full flex items-center justify-center cursor-pointer transition-all ${
                   isWatchlisted
-                    ? 'bg-white text-[#1C1A1B] font-bold border border-white shadow-xs'
-                    : 'bg-white/20 hover:bg-white/30 text-white font-medium border border-white/30'
+                    ? 'bg-white text-[#1C1A1B] shadow-sm'
+                    : 'bg-white/20 hover:bg-white/30 text-white border border-white/30'
                 }`}
+                aria-label="Listeme Ekle"
               >
-                {isWatchlisted ? '✓ Listemde' : 'Listeme Ekle'}
+                <Bookmark className={`w-5 h-5 ${isWatchlisted ? 'fill-current' : ''}`} />
               </button>
 
               <button
                 type="button"
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: `${play.title} - Tiyatronot`,
-                      text: `Tiyatronot'ta "${play.title}" oyununu incele!`,
-                      url: window.location.href,
-                    });
-                  } else {
-                    navigator.clipboard.writeText(window.location.href);
-                    setFeedbackToast('Oyun bağlantısı kopyalandı!');
-                    setTimeout(() => setFeedbackToast(null), 2500);
-                  }
-                }}
-                className="h-11 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-serif font-medium border border-white/30 cursor-pointer transition-colors"
+                onClick={handleShare}
+                title="Oyunu Paylaş"
+                className="h-11 rounded-full bg-white/20 hover:bg-white/30 text-white border border-white/30 flex items-center justify-center cursor-pointer transition-all"
+                aria-label="Paylaş"
               >
-                Paylaş
+                <Share2 className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -436,28 +469,37 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
 
         {/* Col 3: Right Stack: Konu + Künye */}
         <div className="flex flex-col gap-1.5 md:col-span-2 lg:col-span-1 justify-between">
-          <section className="flex-grow rounded-2xl bg-tn-surface p-5 sm:p-6 flex flex-col justify-between border border-tn-line/40">
+          <section className="flex-grow rounded-2xl bg-tn-surface p-5 sm:p-6 flex flex-col border border-tn-line/40">
             <div className="flex flex-col gap-2.5">
               <span className="text-xs font-extrabold tracking-wider text-tn-red uppercase">
                 KONU
               </span>
-              <p className="m-0 text-base sm:text-lg leading-relaxed text-tn-text">
-                {play.synopsis ||
-                  `${play.title}, ${play.playwright || 'yazarın'} kaleminden sahnelenen ve ${play.company || 'topluluğun'} repertuarında yer alan etkileyici bir sahne yapımı.`}
-              </p>
-            </div>
-            {play.tags && play.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 pt-3">
-                {play.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-xs italic px-2.5 py-1 rounded-full bg-tn-card text-tn-muted border border-tn-line/50"
+              <div className="flex flex-col gap-1.5">
+                <div
+                  className={`transition-all duration-200 ${
+                    isSynopsisExpanded
+                      ? 'max-h-[180px] sm:max-h-[210px] overflow-y-auto pr-1.5 [scrollbar-width:thin]'
+                      : 'line-clamp-4'
+                  }`}
+                >
+                  <p className="m-0 text-base sm:text-lg leading-relaxed text-tn-text">
+                    {play.synopsis ||
+                      `${play.title}, ${play.playwright || 'yazarın'} kaleminden sahnelenen ve ${play.company || 'topluluğun'} repertuarında yer alan etkileyici bir sahne yapımı.`}
+                  </p>
+                </div>
+                {(play.synopsis?.length || 0) > 180 && (
+                  <button
+                    type="button"
+                    onClick={() => setIsSynopsisExpanded(!isSynopsisExpanded)}
+                    className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-tn-red hover:underline pt-1 cursor-pointer border-none bg-transparent self-start font-serif"
+                    aria-expanded={isSynopsisExpanded}
                   >
-                    #{tag}
-                  </span>
-                ))}
+                    <span>{isSynopsisExpanded ? 'Daha Az Göster' : 'Devamını Oku'}</span>
+                    <span className="text-xs">{isSynopsisExpanded ? '↑' : '→'}</span>
+                  </button>
+                )}
               </div>
-            )}
+            </div>
           </section>
 
           <section className="rounded-2xl bg-tn-blush p-5 sm:p-5.5 flex flex-col gap-2.5 border border-tn-line/40 text-tn-text">
@@ -615,22 +657,12 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
             </div>
           )}
 
-          {/* Col 3: SenDeYazOval OR In-place TicketComposer */}
+          {/* Col 3: SenDeYazOval */}
           <div className="h-full">
-            {isComposerOpen ? (
-              <TicketComposer
-                playTitle={play.title}
-                defaultVenue={play.venue}
-                onCancel={() => setIsComposerOpen(false)}
-                onSubmit={handleReviewSubmit}
-                isSubmitting={isSubmittingReview}
-              />
-            ) : (
-              <SenDeYazOval
-                subtitle="Biletini kes, notunu bırak"
-                onClick={() => setIsComposerOpen(true)}
-              />
-            )}
+            <SenDeYazOval
+              subtitle="Biletini kes, notunu bırak"
+              onClick={handleOpenModal}
+            />
           </div>
         </div>
 
@@ -678,11 +710,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
         playTitle={play.title}
         rating={play.rating}
         reviewCount={reviews.length || play.reviewCount || 1}
-        onOpenLogModal={() => {
-          setIsComposerOpen(true);
-          const el = document.getElementById('gunluk');
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }}
+        onOpenLogModal={handleOpenModal}
       />
 
       {/* Share Modal */}
@@ -692,6 +720,21 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
           onClose={() => setShareReview(null)}
           review={shareReview}
           play={play}
+        />
+      )}
+
+      {/* LogModal */}
+      {isLocalLogModalOpen && (
+        <LogModal
+          isOpen={isLocalLogModalOpen}
+          onClose={() => setIsLocalLogModalOpen(false)}
+          preselectedPlay={play}
+          onReviewSaved={() => {
+            if (id) {
+              storageService.getReviews(id).then(setReviews);
+              storageService.getPlayById(id).then(p => { if (p) setPlay(p); });
+            }
+          }}
         />
       )}
     </div>

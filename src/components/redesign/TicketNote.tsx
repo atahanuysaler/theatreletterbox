@@ -5,12 +5,16 @@ interface TicketNoteProps {
   review: ReviewEntry;
   variant?: 'horizontal' | 'vertical';
   onShare?: (review: ReviewEntry) => void;
+  onEdit?: (review: ReviewEntry) => void;
+  onDelete?: (reviewId: string) => void;
 }
 
 export const TicketNote: React.FC<TicketNoteProps> = ({
   review,
   variant = 'horizontal',
   onShare,
+  onEdit,
+  onDelete,
 }) => {
   const [showSpoiler, setShowSpoiler] = useState(false);
   const ticketNo = `IST-TN-2026-${(review.id || 'ABCD').slice(-4).toUpperCase()}`;
@@ -116,15 +120,35 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
             <span className="italic text-xs text-tn-muted">
               Kayıt: {review.createdAt?.slice(0, 10) || review.performanceDate || '2026'}
             </span>
-            {onShare && (
-              <button
-                type="button"
-                onClick={() => onShare(review)}
-                className="h-8 px-3 rounded-full font-semibold cursor-pointer text-xs transition-colors border border-tn-line bg-tn-surface text-tn-text hover:bg-tn-line"
-              >
-                Bileti Paylaş
-              </button>
-            )}
+            <div className="flex items-center gap-1.5">
+              {onEdit && (
+                <button
+                  type="button"
+                  onClick={() => onEdit(review)}
+                  className="h-8 px-2.5 rounded-full font-semibold cursor-pointer text-xs transition-colors border border-tn-line bg-tn-surface text-tn-text hover:bg-tn-line"
+                >
+                  Düzenle
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={() => onDelete(review.id)}
+                  className="h-8 px-2.5 rounded-full font-semibold cursor-pointer text-xs transition-colors border border-tn-line bg-tn-surface text-tn-red hover:bg-tn-red/10"
+                >
+                  Sil
+                </button>
+              )}
+              {onShare && (
+                <button
+                  type="button"
+                  onClick={() => onShare(review)}
+                  className="h-8 px-3 rounded-full font-semibold cursor-pointer text-xs transition-colors border border-tn-line bg-tn-surface text-tn-text hover:bg-tn-line"
+                >
+                  Bileti Paylaş
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </article>
@@ -171,21 +195,41 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
         </div>
 
         <div className="mt-auto flex justify-between items-center text-xs sm:text-[13px] pt-1">
-          <span className="truncate max-w-[70%]">
+          <span className="truncate max-w-[50%]">
             <span className="font-semibold text-tn-text">
               {review.userName || 'Tiyatrosever'}
             </span>{' '}
             <span className="italic hidden sm:inline text-tn-muted">· Seyirci Günlüğü</span>
           </span>
-          {onShare && (
-            <button
-              type="button"
-              onClick={() => onShare(review)}
-              className="font-semibold cursor-pointer border-none bg-transparent p-0 whitespace-nowrap transition-colors hover:text-tn-red text-tn-text"
-            >
-              Bileti Paylaş
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {onEdit && (
+              <button
+                type="button"
+                onClick={() => onEdit(review)}
+                className="font-semibold cursor-pointer border-none bg-transparent p-0 text-tn-muted hover:text-tn-text transition-colors"
+              >
+                Düzenle
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                onClick={() => onDelete(review.id)}
+                className="font-semibold cursor-pointer border-none bg-transparent p-0 text-tn-red hover:underline transition-colors"
+              >
+                Sil
+              </button>
+            )}
+            {onShare && (
+              <button
+                type="button"
+                onClick={() => onShare(review)}
+                className="font-semibold cursor-pointer border-none bg-transparent p-0 whitespace-nowrap transition-colors hover:text-tn-red text-tn-text"
+              >
+                Bileti Paylaş
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

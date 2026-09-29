@@ -59,6 +59,34 @@ html.dark,
 }
 
 /* ==========================================================================
+   Dark Mode Contrast Fix:
+   Whenever an element has a white background in dark mode, its text and any
+   contained text must be dark and high-contrast (#1C1A1B).
+   ========================================================================== */
+html.dark .bg-white:not([class*="dark:bg-"]),
+.dark .bg-white:not([class*="dark:bg-"]),
+html.dark [class*="dark:bg-white"],
+.dark [class*="dark:bg-white"] {
+  color: #1C1A1B !important;
+  --tn-text: #1C1A1B;
+  --tn-text-2: #4A4541;
+  --tn-text-3: #5E5852;
+  --tn-text-muted: #6E6862;
+  --tn-text-faint: #9A928A;
+}
+
+html.dark .bg-white:not([class*="dark:bg-"]) *:not([class*="text-white"]):not([class*="dark:text-white"]),
+.dark .bg-white:not([class*="dark:bg-"]) *:not([class*="text-white"]):not([class*="dark:text-white"]),
+html.dark [class*="dark:bg-white"] *:not([class*="text-white"]):not([class*="dark:text-white"]),
+.dark [class*="dark:bg-white"] *:not([class*="text-white"]):not([class*="dark:text-white"]) {
+  --tn-text: #1C1A1B;
+  --tn-text-2: #4A4541;
+  --tn-text-3: #5E5852;
+  --tn-text-muted: #6E6862;
+  --tn-text-faint: #9A928A;
+}
+
+/* ==========================================================================
    Base Resets & Typography Hierarchy
    ========================================================================== */
 @layer base {

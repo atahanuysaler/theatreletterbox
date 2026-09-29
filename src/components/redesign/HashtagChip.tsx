@@ -4,11 +4,11 @@ export type HashtagColor = 'red' | 'blush' | 'ink' | 'ochre' | 'lilac' | 'sage';
 
 const COLOR_CLASSES: Record<HashtagColor, string> = {
   red: 'bg-tn-red text-white hover:bg-tn-red/90',
-  blush: 'bg-tn-blush text-tn-ink hover:opacity-90',
+  blush: 'bg-tn-blush text-tn-ink dark:text-white hover:opacity-90',
   ink: 'bg-tn-ink text-white hover:bg-tn-ink/90',
-  ochre: 'bg-tn-ochre text-tn-ink hover:opacity-90',
-  lilac: 'bg-tn-lilac text-tn-ink hover:opacity-90',
-  sage: 'bg-tn-sage text-tn-ink hover:opacity-90',
+  ochre: 'bg-tn-ochre text-tn-ink dark:text-white hover:opacity-90',
+  lilac: 'bg-tn-lilac text-tn-ink dark:text-white hover:opacity-90',
+  sage: 'bg-tn-sage text-tn-ink dark:text-white hover:opacity-90',
 };
 
 export const COLOR_CYCLE: HashtagColor[] = ['red', 'blush', 'ink', 'ochre', 'lilac', 'sage'];

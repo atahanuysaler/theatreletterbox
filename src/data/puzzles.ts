@@ -126,15 +126,15 @@ export const DEFAULT_ACTOR_DETECTIVE: ActorDetectiveItem[] = [
   {
     id: 'actor-1',
     actorName: 'Haluk Bilginer',
-    title: 'Kral Lear\'dan Emmy\'ye Uzanan Sahne Devi',
+    title: 'Amerikan Rüyası’nın ardında ezilen, hayalleriyle gerçekleri arasında sıkışmış bir satıcıyı canlandırıyor.',
     clues: [
-      'Oyun Atölyesi\'nin kurucusudur ve Kadıköy Moda sahnesinin mimarlarındandır.',
-      'Shakespeare\'in "Kral Lear", "Antonius ile Kleopatra" ve "Hırçın Kız" oyunlarındaki başrolleriyle efsaneleşmiştir.',
-      'Hem uluslararası Emmy Ödülü sahibi hem de sayısız Afife Tiyatro Ödülü kazanmış usta aktördür.',
+      'Amerikan Rüyası’nın ardında ezilen, hayalleriyle gerçekleri arasında sıkışmış bir satıcıyı canlandırıyor.',
+      'Oyun Atölyesi\'nin kurucusudur ve hem Emmy hem Afife Tiyatro Ödülü kazanmış bir sahne devidir.',
+      'Shakespeare\'in "Kral Lear", "Antonius ile Kleopatra" başrolleriyle efsaneleşmiştir.',
       'İngiltere\'de Royal Shakespeare Company sahnelerinde ve West End müzikallerinde de oynamıştır.'
     ],
-    famousPlays: ['Kral Lear', 'Antonius ile Kleopatra', 'Dolu Düşün Boş Konuş', 'Pencere', 'Kundakçı'],
-    hint: 'Moda\'da Oyun Atölyesi\'ni kuran, Şahsiyet dizisinde Agâh Bey\'i canlandıran efsane isim.',
+    famousPlays: ['Satıcının Ölümü · Zorlu PSM, 2024', 'Kral Lear', 'Pencere'],
+    hint: 'Moda\'da Oyun Atölyesi\'ni kuran, Zorlu PSM sahnesinde Willy Loman rolüyle devleşen efsane aktör.',
     isToday: true
   },
   {
@@ -195,39 +195,39 @@ export const DEFAULT_ACTOR_DETECTIVE: ActorDetectiveItem[] = [
 export const DEFAULT_TRIVIA_QUESTIONS: TriviaQuestionItem[] = [
   {
     id: 'trivia-1',
-    question: 'Haldun Taner\'in Türk tiyatrosunda ilk epik tiyatro örneği kabul edilen ve Sineklidağ mahallesinde geçen ünlü müzikli oyunu hangisidir?',
-    options: ['Keşanlı Ali Destanı', 'Gözlerimi Kaparım Vazifemi Yaparım', 'Sersem Kocanın Kurnaz Karısı', 'Lüküs Hayat'],
-    correctAnswer: 'Keşanlı Ali Destanı',
-    explanation: '1964 yılında Gülriz Sururi - Engin Cezzar Tiyatrosu tarafından prömiyeri yapılan Keşanlı Ali Destanı, Türk tiyatrosunun ilk epik tiyatro başyapıtıdır.',
+    question: '“Satıcının Ölümü” oyununun yazarı kimdir?',
+    options: ['Arthur Miller', 'Tennessee Williams', 'Eugene O\'Neill', 'Edward Albee'],
+    correctAnswer: 'Arthur Miller',
+    explanation: 'Oyun 1949\'da Pulitzer Ödülü\'nü kazandı.',
     isToday: true
   },
   {
     id: 'trivia-2',
+    question: 'Haldun Taner\'in Türk tiyatrosunda ilk epik tiyatro örneği kabul edilen ve Sineklidağ mahallesinde geçen ünlü müzikli oyunu hangisidir?',
+    options: ['Keşanlı Ali Destanı', 'Gözlerimi Kaparım Vazifemi Yaparım', 'Sersem Kocanın Kurnaz Karısı', 'Lüküs Hayat'],
+    correctAnswer: 'Keşanlı Ali Destanı',
+    explanation: '1964 yılında Gülriz Sururi - Engin Cezzar Tiyatrosu tarafından prömiyeri yapılan Keşanlı Ali Destanı, Türk tiyatrosunun ilk epik tiyatro başyapıtıdır.'
+  },
+  {
+    id: 'trivia-3',
     question: 'Shakespeare\'in "Kral Lear" trajedisinde babasına sahte övgüler düzmeyi reddedip dürüst kalan en küçük kızının adı nedir?',
     options: ['Cordelia', 'Goneril', 'Regan', 'Ophelia'],
     correctAnswer: 'Cordelia',
     explanation: 'Cordelia babasını ne eksik ne fazla sevdiğini söyler ancak bu dürüstlüğü yüzünden babası tarafından mirastan mahrum bırakılır.'
   },
   {
-    id: 'trivia-3',
-    question: 'Dünya tiyatro tarihinde "Absürt Tiyatro" (Uyumsuz Tiyatro) akımının manifestosu kabul edilen "Godot\'yu Beklerken" oyununun yazarı kimdir?',
+    id: 'trivia-4',
+    question: 'Dünya tiyatro tarihinde "Absürt Tiyatro" akımının manifestosu kabul edilen "Godot\'yu Beklerken" oyununun yazarı kimdir?',
     options: ['Samuel Beckett', 'Anton Çehov', 'Henrik Ibsen', 'Eugène Ionesco'],
     correctAnswer: 'Samuel Beckett',
     explanation: 'Samuel Beckett, 1953 yılında sahnelenen Godot\'yu Beklerken eseriyle 20. yüzyıl absürt tiyatrosunun yönünü değiştirmiştir.'
   },
   {
-    id: 'trivia-4',
+    id: 'trivia-5',
     question: '1969 yılında Genco Erkal, Mehmet Akan ve arkadaşları tarafından kurulan ve Türk epik tiyatrosuna yön veren topluluk hangisidir?',
     options: ['Dostlar Tiyatrosu', 'Kent Oyuncuları', 'Oyun Atölyesi', 'Dormen Tiyatrosu'],
     correctAnswer: 'Dostlar Tiyatrosu',
     explanation: 'Dostlar Tiyatrosu, yarım asrı aşkın süre boyunca toplumcu gerçekçi ve epik tiyatronun en önemli temsilcisi olmuştur.'
-  },
-  {
-    id: 'trivia-5',
-    question: 'Anton Çehov\'un yazdığı ve Konstantin Stanislavski yönetimindeki Moskova Sanat Tiyatrosu\'nun resmi amblemi haline gelen oyun hangisidir?',
-    options: ['Martı', 'Vanya Dayı', 'Üç Kız Kardeş', 'Vişne Bahçesi'],
-    correctAnswer: 'Martı',
-    explanation: 'Martı oyununun tarihi başarısı sonrası Moskova Sanat Tiyatrosu (MAT), tiyatronun sembolü olarak kanat açmış bir martı figürünü seçmiştir.'
   }
 ];
 
