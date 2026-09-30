@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import type { ReviewEntry } from '../../types';
 
 interface TicketNoteProps {
@@ -7,6 +8,8 @@ interface TicketNoteProps {
   onShare?: (review: ReviewEntry) => void;
   onEdit?: (review: ReviewEntry) => void;
   onDelete?: (reviewId: string) => void;
+  onClick?: (e: React.MouseEvent) => void;
+  clickable?: boolean;
 }
 
 export const TicketNote: React.FC<TicketNoteProps> = ({
@@ -15,8 +18,13 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
   onShare,
   onEdit,
   onDelete,
+  onClick,
+  clickable = true,
 }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [showSpoiler, setShowSpoiler] = useState(false);
+
   const ticketNo = `IST-TN-2026-${(review.id || 'ABCD').slice(-4).toUpperCase()}`;
   const sessionText = review.sessionType === 'matine' ? '★ ÖĞLE MATİNESİ ★' : '★ AKŞAM SUARESİ ★';
   const ratingValue = review.rating ? review.rating.toFixed(1) : '5.0';
@@ -29,15 +37,50 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
   };
 
   const isSpoilerHidden = review.hasSpoilers && !showSpoiler;
+  const isCurrentPlayPage = Boolean(review.playId && location.pathname === `/oyun/${review.playId}`);
+  const isInteractive = clickable !== false && Boolean(review.playId) && !isCurrentPlayPage;
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (onClick) {
+      onClick(e);
+      return;
+    }
+    if (isInteractive && review.playId) {
+      navigate(`/oyun/${review.playId}`);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if ((e.key === 'Enter' || e.key === ' ') && isInteractive && review.playId) {
+      e.preventDefault();
+      navigate(`/oyun/${review.playId}`);
+    }
+  };
 
   if (variant === 'vertical') {
     return (
-      <article className="rounded-2xl shadow-ticket flex flex-col overflow-hidden font-serif border border-tn-line bg-tn-ticket text-tn-text h-full">
+      <article
+        onClick={handleCardClick}
+        onKeyDown={handleKeyDown}
+        role={isInteractive ? 'button' : undefined}
+        tabIndex={isInteractive ? 0 : undefined}
+        aria-label={isInteractive ? `${review.playTitle || 'Oyun'} detayına git` : undefined}
+        className={`rounded-2xl shadow-ticket flex flex-col overflow-hidden font-serif border border-tn-line bg-tn-ticket text-tn-text h-full transition-all ${
+          isInteractive
+            ? 'cursor-pointer hover:border-tn-red/40 dark:hover:border-white/20 hover:scale-[1.008] hover:shadow-md group'
+            : ''
+        }`}
+      >
         {/* Top ticket header */}
         <div className="p-5 pb-4 flex flex-col gap-2 text-center items-center">
           <span className="text-xs font-semibold tracking-wider text-tn-muted">
             BİLET NO · {ticketNo}
           </span>
+          {review.playTitle && (
+            <span className="font-extrabold text-lg text-tn-text group-hover:text-tn-red transition-colors line-clamp-1">
+              {review.playTitle}
+            </span>
+          )}
           <span className="font-extrabold text-base tracking-widest text-tn-text">
             {sessionText}
           </span>
@@ -106,7 +149,10 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
               {review.hasSpoilers && (
                 <button
                   type="button"
-                  onClick={() => setShowSpoiler(!showSpoiler)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowSpoiler(!showSpoiler);
+                  }}
                   className="mt-2 text-xs font-serif italic text-tn-red hover:underline cursor-pointer border-none bg-transparent p-0"
                 >
                   {showSpoiler ? 'Spoiler’ı gizle' : 'Spoiler içeriyor · Göster'}
@@ -124,7 +170,10 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
               {onEdit && (
                 <button
                   type="button"
-                  onClick={() => onEdit(review)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(review);
+                  }}
                   className="h-8 px-2.5 rounded-full font-semibold cursor-pointer text-xs transition-colors border border-tn-line bg-tn-surface text-tn-text hover:bg-tn-line"
                 >
                   Düzenle
@@ -133,7 +182,10 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
               {onDelete && (
                 <button
                   type="button"
-                  onClick={() => onDelete(review.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(review.id);
+                  }}
                   className="h-8 px-2.5 rounded-full font-semibold cursor-pointer text-xs transition-colors border border-tn-line bg-tn-surface text-tn-red hover:bg-tn-red/10"
                 >
                   Sil
@@ -142,7 +194,10 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
               {onShare && (
                 <button
                   type="button"
-                  onClick={() => onShare(review)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShare(review);
+                  }}
                   className="h-8 px-3 rounded-full font-semibold cursor-pointer text-xs transition-colors border border-tn-line bg-tn-surface text-tn-text hover:bg-tn-line"
                 >
                   Bileti Paylaş
@@ -155,9 +210,20 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
     );
   }
 
-  // Horizontal variant (default for Bento grid)
+  // Horizontal variant (default for Bento grid / HomePage)
   return (
-    <article className="rounded-2xl grid grid-cols-[minmax(0,1fr)_96px] overflow-hidden shadow-sm border border-tn-line bg-tn-ticket text-tn-text h-full font-serif">
+    <article
+      onClick={handleCardClick}
+      onKeyDown={handleKeyDown}
+      role={isInteractive ? 'button' : undefined}
+      tabIndex={isInteractive ? 0 : undefined}
+      aria-label={isInteractive ? `${review.playTitle} oyun detayına git` : undefined}
+      className={`rounded-2xl grid grid-cols-[minmax(0,1fr)_96px] overflow-hidden shadow-sm border border-tn-line bg-tn-ticket text-tn-text h-full font-serif transition-all ${
+        isInteractive
+          ? 'cursor-pointer hover:border-tn-red/40 dark:hover:border-white/20 hover:scale-[1.008] hover:shadow-md group'
+          : ''
+      }`}
+    >
       {/* Left body */}
       <div className="p-4 sm:p-5 flex flex-col gap-2 justify-between">
         <div className="flex justify-between text-[11px] font-semibold tracking-wider text-tn-muted">
@@ -166,7 +232,7 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
         </div>
 
         <div>
-          <div className="font-extrabold text-2xl sm:text-[28px] leading-tight line-clamp-1 text-tn-text">
+          <div className="font-extrabold text-2xl sm:text-[28px] leading-tight line-clamp-1 text-tn-text group-hover:text-tn-red transition-colors">
             {review.playTitle}
           </div>
           <div className="text-xs sm:text-sm italic truncate text-tn-muted">
@@ -186,7 +252,10 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
           {review.hasSpoilers && (
             <button
               type="button"
-              onClick={() => setShowSpoiler(!showSpoiler)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSpoiler(!showSpoiler);
+              }}
               className="text-[11px] font-serif italic text-tn-red hover:underline cursor-pointer border-none bg-transparent p-0 mt-0.5"
             >
               {showSpoiler ? 'Gizle' : 'Spoiler · Göster'}
@@ -205,7 +274,10 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
             {onEdit && (
               <button
                 type="button"
-                onClick={() => onEdit(review)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(review);
+                }}
                 className="font-semibold cursor-pointer border-none bg-transparent p-0 text-tn-muted hover:text-tn-text transition-colors"
               >
                 Düzenle
@@ -214,7 +286,10 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
             {onDelete && (
               <button
                 type="button"
-                onClick={() => onDelete(review.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(review.id);
+                }}
                 className="font-semibold cursor-pointer border-none bg-transparent p-0 text-tn-red hover:underline transition-colors"
               >
                 Sil
@@ -223,7 +298,10 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
             {onShare && (
               <button
                 type="button"
-                onClick={() => onShare(review)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onShare(review);
+                }}
                 className="font-semibold cursor-pointer border-none bg-transparent p-0 whitespace-nowrap transition-colors hover:text-tn-red text-tn-text"
               >
                 Bileti Paylaş

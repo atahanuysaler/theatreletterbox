@@ -80,9 +80,15 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <div className="w-full flex gap-1.5 font-serif text-tn-text">
       {/* Search Input Box */}
-      <div className="flex-grow h-[52px] sm:h-[68px] px-3.5 sm:px-5 py-1 sm:py-2 rounded-[14px] sm:rounded-2xl bg-tn-surface border border-tn-line/40 flex items-center gap-2 sm:gap-3 box-border focus-within:ring-2 focus-within:ring-tn-red/30 transition-all shadow-2xs">
+      <div className={`flex-grow h-[52px] sm:h-[68px] px-3.5 sm:px-5 py-1 sm:py-2 rounded-[14px] sm:rounded-2xl bg-tn-surface border transition-all shadow-2xs flex items-center gap-2 sm:gap-3 box-border ${
+        value
+          ? 'border-tn-red ring-1 ring-tn-red/30'
+          : 'border-tn-line/40 focus-within:ring-2 focus-within:ring-tn-red/30'
+      }`}>
         {/* Search icon */}
-        <Search className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px] text-tn-muted flex-shrink-0" />
+        <Search className={`w-[18px] h-[18px] sm:w-[22px] sm:h-[22px] flex-shrink-0 ${
+          value ? 'text-tn-red' : 'text-tn-muted'
+        }`} />
 
         <label htmlFor="catalog-search-input" className="sr-only">
           Katalogda ara

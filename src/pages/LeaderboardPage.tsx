@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { storageService } from '../services/storage';
-import { useAuth } from '../context/AuthContext';
+import { useAuthSafe } from '../context/AuthContext';
 import type { LeaderboardUser } from '../types';
 
 export const LeaderboardPage: React.FC = () => {
-  const { user } = useAuth();
+  const auth = useAuthSafe();
+  const user = auth?.user;
   const [activeTab, setActiveTab] = useState<'allTime' | 'season'>('allTime');
   const [entries, setEntries] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,113 +27,310 @@ export const LeaderboardPage: React.FC = () => {
     fetchLeaderboard(activeTab);
   }, [activeTab, fetchLeaderboard]);
 
+  const top1 = entries[0];
+  const top2 = entries[1];
+  const top3 = entries[2];
+  const restEntries = entries.slice(3);
+
+  // Current user ranking calculation
+  const currentUserIndex = entries.findIndex((e) => e.uid === user?.uid);
+  const currentUserEntry = currentUserIndex !== -1 ? entries[currentUserIndex] : null;
+  const currentUserRank = currentUserIndex !== -1 ? currentUserIndex + 1 : entries.length + 1;
+
+  const renderInitials = (name?: string) => {
+    if (!name) return 'TN';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  };
+
   return (
-    <div className="w-full flex flex-col gap-6 py-4 font-serif text-tn-text">
-      {/* Header */}
+    <div className="w-full flex flex-col gap-5 sm:gap-6 py-2 sm:py-4 font-serif text-tn-text">
+      {/* 1. Header with Eyebrow, Title and Description */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-tn-line pb-4">
         <div>
           <span className="text-xs font-extrabold tracking-wider text-tn-red uppercase">
             SAHNE LİDERLERİ
           </span>
-          <h1 className="m-0 mt-1 font-extrabold text-3xl sm:text-5xl leading-tight">
+          <h1 className="m-0 mt-1 font-extrabold text-3xl sm:text-5xl leading-tight tracking-tight">
             Tiyatronot Sıralaması
           </h1>
-          <p className="m-0 mt-1 text-base sm:text-lg italic text-tn-muted max-w-2xl">
-            En çok oyun izleyen, en kapsamlı notları tutan ve tiyatro pasaportunu dolduran sahne müdavimleri.
-          </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex gap-1 p-1 rounded-full bg-tn-surface border border-tn-line text-sm self-start sm:self-auto">
-          <button
-            type="button"
-            onClick={() => setActiveTab('allTime')}
-            className={`h-9 px-4 rounded-full border-none font-serif text-sm cursor-pointer transition-colors ${
-              activeTab === 'allTime'
-                ? 'bg-white dark:bg-tn-container font-semibold text-tn-text shadow-xs'
-                : 'bg-transparent text-tn-muted hover:text-tn-text'
-            }`}
-          >
-            Tüm Zamanlar
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('season')}
-            className={`h-9 px-4 rounded-full border-none font-serif text-sm cursor-pointer transition-colors ${
-              activeTab === 'season'
-                ? 'bg-white dark:bg-tn-container font-semibold text-tn-text shadow-xs'
-                : 'bg-transparent text-tn-muted hover:text-tn-text'
-            }`}
-          >
-            Bu Sezon (2025–2026)
-          </button>
-        </div>
+        <p className="m-0 text-sm sm:text-base italic text-tn-muted max-w-md self-start sm:self-end leading-relaxed">
+          En çok oyun izleyen, en kapsamlı notları tutan ve tiyatro pasaportunu dolduran sahne müdavimleri.
+        </p>
       </div>
 
-      {/* Leaderboard Table / Cards */}
+      {/* 2. Tab Switcher */}
+      <div className="flex gap-1.5 p-1 rounded-full bg-tn-surface border border-tn-line text-sm self-start">
+        <button
+          type="button"
+          onClick={() => setActiveTab('allTime')}
+          className={`h-9 px-4 rounded-full border-none font-serif text-sm cursor-pointer transition-all ${
+            activeTab === 'allTime'
+              ? 'bg-white dark:bg-tn-container font-semibold text-tn-text shadow-2xs'
+              : 'bg-transparent text-tn-muted hover:text-tn-text'
+          }`}
+        >
+          Tüm Zamanlar
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('season')}
+          className={`h-9 px-4 rounded-full border-none font-serif text-sm cursor-pointer transition-all ${
+            activeTab === 'season'
+              ? 'bg-white dark:bg-tn-container font-semibold text-tn-text shadow-2xs'
+              : 'bg-transparent text-tn-muted hover:text-tn-text'
+          }`}
+        >
+          Bu Sezon (2025–2026)
+        </button>
+      </div>
+
       {loading ? (
-        <div className="w-full min-h-[300px] flex items-center justify-center font-serif text-tn-muted">
+        <div className="w-full min-h-[360px] flex items-center justify-center font-serif text-tn-muted">
           <span className="italic text-lg animate-pulse">Sıralama yükleniyor…</span>
         </div>
       ) : entries.length > 0 ? (
-        <div className="rounded-2xl bg-tn-surface border border-tn-line overflow-hidden shadow-xs">
-          <div className="grid grid-cols-[60px_minmax(0,1fr)_120px_100px] p-3.5 px-5 border-b border-tn-line text-xs font-extrabold uppercase text-tn-muted tracking-wider">
-            <span>SIRA</span>
-            <span>TİYATROSEVER</span>
-            <span className="text-right">İZLENEN</span>
-            <span className="text-right">XP</span>
+        <>
+          {/* 3. Top 3 Podium Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 items-end pt-2">
+            {/* #2 (Dark Card, Left) */}
+            <div className="order-2 md:order-1">
+              {top2 ? (
+                <Link
+                  to={`/profil/${top2.uid}`}
+                  className="rounded-2xl bg-tn-ink text-white p-5 sm:p-6 flex flex-col justify-between h-[200px] shadow-sm no-underline group hover:scale-[1.01] transition-transform"
+                >
+                  <span className="font-extrabold text-3xl sm:text-4xl tracking-tight text-white/95">
+                    #2
+                  </span>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2.5">
+                      {top2.photoURL ? (
+                        <img
+                          src={top2.photoURL}
+                          alt={top2.displayName}
+                          className="w-9 h-9 rounded-full object-cover border border-white/20"
+                        />
+                      ) : (
+                        <span className="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center font-extrabold text-xs">
+                          {renderInitials(top2.displayName)}
+                        </span>
+                      )}
+                      <div className="min-w-0">
+                        <div className="font-extrabold text-lg sm:text-xl truncate text-white">
+                          {top2.displayName || 'Tiyatrosever'}
+                        </div>
+                        <div className="text-xs italic text-tn-on-dark-muted truncate">
+                          {top2.level || 'Dramaturg Gözü'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="font-extrabold text-sm sm:text-base text-white/90 pt-1">
+                      {top2.xp} XP · {top2.playsSeenCount ?? 0} oyun
+                    </div>
+                  </div>
+                </Link>
+              ) : (
+                <div className="rounded-2xl bg-tn-ink text-white p-6 h-[200px] flex items-center justify-center italic text-sm text-white/60">
+                  #2 henüz belirlenmedi
+                </div>
+              )}
+            </div>
+
+            {/* #1 (Red Card, Center, Taller) */}
+            <div className="order-1 md:order-2">
+              {top1 ? (
+                <Link
+                  to={`/profil/${top1.uid}`}
+                  className="rounded-2xl bg-tn-red text-white p-6 sm:p-7 flex flex-col justify-between h-[235px] shadow-md no-underline group hover:scale-[1.01] transition-transform"
+                >
+                  <span className="font-extrabold text-4xl sm:text-5xl tracking-tight text-white">
+                    #1
+                  </span>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-3">
+                      {top1.photoURL ? (
+                        <img
+                          src={top1.photoURL}
+                          alt={top1.displayName}
+                          className="w-11 h-11 rounded-full object-cover border-2 border-white/30"
+                        />
+                      ) : (
+                        <span className="w-11 h-11 rounded-full bg-white text-tn-red flex items-center justify-center font-extrabold text-sm shadow-xs">
+                          {renderInitials(top1.displayName)}
+                        </span>
+                      )}
+                      <div className="min-w-0">
+                        <div className="font-extrabold text-xl sm:text-2xl truncate text-white">
+                          {top1.displayName || 'Tiyatrosever'}
+                        </div>
+                        <div className="text-xs italic text-white/80 truncate">
+                          {top1.level || 'Dramaturg Gözü'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="font-extrabold text-base text-white pt-1">
+                      {top1.xp} XP · {top1.playsSeenCount ?? 0} oyun
+                    </div>
+                  </div>
+                </Link>
+              ) : (
+                <div className="rounded-2xl bg-tn-red text-white p-6 h-[235px] flex items-center justify-center italic text-sm text-white/60">
+                  #1 henüz belirlenmedi
+                </div>
+              )}
+            </div>
+
+            {/* #3 (Ticket/Cream Card, Right) */}
+            <div className="order-3 md:order-3">
+              {top3 ? (
+                <Link
+                  to={`/profil/${top3.uid}`}
+                  className="rounded-2xl bg-tn-ticket border border-tn-line text-tn-text p-5 sm:p-6 flex flex-col justify-between h-[180px] shadow-sm no-underline group hover:scale-[1.01] transition-transform"
+                >
+                  <span className="font-extrabold text-3xl sm:text-4xl tracking-tight text-tn-text">
+                    #3
+                  </span>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2.5">
+                      {top3.photoURL ? (
+                        <img
+                          src={top3.photoURL}
+                          alt={top3.displayName}
+                          className="w-9 h-9 rounded-full object-cover border border-tn-line"
+                        />
+                      ) : (
+                        <span className="w-9 h-9 rounded-full bg-tn-lilac text-tn-text flex items-center justify-center font-extrabold text-xs border border-tn-line/40">
+                          {renderInitials(top3.displayName)}
+                        </span>
+                      )}
+                      <div className="min-w-0">
+                        <div className="font-extrabold text-lg sm:text-xl truncate text-tn-text">
+                          {top3.displayName || 'Tiyatrosever'}
+                        </div>
+                        <div className="text-xs italic text-tn-muted truncate">
+                          {top3.level || 'KADEME'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="font-extrabold text-sm sm:text-base text-tn-text pt-1">
+                      {top3.xp} XP · {top3.playsSeenCount ?? 0} oyun
+                    </div>
+                  </div>
+                </Link>
+              ) : (
+                <div className="rounded-2xl bg-tn-ticket border border-tn-line text-tn-text p-6 h-[180px] flex items-center justify-center italic text-sm text-tn-muted">
+                  #3 henüz belirlenmedi
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="divide-y divide-tn-line/60">
-            {entries.map((entry, index) => {
-              const isCurrentUser = user?.uid === entry.uid;
-              const rank = index + 1;
-              return (
-                <Link
-                  key={entry.uid}
-                  to={`/profil/${entry.uid}`}
-                  className={`grid grid-cols-[60px_minmax(0,1fr)_120px_100px] p-4 px-5 items-center no-underline text-tn-text transition-colors ${
-                    isCurrentUser ? 'bg-tn-red/5 font-bold' : 'hover:bg-tn-card'
-                  }`}
-                >
-                  <span className={`font-extrabold text-lg ${rank <= 3 ? 'text-tn-red' : 'text-tn-muted'}`}>
-                    #{rank}
+          {/* 4. Table Header & Rows */}
+          <div className="rounded-2xl bg-tn-surface border border-tn-line overflow-hidden shadow-2xs mt-2">
+            <div className="grid grid-cols-[60px_minmax(0,1fr)_160px_110px_90px] p-3.5 px-6 border-b border-tn-line text-xs font-extrabold uppercase text-tn-muted tracking-wider">
+              <span>SIRA</span>
+              <span>TİYATROSEVER</span>
+              <span className="hidden sm:inline">KADEME</span>
+              <span className="hidden sm:inline">İZLENEN</span>
+              <span className="text-right">XP</span>
+            </div>
+
+            <div className="divide-y divide-tn-line/60">
+              {restEntries.map((entry, index) => {
+                const rank = index + 4;
+                const isCurrentUser = user?.uid === entry.uid;
+
+                return (
+                  <Link
+                    key={entry.uid}
+                    to={`/profil/${entry.uid}`}
+                    className={`grid grid-cols-[60px_minmax(0,1fr)_160px_110px_90px] p-3.5 sm:p-4 px-6 items-center no-underline text-tn-text transition-colors hover:bg-tn-card ${
+                      isCurrentUser ? 'bg-tn-red/5 font-bold' : ''
+                    }`}
+                  >
+                    <span className="font-extrabold text-base text-tn-red">
+                      #{rank}
+                    </span>
+
+                    <div className="flex items-center gap-3 min-w-0">
+                      {entry.photoURL ? (
+                        <img
+                          src={entry.photoURL}
+                          alt={entry.displayName}
+                          className="w-8 h-8 rounded-full object-cover border border-tn-line shrink-0"
+                        />
+                      ) : (
+                        <span className="w-8 h-8 rounded-full bg-tn-sand text-tn-text flex items-center justify-center font-extrabold text-xs shrink-0 border border-tn-line/40">
+                          {renderInitials(entry.displayName)}
+                        </span>
+                      )}
+                      <span className="font-extrabold text-base truncate">
+                        {entry.displayName || 'Tiyatrosever'} {isCurrentUser && '(Sen)'}
+                      </span>
+                    </div>
+
+                    <span className="hidden sm:inline text-sm italic text-tn-muted truncate">
+                      {entry.level || 'Ön Sıra Müdavimi'}
+                    </span>
+
+                    <span className="hidden sm:inline font-semibold text-sm">
+                      {entry.playsSeenCount ?? 0} oyun
+                    </span>
+
+                    <span className="text-right font-extrabold text-base text-tn-red">
+                      {entry.xp} XP
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* 5. Highlighted / Pinned Active User Row if logged in */}
+            {user && (
+              <div className="p-3 bg-tn-surface/40 border-t border-tn-line">
+                <div className="grid grid-cols-[60px_minmax(0,1fr)_160px_110px_90px] p-3 sm:p-3.5 px-5 items-center rounded-xl border-2 border-tn-red bg-white dark:bg-tn-container text-tn-text shadow-xs">
+                  <span className="font-extrabold text-base text-tn-red">
+                    #{currentUserRank}
                   </span>
 
-                  <div className="flex items-center gap-3 min-w-0">
-                    {entry.photoURL ? (
-                      <img
-                        src={entry.photoURL}
-                        alt={entry.displayName}
-                        className="w-9 h-9 rounded-full object-cover border border-tn-line"
-                      />
-                    ) : (
-                      <span className="w-9 h-9 rounded-full bg-tn-ink text-white flex items-center justify-center font-extrabold text-xs">
-                        {entry.displayName?.slice(0, 2).toUpperCase() || 'TN'}
-                      </span>
-                    )}
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="w-8 h-8 rounded-full bg-tn-sage text-tn-text flex items-center justify-center font-extrabold text-[11px] shrink-0 border border-tn-line/40">
+                      SEN
+                    </span>
                     <div className="flex flex-col min-w-0">
                       <span className="font-extrabold text-base truncate">
-                        {entry.displayName} {isCurrentUser && '(Sen)'}
+                        Sen
                       </span>
-                      <span className="text-xs italic text-tn-muted truncate">
-                        {entry.level}
-                      </span>
+                      {user.displayName && (
+                        <span className="text-[11px] text-tn-muted truncate">
+                          {user.displayName}
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  <span className="text-right font-semibold text-sm">
-                    {entry.playsSeenCount ?? 0} oyun
+                  <span className="hidden sm:inline text-sm italic text-tn-muted truncate">
+                    ({currentUserEntry?.level || 'Fuaye Meraklısı'})
+                  </span>
+
+                  <span className="hidden sm:inline font-semibold text-sm">
+                    {currentUserEntry?.playsSeenCount ?? 0} oyun
                   </span>
 
                   <span className="text-right font-extrabold text-base text-tn-red">
-                    {entry.xp} XP
+                    {currentUserEntry?.xp ?? 0} XP
                   </span>
-                </Link>
-              );
-            })}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        </>
       ) : (
         <div className="rounded-2xl border-2 border-dashed border-tn-line p-12 text-center flex flex-col items-center gap-2">
           <span className="font-extrabold text-2xl">Henüz sıralamada kimse yok.</span>

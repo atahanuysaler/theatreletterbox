@@ -1,28 +1,35 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Mail, Send, CheckCircle2, ArrowLeft, MapPin, Copy, Check, AlertTriangle, Loader2 } from 'lucide-react';
+import { Check, Copy } from 'lucide-react';
 import { storageService } from '../services/storage';
 
+const TOPIC_OPTIONS = ['Öneri', 'Oyun / sahne ekleme', 'İş birliği', 'Diğer'];
+
 export const ContactPage: React.FC = () => {
-  const [submitted, setSubmitted] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState('Öneri');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [copied, setCopied] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleCopyEmail = async () => {
     try {
       await navigator.clipboard.writeText('tiyatronotiletisim@gmail.com');
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {}
+    } catch {
+      // Clipboard denied
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !message.trim()) return;
+    if (!email.trim() || !message.trim()) {
+      setError('Lütfen zorunlu alanları (*) doldurun.');
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
@@ -31,7 +38,7 @@ export const ContactPage: React.FC = () => {
       await storageService.saveContactMessage({
         name: name.trim() || 'İsimsiz Tiyatrosever',
         email: email.trim(),
-        message: message.trim(),
+        message: `[Konu: ${selectedTopic}]\n\n${message.trim()}`,
       });
       setSubmitted(true);
     } catch (err) {
@@ -43,175 +50,176 @@ export const ContactPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
-      {/* Breadcrumb / Back link */}
-      <div className="mb-6">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1.5 text-xs font-mono text-text-tertiary hover:text-theatre-curtain transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Kataloğa Dön</span>
-        </Link>
-      </div>
-
-      {/* Header */}
-      <div className="border-b border-border-subtle pb-6 mb-8">
-        <div className="font-mono text-xs text-theatre-curtain uppercase tracking-widest font-semibold mb-1">
-          İletişim & Geri Bildirim
+    <div className="w-full flex flex-col gap-5 sm:gap-6 py-2 sm:py-4 font-serif text-tn-text">
+      {/* 1. Header with Eyebrow, Title and Description */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-tn-line pb-4">
+        <div>
+          <span className="text-xs font-extrabold tracking-wider text-tn-red uppercase">
+            İLETİŞİM & GERİ BİLDİRİM
+          </span>
+          <h1 className="m-0 mt-1 font-extrabold text-3xl sm:text-5xl leading-tight tracking-tight">
+            Bizimle <span className="italic font-extrabold">İletişime Geçin</span>
+          </h1>
         </div>
-        <h1 className="font-serif font-bold text-3xl text-text-primary tracking-tight">
-          Bizimle İletişime Geçin
-        </h1>
-        <p className="mt-2 text-sm text-text-secondary max-w-xl font-serif leading-relaxed">
-          Tiyatronot ile ilgili önerileriniz, sahne veya oyun ekleme talepleriniz ya da iş birliği mesajlarınız için bize ulaşabilirsiniz.
+
+        <p className="m-0 text-sm sm:text-base italic text-tn-muted max-w-sm self-start sm:self-end leading-relaxed">
+          Tiyatronot ile ilgili önerileriniz, sahne veya oyun ekleme taleplerin ya da iş birliği mesajların için bize ulaşabilirsin.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Contact Information & Channels */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="p-4 sm:p-5 bg-layer-01 border border-border-subtle rounded-sm space-y-3">
-            <div className="flex items-center gap-2 text-xs font-mono font-semibold uppercase text-text-primary">
-              <Mail className="w-4 h-4 text-theatre-curtain shrink-0" />
-              <span>E-Posta</span>
-            </div>
-            <p className="text-xs text-text-secondary leading-relaxed">
-              Doğrudan e-posta yoluyla bize yazabilirsiniz:
+      {/* 2. Content 2-Column Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4 items-start pt-2">
+        {/* Left Column: E-posta & Konum cards */}
+        <div className="md:col-span-4 flex flex-col gap-3">
+          {/* Card 1: E-POSTA */}
+          <div className="rounded-2xl bg-tn-ticket border border-tn-line p-5 sm:p-6 flex flex-col gap-2.5 shadow-2xs">
+            <span className="text-xs font-extrabold tracking-wider text-tn-muted uppercase">
+              E-POSTA
+            </span>
+            <p className="m-0 text-xs sm:text-[13px] italic text-tn-muted leading-relaxed">
+              Doğrudan e-posta yoluyla bize yazabilirsin.
             </p>
-            <div className="flex items-center justify-between gap-2 p-2.5 bg-canvas border border-border-subtle rounded-sm">
-              <a
-                href="mailto:tiyatronotiletisim@gmail.com"
-                className="text-[11.5px] sm:text-xs font-mono font-semibold text-theatre-curtain hover:underline whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
-                title="tiyatronotiletisim@gmail.com"
-              >
+
+            <div className="mt-2 p-2.5 px-3 rounded-xl bg-white dark:bg-tn-container border border-tn-line flex items-center justify-between gap-2 shadow-2xs">
+              <span className="font-semibold text-xs sm:text-[13px] text-tn-text truncate" title="tiyatronotiletisim@gmail.com">
                 tiyatronotiletisim@gmail.com
-              </a>
+              </span>
+
               <button
                 type="button"
                 onClick={handleCopyEmail}
-                className="p-1 text-text-tertiary hover:text-text-primary hover:bg-layer-01 rounded-xs transition-colors cursor-pointer shrink-0"
-                title={copied ? 'Kopyalandı!' : 'Adresi Kopyala'}
-                aria-label="E-posta adresini kopyala"
+                className="h-7 px-3 rounded-full border border-tn-line bg-tn-surface text-tn-text hover:bg-tn-line font-serif text-xs font-semibold cursor-pointer transition-colors shrink-0 flex items-center gap-1"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3 text-tn-muted" />}
+                <span>{copied ? 'Kopyalandı' : 'Kopyala'}</span>
               </button>
             </div>
           </div>
 
-          <div className="p-4 bg-layer-01 border border-border-subtle rounded-sm space-y-3">
-            <div className="flex items-center gap-2 text-xs font-mono font-semibold uppercase text-text-primary">
-              <MapPin className="w-4 h-4 text-theatre-curtain" />
-              <span>Konum</span>
-            </div>
-            <p className="text-xs text-text-secondary leading-relaxed">
+          {/* Card 2: KONUM */}
+          <div className="rounded-2xl bg-[#E5ECE4] border border-tn-line/40 p-5 sm:p-6 flex flex-col gap-1 shadow-2xs text-[#1C1A1B]">
+            <span className="text-xs font-extrabold tracking-wider uppercase opacity-75">
+              KONUM
+            </span>
+            <h3 className="m-0 font-extrabold text-xl sm:text-2xl tracking-tight text-[#1C1A1B]">
               İstanbul, Türkiye
-            </p>
-            <p className="text-[11px] text-text-tertiary font-mono">
+            </h3>
+            <span className="text-xs sm:text-[13px] italic text-[#1C1A1B]/70 pt-0.5">
               Dijital Tiyatro Günlüğü
-            </p>
+            </span>
           </div>
         </div>
 
-        {/* Contact Form / Placeholder */}
-        <div className="lg:col-span-7">
-          {submitted ? (
-            <div className="p-8 bg-layer-01 border border-border-subtle rounded-sm text-center space-y-4 animate-fade-in">
-              <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto" />
-              <div className="space-y-1">
-                <h3 className="font-serif font-bold text-xl text-text-primary">Mesajınız Alındı!</h3>
-                <p className="text-xs text-text-secondary font-mono max-w-md mx-auto leading-relaxed">
-                  Geri bildiriminiz başarıyla kaydedildi. En kısa sürede <strong className="text-text-primary">{email}</strong> adresinize dönüş yapacağız.
+        {/* Right Column: Contact Form */}
+        <div className="md:col-span-8">
+          <div className="rounded-2xl bg-tn-surface border border-tn-line p-6 sm:p-7 shadow-2xs">
+            {submitted ? (
+              <div className="py-10 flex flex-col items-center text-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-[#E6F4EA] text-[#137333] flex items-center justify-center">
+                  <Check className="w-6 h-6 stroke-[2.5]" />
+                </div>
+                <h3 className="m-0 font-extrabold text-2xl text-tn-text">
+                  Mesajınız Alındı!
+                </h3>
+                <p className="m-0 italic text-sm sm:text-base text-tn-muted max-w-md leading-relaxed">
+                  Geri bildiriminiz başarıyla iletildi. En kısa sürede <strong className="text-tn-text not-italic font-semibold">{email}</strong> adresinize dönüş yapacağız.
                 </p>
-              </div>
-              <div className="pt-2">
                 <button
                   type="button"
                   onClick={() => {
                     setSubmitted(false);
-                    setName('');
-                    setEmail('');
                     setMessage('');
-                    setError(null);
                   }}
-                  className="px-4 py-2 bg-theatre-curtain hover:bg-theatre-curtain-hover text-white text-xs font-semibold rounded-sm transition-colors cursor-pointer"
+                  className="mt-3 h-10 px-6 rounded-full border border-tn-line bg-white dark:bg-tn-container text-tn-text hover:bg-tn-line/40 font-serif text-sm font-semibold cursor-pointer transition-colors shadow-2xs"
                 >
-                  Yeni bir mesaj gönder
+                  Yeni mesaj gönder
                 </button>
               </div>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4 p-6 bg-layer-01 border border-border-subtle rounded-sm">
-              {error && (
-                <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-400 text-xs font-mono flex items-center gap-2 rounded-xs">
-                  <AlertTriangle className="w-4 h-4 shrink-0 text-red-500" />
-                  <span>{error}</span>
+            ) : (
+              <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                {/* Topic Switcher Pills */}
+                <div className="flex flex-wrap gap-2 items-center">
+                  {TOPIC_OPTIONS.map((topic) => {
+                    const isSelected = selectedTopic === topic;
+                    return (
+                      <button
+                        key={topic}
+                        type="button"
+                        onClick={() => setSelectedTopic(topic)}
+                        className={`h-8 px-4 rounded-full font-serif text-xs font-semibold cursor-pointer transition-colors border ${
+                          isSelected
+                            ? 'bg-tn-ink text-white border-tn-ink'
+                            : 'bg-white dark:bg-tn-container text-tn-text border-tn-line hover:bg-tn-line/40'
+                        }`}
+                      >
+                        {topic}
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-mono font-semibold text-text-secondary uppercase">
-                  Adınız
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Adınız ve soyadınız"
-                  disabled={submitting}
-                  className="w-full border border-border-strong bg-canvas px-3 py-2 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors disabled:opacity-50"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-mono font-semibold text-text-secondary uppercase">
-                  E-Posta Adresiniz *
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ornek@posta.com"
-                  disabled={submitting}
-                  className="w-full border border-border-strong bg-canvas px-3 py-2 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors disabled:opacity-50"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-mono font-semibold text-text-secondary uppercase">
-                  Mesajınız *
-                </label>
-                <textarea
-                  required
-                  rows={5}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Mesajınızı veya geri bildiriminizi buraya yazın..."
-                  disabled={submitting}
-                  className="w-full border border-border-strong bg-canvas px-3 py-2 text-sm font-mono text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theatre-curtain transition-colors resize-none disabled:opacity-50"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="inline-flex items-center justify-center gap-2 w-full bg-theatre-curtain text-white py-2.5 text-xs font-semibold hover:bg-theatre-curtain-hover active:bg-theatre-curtain/90 transition-colors cursor-pointer disabled:opacity-50"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Gönderiliyor...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-3.5 h-3.5" />
-                    <span>Mesajı Gönder</span>
-                  </>
+                {error && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-400 text-xs rounded-xl">
+                    {error}
+                  </div>
                 )}
-              </button>
-            </form>
-          )}
+
+                {/* 2 Columns: Adın ve E-posta */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-tn-muted">
+                      Adın
+                    </label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Adın ve soyadın"
+                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-tn-muted">
+                      E-posta adresin *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="ornek@eposta.com"
+                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* Mesajın textarea */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-tn-muted">
+                    Mesajın *
+                  </label>
+                  <textarea
+                    required
+                    rows={5}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Mesajını veya geri bildirimini buraya yaz..."
+                    className="w-full p-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors resize-none leading-relaxed"
+                  />
+                </div>
+
+                {/* Submit button: Red solid full-width pill */}
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full h-11 rounded-xl bg-tn-red text-white hover:bg-tn-red/90 disabled:opacity-50 font-serif font-semibold text-sm sm:text-base border-none cursor-pointer transition-colors shadow-2xs mt-1"
+                >
+                  {submitting ? 'Gönderiliyor...' : 'Mesajı Gönder'}
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </div>
     </div>
