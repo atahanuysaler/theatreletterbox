@@ -30,12 +30,21 @@ export const LeaderboardPage: React.FC = () => {
   const top1 = entries[0];
   const top2 = entries[1];
   const top3 = entries[2];
+
+  // Limit table to top 10 items after podium
+  const maxTableRows = 10;
   const restEntries = entries.slice(3);
+  const displayedTableEntries = restEntries.slice(0, maxTableRows);
 
   // Current user ranking calculation
   const currentUserIndex = entries.findIndex((e) => e.uid === user?.uid);
   const currentUserEntry = currentUserIndex !== -1 ? entries[currentUserIndex] : null;
   const currentUserRank = currentUserIndex !== -1 ? currentUserIndex + 1 : entries.length + 1;
+
+  // Prevent duplicate: Only show pinned row if user is NOT on the podium and NOT in the visible table
+  const isUserInPodium = currentUserIndex >= 0 && currentUserIndex < 3;
+  const isUserInDisplayedTable = currentUserIndex >= 3 && currentUserIndex < 3 + displayedTableEntries.length;
+  const showPinnedBottomRow = Boolean(user && !isUserInPodium && !isUserInDisplayedTable);
 
   const renderInitials = (name?: string) => {
     if (!name) return 'TN';
@@ -103,7 +112,9 @@ export const LeaderboardPage: React.FC = () => {
               {top2 ? (
                 <Link
                   to={`/profil/${top2.uid}`}
-                  className="rounded-2xl bg-tn-ink text-white p-5 sm:p-6 flex flex-col justify-between h-[200px] shadow-sm no-underline group hover:scale-[1.01] transition-transform"
+                  className={`rounded-2xl bg-tn-ink text-white p-5 sm:p-6 flex flex-col justify-between h-[200px] shadow-sm no-underline group hover:scale-[1.01] transition-transform ${
+                    user?.uid === top2.uid ? 'ring-2 ring-white/60' : ''
+                  }`}
                 >
                   <span className="font-extrabold text-3xl sm:text-4xl tracking-tight text-white/95">
                     #2
@@ -123,7 +134,7 @@ export const LeaderboardPage: React.FC = () => {
                       )}
                       <div className="min-w-0">
                         <div className="font-extrabold text-lg sm:text-xl truncate text-white">
-                          {top2.displayName || 'Tiyatrosever'}
+                          {top2.displayName || 'Tiyatrosever'} {user?.uid === top2.uid && <span className="text-xs font-normal text-white/80">(Sen)</span>}
                         </div>
                         <div className="text-xs italic text-tn-on-dark-muted truncate">
                           {top2.level || 'Dramaturg Gözü'}
@@ -147,7 +158,9 @@ export const LeaderboardPage: React.FC = () => {
               {top1 ? (
                 <Link
                   to={`/profil/${top1.uid}`}
-                  className="rounded-2xl bg-tn-red text-white p-6 sm:p-7 flex flex-col justify-between h-[235px] shadow-md no-underline group hover:scale-[1.01] transition-transform"
+                  className={`rounded-2xl bg-tn-red text-white p-6 sm:p-7 flex flex-col justify-between h-[235px] shadow-md no-underline group hover:scale-[1.01] transition-transform ${
+                    user?.uid === top1.uid ? 'ring-2 ring-white/80' : ''
+                  }`}
                 >
                   <span className="font-extrabold text-4xl sm:text-5xl tracking-tight text-white">
                     #1
@@ -167,7 +180,7 @@ export const LeaderboardPage: React.FC = () => {
                       )}
                       <div className="min-w-0">
                         <div className="font-extrabold text-xl sm:text-2xl truncate text-white">
-                          {top1.displayName || 'Tiyatrosever'}
+                          {top1.displayName || 'Tiyatrosever'} {user?.uid === top1.uid && <span className="text-sm font-normal text-white/80">(Sen)</span>}
                         </div>
                         <div className="text-xs italic text-white/80 truncate">
                           {top1.level || 'Dramaturg Gözü'}
@@ -191,7 +204,9 @@ export const LeaderboardPage: React.FC = () => {
               {top3 ? (
                 <Link
                   to={`/profil/${top3.uid}`}
-                  className="rounded-2xl bg-tn-ticket border border-tn-line text-tn-text p-5 sm:p-6 flex flex-col justify-between h-[180px] shadow-sm no-underline group hover:scale-[1.01] transition-transform"
+                  className={`rounded-2xl bg-tn-ticket border border-tn-line text-tn-text p-5 sm:p-6 flex flex-col justify-between h-[180px] shadow-sm no-underline group hover:scale-[1.01] transition-transform ${
+                    user?.uid === top3.uid ? 'ring-2 ring-tn-red/60' : ''
+                  }`}
                 >
                   <span className="font-extrabold text-3xl sm:text-4xl tracking-tight text-tn-text">
                     #3
@@ -211,7 +226,7 @@ export const LeaderboardPage: React.FC = () => {
                       )}
                       <div className="min-w-0">
                         <div className="font-extrabold text-lg sm:text-xl truncate text-tn-text">
-                          {top3.displayName || 'Tiyatrosever'}
+                          {top3.displayName || 'Tiyatrosever'} {user?.uid === top3.uid && <span className="text-xs font-normal text-tn-red">(Sen)</span>}
                         </div>
                         <div className="text-xs italic text-tn-muted truncate">
                           {top3.level || 'KADEME'}
@@ -242,7 +257,7 @@ export const LeaderboardPage: React.FC = () => {
             </div>
 
             <div className="divide-y divide-tn-line/60">
-              {restEntries.map((entry, index) => {
+              {displayedTableEntries.map((entry, index) => {
                 const rank = index + 4;
                 const isCurrentUser = user?.uid === entry.uid;
 
@@ -251,7 +266,7 @@ export const LeaderboardPage: React.FC = () => {
                     key={entry.uid}
                     to={`/profil/${entry.uid}`}
                     className={`grid grid-cols-[60px_minmax(0,1fr)_160px_110px_90px] p-3.5 sm:p-4 px-6 items-center no-underline text-tn-text transition-colors hover:bg-tn-card ${
-                      isCurrentUser ? 'bg-tn-red/5 font-bold' : ''
+                      isCurrentUser ? 'bg-tn-red/10 font-bold border-l-4 border-l-tn-red' : ''
                     }`}
                   >
                     <span className="font-extrabold text-base text-tn-red">
@@ -291,8 +306,8 @@ export const LeaderboardPage: React.FC = () => {
               })}
             </div>
 
-            {/* 5. Highlighted / Pinned Active User Row if logged in */}
-            {user && (
+            {/* 5. Highlighted / Pinned Active User Row ONLY when not already visible in podium or table */}
+            {showPinnedBottomRow && (
               <div className="p-3 bg-tn-surface/40 border-t border-tn-line">
                 <div className="grid grid-cols-[60px_minmax(0,1fr)_160px_110px_90px] p-3 sm:p-3.5 px-5 items-center rounded-xl border-2 border-tn-red bg-white dark:bg-tn-container text-tn-text shadow-xs">
                   <span className="font-extrabold text-base text-tn-red">
@@ -307,7 +322,7 @@ export const LeaderboardPage: React.FC = () => {
                       <span className="font-extrabold text-base truncate">
                         Sen
                       </span>
-                      {user.displayName && (
+                      {user?.displayName && (
                         <span className="text-[11px] text-tn-muted truncate">
                           {user.displayName}
                         </span>
