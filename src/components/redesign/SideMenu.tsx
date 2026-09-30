@@ -139,7 +139,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
             className="flex items-center gap-2.5 text-tn-text no-underline hover:text-tn-red transition-colors"
           >
             <img src="/logo.png" alt="Tiyatronot Logo" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
-            <span className="font-extrabold text-[24px] tracking-tight leading-none" style={{ color: 'var(--tn-text)' }}>
+            <span className="font-bold text-[22px] tracking-tight leading-none font-sans" style={{ color: 'var(--tn-text)' }}>
               TİYATRO<span style={{ color: 'var(--tn-red)' }}>·</span>NOT
             </span>
           </Link>

@@ -103,7 +103,7 @@ export default {
       fontFamily: {
         serif: ['Newsreader', 'Georgia', 'Times New Roman', 'serif'],
         display: ['Newsreader', 'Georgia', 'Times New Roman', 'serif'],
-        sans: ['Newsreader', 'Georgia', 'Times New Roman', 'serif'],
+        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
         mono: ['IBM Plex Mono', 'ui-monospace', 'Menlo', 'Monaco', 'Cascadia Mono', 'Courier New', 'monospace'],
       },
       spacing: {
