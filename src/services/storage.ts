@@ -120,6 +120,10 @@ export interface IStorageService {
   updateContactMessageStatus(id: string, status: 'unread' | 'read'): Promise<void>;
   deleteContactMessage(id: string): Promise<void>;
 
+  // Homepage Highlighted / Featured Plays Configuration
+  getHomepageFeaturedPlayIds(): Promise<string[]>;
+  setHomepageFeaturedPlayIds(playIds: string[]): Promise<void>;
+
   // Reset & Re-seed
   resetAndSeedDatabase(): Promise<void>;
 }

@@ -865,6 +865,386 @@ function PublishedPlaysSection() {
   );
 }
 
+// ── Section 2.5: Homepage Featured Plays Management (4 Plays) ─────────────────
+function HomepageFeaturedSection() {
+  const [plays, setPlays] = useState<Play[]>([]);
+  const [featuredIds, setFeaturedIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [pickerSlotIndex, setPickerSlotIndex] = useState<number | null>(null);
+  const [pickerSearch, setPickerSearch] = useState('');
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [allPlays, savedIds] = await Promise.all([
+        storageService.getPlays(),
+        storageService.getHomepageFeaturedPlayIds(),
+      ]);
+      setPlays(allPlays);
+
+      if (savedIds && savedIds.length > 0) {
+        setFeaturedIds(savedIds.slice(0, 4));
+      } else {
+        // Auto default: 1 hero (5★ with poster) + 3 secondary
+        const hero = allPlays.find(p => p.rating === 5 && p.posterUrl) || allPlays[0];
+        const secondary = allPlays.filter(p => p.id !== hero?.id && p.posterUrl).slice(0, 3);
+        const defaults = [hero, ...secondary].filter(Boolean).map(p => p!.id);
+        setFeaturedIds(defaults);
+      }
+    } catch (err) {
+      console.error('[AdminPage] Failed to load homepage featured plays:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setStatusMsg(null);
+    try {
+      await storageService.setHomepageFeaturedPlayIds(featuredIds);
+      setStatusMsg({ type: 'success', text: 'Ana sayfa vitrinindeki 4 oyun başarıyla kaydedildi ve yayınlandı!' });
+    } catch (err: any) {
+      setStatusMsg({ type: 'error', text: `Kaydedilirken hata oluştu: ${err?.message || 'Bilinmeyen hata'}` });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleResetToAuto = () => {
+    const hero = plays.find(p => p.rating === 5 && p.posterUrl) || plays[0];
+    const secondary = plays.filter(p => p.id !== hero?.id && p.posterUrl).slice(0, 3);
+    const defaults = [hero, ...secondary].filter(Boolean).map(p => p!.id);
+    setFeaturedIds(defaults);
+    setStatusMsg({ type: 'success', text: 'Otomatik 5★ ve popüler oyun seçimine sıfırlandı. Değişiklikleri uygulamak için "Kaydet"e basın.' });
+  };
+
+  const handleSelectPlayForSlot = (slotIndex: number, playId: string) => {
+    const next = [...featuredIds];
+    const existingIndex = next.indexOf(playId);
+    if (existingIndex >= 0) {
+      const temp = next[slotIndex];
+      next[slotIndex] = playId;
+      next[existingIndex] = temp;
+    } else {
+      next[slotIndex] = playId;
+    }
+    setFeaturedIds(next);
+    setPickerSlotIndex(null);
+    setPickerSearch('');
+  };
+
+  const handleMoveSlot = (index: number, direction: 'up' | 'down') => {
+    const target = direction === 'up' ? index - 1 : index + 1;
+    if (target < 0 || target >= 4 || target >= featuredIds.length) return;
+    const next = [...featuredIds];
+    const temp = next[index];
+    next[index] = next[target];
+    next[target] = temp;
+    setFeaturedIds(next);
+  };
+
+  const playMap = new Map(plays.map(p => [p.id, p]));
+
+  const slotLabels = [
+    { title: '1. Büyük Ana Vitrin (Hero Banner)', desc: 'Ana sayfanın en üstünde kırmızı editoryal kart olarak sergilenen 1. oyun.', badge: 'Ana Vitrin' },
+    { title: '2. Yan Vitrin Kartı (1. Sıra)', desc: 'Hero kartın hemen altındaki 3 kartlık ızgaranın ilk oyunu.', badge: 'Yan Vitrin 1' },
+    { title: '3. Yan Vitrin Kartı (2. Sıra)', desc: 'Hero kartın hemen altındaki 3 kartlık ızgaranın ikinci oyunu.', badge: 'Yan Vitrin 2' },
+    { title: '4. Yan Vitrin Kartı (3. Sıra)', desc: 'Hero kartın hemen altındaki 3 kartlık ızgaranın üçüncü oyunu.', badge: 'Yan Vitrin 3' },
+  ];
+
+  const filteredPickerPlays = plays.filter(p => {
+    if (!pickerSearch.trim()) return true;
+    const q = pickerSearch.toLowerCase().trim();
+    return (
+      p.title.toLowerCase().includes(q) ||
+      p.playwright?.toLowerCase().includes(q) ||
+      p.company?.toLowerCase().includes(q)
+    );
+  });
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center text-xs font-mono text-text-tertiary">
+        Ana sayfa vitrin oyunları yükleniyor...
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border-subtle">
+        <div>
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-theatre-curtain" />
+            <h2 className="font-serif font-bold text-base text-text-primary">
+              Ana Sayfa Öne Çıkanlar (4 Oyun Vitrini)
+            </h2>
+          </div>
+          <p className="text-xs text-text-secondary font-mono mt-0.5">
+            Ana sayfanın en üstünde yer alan 1 büyük vitrin ve 3 yan vitrin oyununu buradan yönetebilirsiniz.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleResetToAuto}
+            className="px-3 py-1.5 text-xs font-mono text-text-secondary hover:text-text-primary bg-layer-01 hover:bg-layer-02 border border-border-subtle rounded-xs transition-colors cursor-pointer"
+          >
+            Otomatik Seçime Sıfırla
+          </button>
+          <button
+            type="button"
+            disabled={saving}
+            onClick={handleSave}
+            className="px-4 py-1.5 text-xs font-mono font-bold text-white bg-theatre-curtain hover:bg-theatre-curtain-hover rounded-xs transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs disabled:opacity-50"
+          >
+            <Check className="w-3.5 h-3.5" />
+            <span>{saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}</span>
+          </button>
+        </div>
+      </div>
+
+      {statusMsg && (
+        <div
+          className={`p-3 text-xs font-mono rounded-sm border flex items-center gap-2 ${
+            statusMsg.type === 'success'
+              ? 'bg-success-mint/10 border-success-mint/30 text-success-mint'
+              : 'bg-red-500/10 border-red-500/30 text-red-600'
+          }`}
+        >
+          {statusMsg.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+          ) : (
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+          )}
+          <span>{statusMsg.text}</span>
+          <button
+            type="button"
+            onClick={() => setStatusMsg(null)}
+            className="ml-auto text-text-tertiary hover:text-text-primary p-0.5 cursor-pointer"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+
+      {/* 4 Slots List */}
+      <div className="space-y-3">
+        {slotLabels.map((slot, index) => {
+          const playId = featuredIds[index];
+          const play = playId ? playMap.get(playId) : null;
+
+          return (
+            <div
+              key={index}
+              className={`p-4 bg-layer-01 border rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all ${
+                index === 0
+                  ? 'border-theatre-curtain/50 bg-theatre-curtain/5'
+                  : 'border-border-subtle hover:border-border-strong'
+              }`}
+            >
+              <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                {/* Index / Badge */}
+                <div className="flex flex-col items-center justify-center shrink-0">
+                  <span className={`w-7 h-7 rounded-xs flex items-center justify-center text-xs font-mono font-bold ${
+                    index === 0
+                      ? 'bg-theatre-curtain text-white shadow-2xs'
+                      : 'bg-layer-02 text-text-secondary border border-border-subtle'
+                  }`}>
+                    #{index + 1}
+                  </span>
+                </div>
+
+                {/* Poster Preview */}
+                {play?.posterUrl ? (
+                  <img
+                    src={play.posterUrl}
+                    alt={play.title}
+                    className="w-12 h-16 object-cover rounded-xs border border-border-subtle shrink-0 shadow-2xs"
+                  />
+                ) : (
+                  <div className="w-12 h-16 bg-layer-02 rounded-xs border border-dashed border-border-subtle flex items-center justify-center text-text-tertiary shrink-0">
+                    <Theater className="w-5 h-5 opacity-40" />
+                  </div>
+                )}
+
+                {/* Details */}
+                <div className="min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-xs bg-layer-02 text-theatre-curtain border border-theatre-curtain/20">
+                      {slot.badge}
+                    </span>
+                    <span className="font-serif font-bold text-base text-text-primary truncate">
+                      {play?.title || 'Oyun Seçilmedi'}
+                    </span>
+                    {play && (
+                      <span className="text-xs font-mono text-stage-spotlight font-bold flex items-center gap-0.5">
+                        <Star className="w-3 h-3 fill-stage-spotlight" />
+                        {play.rating?.toFixed(1) || '5.0'}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-text-secondary font-mono truncate">
+                    {play ? `${play.playwright || 'Anonim'} · ${play.company || play.venue || 'Şehir Tiyatroları'}` : slot.desc}
+                  </p>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                <button
+                  type="button"
+                  disabled={index === 0}
+                  onClick={() => handleMoveSlot(index, 'up')}
+                  className="p-1.5 rounded-xs border border-border-subtle bg-canvas hover:bg-layer-02 text-text-secondary hover:text-text-primary disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+                  title="Yukarı taşı"
+                >
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  disabled={index === 3 || index >= featuredIds.length - 1}
+                  onClick={() => handleMoveSlot(index, 'down')}
+                  className="p-1.5 rounded-xs border border-border-subtle bg-canvas hover:bg-layer-02 text-text-secondary hover:text-text-primary disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+                  title="Aşağı taşı"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPickerSlotIndex(index);
+                    setPickerSearch('');
+                  }}
+                  className="px-3 py-1.5 text-xs font-mono font-semibold rounded-xs border border-border-subtle bg-canvas hover:bg-layer-02 text-text-primary hover:border-theatre-curtain transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <Edit2 className="w-3 h-3 text-theatre-curtain" />
+                  <span>{play ? 'Oyunu Değiştir' : 'Oyun Ata'}</span>
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Play Picker Modal */}
+      {pickerSlotIndex !== null && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-canvas border border-border-strong rounded-sm w-full max-w-xl max-h-[85vh] flex flex-col shadow-2xl">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-border-subtle flex items-center justify-between">
+              <div>
+                <h3 className="font-serif font-bold text-base text-text-primary">
+                  {slotLabels[pickerSlotIndex]?.title} İçin Oyun Seç
+                </h3>
+                <p className="text-xs text-text-secondary font-mono">
+                  Katalogdan öne çıkarmak istediğiniz oyunu seçin.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPickerSlotIndex(null)}
+                className="p-1 rounded-xs hover:bg-layer-01 text-text-tertiary hover:text-text-primary cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Search Input */}
+            <div className="p-3 border-b border-border-subtle bg-layer-01">
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
+                <input
+                  type="text"
+                  autoFocus
+                  value={pickerSearch}
+                  onChange={(e) => setPickerSearch(e.target.value)}
+                  placeholder="Oyun adı, yazar veya topluluk ara..."
+                  className="w-full pl-9 pr-3 py-1.5 text-xs font-mono bg-canvas border border-border-subtle rounded-xs focus:outline-none focus:border-theatre-curtain"
+                />
+              </div>
+            </div>
+
+            {/* Plays List */}
+            <div className="p-3 overflow-y-auto flex-1 space-y-1.5 max-h-[50vh]">
+              {filteredPickerPlays.length === 0 ? (
+                <div className="p-8 text-center text-xs font-mono text-text-tertiary">
+                  Eşleşen oyun bulunamadı.
+                </div>
+              ) : (
+                filteredPickerPlays.map((p) => {
+                  const isCurrentSlot = featuredIds[pickerSlotIndex] === p.id;
+                  const isOtherSlot = featuredIds.includes(p.id) && !isCurrentSlot;
+
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => handleSelectPlayForSlot(pickerSlotIndex, p.id)}
+                      className={`w-full p-2 rounded-xs border text-left flex items-center justify-between gap-3 transition-colors cursor-pointer ${
+                        isCurrentSlot
+                          ? 'border-theatre-curtain bg-theatre-curtain/10'
+                          : 'border-border-subtle hover:border-theatre-curtain bg-canvas hover:bg-layer-01'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        {p.posterUrl ? (
+                          <img
+                            src={p.posterUrl}
+                            alt=""
+                            className="w-9 h-12 object-cover rounded-xs border border-border-subtle shrink-0"
+                          />
+                        ) : (
+                          <div className="w-9 h-12 bg-layer-02 rounded-xs flex items-center justify-center text-text-tertiary shrink-0">
+                            <Theater className="w-4 h-4" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <div className="font-serif font-bold text-sm text-text-primary truncate">
+                            {p.title}
+                          </div>
+                          <div className="text-xs text-text-secondary font-mono truncate">
+                            {p.playwright} · {p.company}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 flex items-center gap-2">
+                        {isOtherSlot && (
+                          <span className="text-[10px] font-mono text-text-tertiary px-1.5 py-0.5 rounded-xs bg-layer-02 border border-border-subtle">
+                            Şu an #{featuredIds.indexOf(p.id) + 1}
+                          </span>
+                        )}
+                        {isCurrentSlot && (
+                          <span className="text-[10px] font-mono font-bold text-theatre-curtain">
+                            Seçili ✓
+                          </span>
+                        )}
+                        <span className="text-xs font-mono font-bold text-stage-spotlight">
+                          ★ {p.rating?.toFixed(1) || '5.0'}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Curated Lists Section ────────────────────────────────────────────────────
 function CuratedListsSection() {
   const [lists, setLists] = useState<CuratedList[]>([]);
@@ -1575,9 +1955,9 @@ function ReviewsManagementSection({ onReviewsUpdated }: { onReviewsUpdated?: () 
       setStatusMsg({ type: 'success', text: `"${review.playTitle}" notu başarıyla silindi ve oyun puanı güncellendi.` });
       window.dispatchEvent(new CustomEvent('tiyatronot:review-updated', { detail: { playId: review.playId } }));
       onReviewsUpdated?.();
-    } catch (err) {
+    } catch (err: any) {
       console.error('[AdminPage] Error deleting review:', err);
-      setStatusMsg({ type: 'error', text: 'Not silinirken bir hata oluştu.' });
+      setStatusMsg({ type: 'error', text: `Not silinirken hata oluştu: ${err?.message || 'Bilinmeyen hata'}` });
     } finally {
       setDeletingId(null);
     }
@@ -1748,7 +2128,7 @@ function ReviewsManagementSection({ onReviewsUpdated }: { onReviewsUpdated?: () 
 // ── Overhauled Simple Admin Page ─────────────────────────────────────────────
 export const AdminPage: React.FC = () => {
   const { user, role } = useAuth();
-  const [activeTab, setActiveTab] = useState<'submissions' | 'plays' | 'lists' | 'puzzles' | 'messages' | 'reviews'>('submissions');
+  const [activeTab, setActiveTab] = useState<'submissions' | 'plays' | 'homepage' | 'reviews' | 'lists' | 'puzzles' | 'messages'>('submissions');
   const [pendingCount, setPendingCount] = useState(0);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [reviewsCount, setReviewsCount] = useState(0);
@@ -1846,6 +2226,19 @@ export const AdminPage: React.FC = () => {
 
         <button
           type="button"
+          onClick={() => setActiveTab('homepage')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-semibold border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
+            activeTab === 'homepage'
+              ? 'border-theatre-curtain text-theatre-curtain'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Ana Sayfa Vitrini (4 Oyun)</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab('reviews')}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-mono font-semibold border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
             activeTab === 'reviews'
@@ -1914,6 +2307,9 @@ export const AdminPage: React.FC = () => {
         )}
         {activeTab === 'plays' && (
           <PublishedPlaysSection />
+        )}
+        {activeTab === 'homepage' && (
+          <HomepageFeaturedSection />
         )}
         {activeTab === 'reviews' && (
           <ReviewsManagementSection onReviewsUpdated={fetchCounts} />

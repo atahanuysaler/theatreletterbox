@@ -1,31 +1,21 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, X } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { Bookmark, Search, X } from 'lucide-react';
 import { storageService } from '../services/storage';
 import { useAuth } from '../context/AuthContext';
-import { getTierProgress } from '../services/gamification';
 import type { Play } from '../types';
 import CatalogCard from '../components/redesign/CatalogCard';
 
-interface XPPopup {
-  id: number;
-  amount: number;
-  x: number;
-  y: number;
+interface IzlemekIstediklerimPageProps {
+  onOpenLogModal?: (play?: Play | null) => void;
 }
 
-const PLAY_LIMIT = 40;
-
-export const IzlediklerimPage: React.FC = () => {
+export const IzlemekIstediklerimPage: React.FC<IzlemekIstediklerimPageProps> = () => {
   const { user, loginWithGoogle, updateProfile } = useAuth();
   const [plays, setPlays] = useState<Play[]>([]);
-  const [seenIds, setSeenIds] = useState<Set<string>>(new Set());
+  const [watchlistIds, setWatchlistIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
-  const [toggling, setToggling] = useState<string | null>(null);
-  const [xpPopups, setXpPopups] = useState<XPPopup[]>([]);
-  const [unlockedBadge, setUnlockedBadge] = useState<string | null>(null);
 
   useEffect(() => {
     storageService.getPlays().then((p) => {
@@ -35,38 +25,28 @@ export const IzlediklerimPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (user?.seenPlayIds) {
-      setSeenIds(new Set(user.seenPlayIds));
+    if (user?.watchlistPlayIds) {
+      setWatchlistIds(new Set(user.watchlistPlayIds));
     } else {
-      setSeenIds(new Set());
+      setWatchlistIds(new Set());
     }
-  }, [user?.seenPlayIds]);
+  }, [user?.watchlistPlayIds]);
 
-  const spawnXpPopup = useCallback((amount: number) => {
-    const id = Date.now() + Math.random();
-    const x = 30 + Math.random() * 40;
-    const y = 20 + Math.random() * 30;
-    setXpPopups((prev) => [...prev, { id, amount, x, y }]);
-    setTimeout(() => {
-      setXpPopups((prev) => prev.filter((p) => p.id !== id));
-    }, 1800);
-  }, []);
-
-  // Watched plays
-  const watchedPlays = useMemo(() => {
+  // Watchlisted plays
+  const watchlistPlays = useMemo(() => {
     const playMap = new Map(plays.map((p) => [p.id, p]));
-    const seenArray = user?.seenPlayIds ? [...user.seenPlayIds].reverse() : Array.from(seenIds);
+    const listArray = user?.watchlistPlayIds ? [...user.watchlistPlayIds].reverse() : Array.from(watchlistIds);
     const result: Play[] = [];
     const added = new Set<string>();
 
-    for (const id of seenArray) {
-      if (seenIds.has(id) && playMap.has(id) && !added.has(id)) {
+    for (const id of listArray) {
+      if (watchlistIds.has(id) && playMap.has(id) && !added.has(id)) {
         result.push(playMap.get(id)!);
         added.add(id);
       }
     }
 
-    for (const id of seenIds) {
+    for (const id of watchlistIds) {
       if (!added.has(id) && playMap.has(id)) {
         result.push(playMap.get(id)!);
         added.add(id);
@@ -74,36 +54,41 @@ export const IzlediklerimPage: React.FC = () => {
     }
 
     return result;
-  }, [plays, seenIds, user?.seenPlayIds]);
+  }, [plays, watchlistIds, user?.watchlistPlayIds]);
 
   // Filtered by search query
   const filteredPlays = useMemo(() => {
-    if (!searchQuery.trim()) return watchedPlays;
+    if (!searchQuery.trim()) return watchlistPlays;
     const q = searchQuery.toLowerCase().trim();
-    return watchedPlays.filter((p) =>
+    return watchlistPlays.filter((p) =>
       p.title.toLowerCase().includes(q) ||
       p.playwright?.toLowerCase().includes(q) ||
       p.venue?.toLowerCase().includes(q) ||
       p.company?.toLowerCase().includes(q) ||
       p.genre?.toLowerCase().includes(q)
     );
-  }, [watchedPlays, searchQuery]);
+  }, [watchlistPlays, searchQuery]);
 
-  const displayedPlays = useMemo(() => {
-    return filteredPlays.slice(0, PLAY_LIMIT);
-  }, [filteredPlays]);
+  const handleRemoveFromWatchlist = async (playId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) return;
+    try {
+      const updated = (user.watchlistPlayIds || []).filter((id) => id !== playId);
+      await updateProfile({ watchlistPlayIds: updated });
+    } catch (err) {
+      console.error('[IzlemekIstediklerimPage] Failed to remove watchlist play:', err);
+    }
+  };
 
-  const seenCount = seenIds.size;
+  const watchlistCount = watchlistIds.size;
   const totalCount = plays.length;
-  const percentage = totalCount > 0 ? Math.round((seenCount / totalCount) * 100) : 0;
-  const xp = user?.xp ?? 0;
-  const level = user?.level ?? 'Fuaye Meraklısı';
-  const tierProgress = getTierProgress(xp);
+  const percentage = totalCount > 0 ? Math.round((watchlistCount / totalCount) * 100) : 0;
 
   if (loading) {
     return (
       <div className="w-full min-h-[400px] flex items-center justify-center font-serif text-tn-muted">
-        <span className="italic text-lg animate-pulse">İzlenen oyunlar yükleniyor…</span>
+        <span className="italic text-lg animate-pulse">İzleme listeniz yükleniyor…</span>
       </div>
     );
   }
@@ -112,13 +97,13 @@ export const IzlediklerimPage: React.FC = () => {
     return (
       <div className="max-w-md mx-auto py-16 text-center flex flex-col items-center gap-4 font-serif text-tn-text">
         <span className="w-16 h-16 rounded-full bg-tn-surface flex items-center justify-center text-3xl">
-          🎭
+          🔖
         </span>
         <h1 className="font-extrabold text-3xl">
-          İzlediklerini Görmek İçin Giriş Yap
+          İzleme Listeni Görmek İçin Giriş Yap
         </h1>
         <p className="text-sm italic text-tn-muted leading-relaxed">
-          İzlediğin oyunları kaydetmek, hafızanı canlı tutmak ve Sahne Liderleri sıralamasına katılmak için Google hesabınla giriş yapabilirsin.
+          Katalogdaki oyunları keşfedip "İzlemek İstiyorum" olarak kaydettiğin oyunlar burada toplanır.
         </p>
         <button
           type="button"
@@ -133,74 +118,44 @@ export const IzlediklerimPage: React.FC = () => {
 
   return (
     <div className="w-full flex flex-col gap-6 py-4 font-serif text-tn-text">
-      {/* XP Popups */}
-      {xpPopups.map((popup) => (
-        <div
-          key={popup.id}
-          className="fixed z-50 font-extrabold text-sm text-[#E4B33A] pointer-events-none animate-bounce"
-          style={{ left: `${popup.x}%`, top: `${popup.y}%` }}
-        >
-          +{popup.amount} XP
-        </div>
-      ))}
-
-      {/* Badge Notification */}
-      {unlockedBadge && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-tn-surface border border-tn-red shadow-lg px-5 py-3 rounded-2xl flex items-center gap-3">
-          <span className="text-xl">🏆</span>
-          <div>
-            <div className="text-xs font-extrabold uppercase text-tn-red">Rozet Kazanıldı!</div>
-            <div className="text-sm font-semibold">{unlockedBadge}</div>
-          </div>
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-tn-line">
         <div>
           <span className="text-xs font-extrabold tracking-wider text-tn-red uppercase">
-            SEYİRCİ GÜNLÜĞÜ & PASAPORT
+            İZLEME LİSTESİ & PLANLARIM
           </span>
           <h1 className="m-0 mt-1 font-extrabold text-3xl sm:text-5xl leading-tight">
-            İzlediklerim
+            İzlemek İstediklerim
           </h1>
           <p className="m-0 mt-1 text-base sm:text-lg italic text-tn-muted">
-            İzlediğin oyunları buradan takip edebilir, bilet notlarını inceleyebilirsin.
+            Merak ettiğin, takvimine aldığın ve izlemeyi planladığın tiyatro oyunları.
           </p>
         </div>
 
         {/* Stats widget */}
         <div className="rounded-2xl bg-tn-surface p-4 px-5 flex items-center gap-4 border border-tn-line">
           <div>
-            <div className="text-xs italic text-tn-muted">Tiyatro İndeksin</div>
-            <div className="font-extrabold text-2xl leading-tight">
-              {seenCount} <span className="text-sm font-normal text-tn-muted">/ {totalCount}</span>
+            <div className="text-xs italic text-tn-muted">Listenizdeki Oyunlar</div>
+            <div className="font-extrabold text-2xl leading-tight text-tn-red">
+              {watchlistCount} <span className="text-sm font-normal text-tn-muted">/ {totalCount} oyun</span>
             </div>
           </div>
           <div className="border-l border-tn-line pl-4">
-            <div className="text-xs italic text-tn-muted">{level}</div>
-            <div className="font-extrabold text-xl text-tn-red">{xp} XP</div>
+            <div className="text-xs italic text-tn-muted">Katalog Payı</div>
+            <div className="font-extrabold text-xl text-tn-text">%{percentage}</div>
           </div>
         </div>
       </div>
 
-      {/* Progress Bar */}
-      <div className="w-full bg-tn-surface rounded-full h-3 overflow-hidden border border-tn-line">
-        <div
-          className="bg-tn-red h-full rounded-full transition-all duration-500"
-          style={{ width: `${Math.min(percentage, 100)}%` }}
-        />
-      </div>
-
       {/* Search Bar */}
-      {watchedPlays.length > 0 && (
+      {watchlistPlays.length > 0 && (
         <div className="relative w-full">
           <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-tn-muted pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="İzlediğin oyunlar arasında ara (oyun adı, yazar, sahne, topluluk)…"
+            placeholder="İzlemek istediğin oyunlar arasında ara (oyun adı, yazar, sahne, topluluk)…"
             className="w-full h-11 pl-11 pr-10 rounded-full bg-tn-surface border border-tn-line/70 focus:border-tn-red focus:outline-none text-sm font-serif text-tn-text placeholder:text-tn-muted/80 shadow-2xs transition-colors"
           />
           {searchQuery && (
@@ -216,36 +171,46 @@ export const IzlediklerimPage: React.FC = () => {
         </div>
       )}
 
-      {/* Watched Plays Grid */}
-      {displayedPlays.length > 0 ? (
+      {/* Watchlist Plays Grid */}
+      {filteredPlays.length > 0 ? (
         <div className="flex flex-col gap-3">
           <div className="flex justify-between items-baseline">
             <h2 className="m-0 font-extrabold text-2xl">
-              Kayıtlı Oyunlar ({displayedPlays.length}{searchQuery ? ` / ${watchedPlays.length}` : ''})
+              Kayıtlı Oyunlar ({filteredPlays.length}{searchQuery ? ` / ${watchlistPlays.length}` : ''})
             </h2>
             <span className="text-xs italic text-tn-muted">
-              {searchQuery ? `"${searchQuery}" için sonuçlar` : 'Son izlenenler en başta'}
+              {searchQuery ? `"${searchQuery}" için sonuçlar` : 'Son eklenenler en başta'}
             </span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-            {displayedPlays.map((play) => (
+            {filteredPlays.map((play) => (
               <div key={play.id} className="relative group">
                 <CatalogCard play={play} />
-                <span className="absolute top-3 left-3 z-10 w-6 h-6 rounded-full bg-tn-red text-white flex items-center justify-center text-xs font-extrabold shadow-sm pointer-events-none">
-                  ✓
+                {/* Remove button badge */}
+                <button
+                  type="button"
+                  onClick={(e) => handleRemoveFromWatchlist(play.id, e)}
+                  className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-black/60 hover:bg-red-600 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-all cursor-pointer shadow-sm"
+                  title="İzlemek istediklerimden kaldır"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+                {/* Bookmark indicator */}
+                <span className="absolute top-2 left-2 z-10 w-6 h-6 rounded-full bg-tn-red text-white flex items-center justify-center text-xs font-bold shadow-sm pointer-events-none">
+                  <Bookmark className="w-3 h-3 fill-white" />
                 </span>
               </div>
             ))}
           </div>
         </div>
-      ) : watchedPlays.length > 0 ? (
+      ) : watchlistPlays.length > 0 ? (
         /* Search Query No Match */
         <div className="rounded-2xl border-2 border-dashed border-tn-line p-12 text-center flex flex-col items-center gap-3">
           <Search className="w-8 h-8 text-tn-muted opacity-50" />
           <h3 className="font-extrabold text-xl m-0">Aramanızla eşleşen oyun bulunamadı</h3>
           <p className="italic text-sm text-tn-muted max-w-md m-0">
-            "{searchQuery}" ifadesine uyan izlediğin bir oyun bulunmuyor. Farklı bir arama terimi deneyebilirsin.
+            "{searchQuery}" ifadesine uyan izlemek istediğin oyun bulunmuyor. Farklı bir anahtar kelime deneyebilirsin.
           </p>
           <button
             type="button"
@@ -256,14 +221,15 @@ export const IzlediklerimPage: React.FC = () => {
           </button>
         </div>
       ) : (
+        /* Empty Watchlist */
         <div className="rounded-2xl border-2 border-dashed border-tn-line p-12 text-center flex flex-col items-center gap-3">
-          <span className="text-4xl">🎟️</span>
-          <h3 className="font-extrabold text-2xl m-0">Henüz izlenen oyun işaretlenmedi</h3>
+          <span className="text-4xl">🔖</span>
+          <h3 className="font-extrabold text-2xl m-0">İzleme listen henüz boş</h3>
           <p className="italic text-base text-tn-muted max-w-md m-0">
-            Katalogdaki oyunların detay sayfalarından "İzledim" butonuna basarak tiyatro pasaportunu doldurmaya başlayabilirsin.
+            Katalogdaki oyunların detay sayfalarından veya kartlarından "İzlemek İstiyorum" butonuna basarak izleme listeni oluşturabilirsin.
           </p>
           <Link
-            to="/"
+            to="/katalog"
             className="mt-2 h-11 px-6 rounded-full bg-tn-ink text-white font-semibold text-sm flex items-center justify-center no-underline hover:bg-tn-ink/80 transition-colors"
           >
             Kataloğu Keşfet
@@ -274,4 +240,4 @@ export const IzlediklerimPage: React.FC = () => {
   );
 };
 
-export default IzlediklerimPage;
+export default IzlemekIstediklerimPage;

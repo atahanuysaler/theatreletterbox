@@ -13,6 +13,7 @@ import AdminPage from './pages/AdminPage';
 import BulmacalarPage from './pages/BulmacalarPage';
 import ListsPage from './pages/ListsPage';
 import ProfilePage from './pages/ProfilePage';
+import IzlemekIstediklerimPage from './pages/IzlemekIstediklerimPage';
 import ContactPage from './pages/ContactPage';
 import AddPlayPage from './pages/AddPlayPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -86,12 +87,7 @@ const AppContent: React.FC = () => {
             <Route path="/izlediklerim" element={<IzlediklerimPage />} />
             <Route
               path="/izlemek-istediklerim"
-              element={
-                <ProfilePage
-                  initialTab="izlemek-istediklerim"
-                  onOpenDailyQuote={handleOpenDailyQuote}
-                />
-              }
+              element={<IzlemekIstediklerimPage onOpenLogModal={handleOpenLogModal} />}
             />
             <Route path="/listeler" element={<ListsPage onOpenLogModal={handleOpenLogModal} />} />
             <Route path="/liderler" element={<LeaderboardPage />} />

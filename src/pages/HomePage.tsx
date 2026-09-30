@@ -36,6 +36,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   const [reviews, setReviews] = useState<ReviewEntry[]>([]);
   const [curatedLists, setCuratedLists] = useState<CuratedList[]>([]);
   const [topUsers, setTopUsers] = useState<UserProfile[]>([]);
+  const [featuredPlayIds, setFeaturedPlayIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Search input on home forwards to catalog
@@ -53,11 +54,12 @@ export const HomePage: React.FC<HomePageProps> = ({
     let isMounted = true;
     const fetchData = async () => {
       try {
-        const [loadedPlays, loadedReviews, loadedLists, loadedUsers] = await Promise.all([
+        const [loadedPlays, loadedReviews, loadedLists, loadedUsers, loadedFeaturedIds] = await Promise.all([
           storageService.getPlays(),
           storageService.getReviews(),
           storageService.getCuratedLists().catch(() => []),
           storageService.getAllUsers().catch(() => []),
+          storageService.getHomepageFeaturedPlayIds().catch(() => []),
         ]);
 
         if (isMounted) {
@@ -65,6 +67,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           setReviews(loadedReviews || []);
           setCuratedLists(loadedLists && loadedLists.length > 0 ? loadedLists : CURATED_LISTS);
           setTopUsers(loadedUsers || []);
+          setFeaturedPlayIds(loadedFeaturedIds || []);
         }
       } catch (err) {
         console.error('[HomePage] Failed to fetch data:', err);
@@ -79,16 +82,43 @@ export const HomePage: React.FC<HomePageProps> = ({
     };
   }, []);
 
-  // Featured and Split cards
-  const featuredPlay = useMemo(() => {
-    return plays.find((p) => p.rating === 5 && p.posterUrl) || plays[0];
-  }, [plays]);
+  // Listen for admin changes to highlighted plays
+  useEffect(() => {
+    const handleUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<string[]>;
+      if (customEvent.detail) setFeaturedPlayIds(customEvent.detail);
+    };
+    window.addEventListener('tiyatronot:homepage-featured-updated', handleUpdate);
+    return () => window.removeEventListener('tiyatronot:homepage-featured-updated', handleUpdate);
+  }, []);
 
-  const splitCardPlays = useMemo(() => {
-    return plays
-      .filter((p) => p.id !== featuredPlay?.id && p.posterUrl)
+  // Highlighted plays (1 featured hero + 3 secondary split cards = 4 highlighted plays)
+  const { featuredPlay, splitCardPlays } = useMemo(() => {
+    if (plays.length === 0) return { featuredPlay: null, splitCardPlays: [] };
+
+    // If custom IDs are configured, resolve them in order
+    if (featuredPlayIds.length > 0) {
+      const playMap = new Map(plays.map(p => [p.id, p]));
+      const resolved = featuredPlayIds.map(id => playMap.get(id)).filter(Boolean) as Play[];
+      if (resolved.length > 0) {
+        const hero = resolved[0];
+        const secondary = resolved.slice(1, 4);
+        if (secondary.length < 3) {
+          const used = new Set([hero.id, ...secondary.map(p => p.id)]);
+          const remaining = plays.filter(p => !used.has(p.id) && p.posterUrl);
+          secondary.push(...remaining.slice(0, 3 - secondary.length));
+        }
+        return { featuredPlay: hero, splitCardPlays: secondary };
+      }
+    }
+
+    // Default fallback
+    const hero = plays.find((p) => p.rating === 5 && p.posterUrl) || plays[0];
+    const secondary = plays
+      .filter((p) => p.id !== hero?.id && p.posterUrl)
       .slice(0, 3);
-  }, [plays, featuredPlay]);
+    return { featuredPlay: hero, splitCardPlays: secondary };
+  }, [plays, featuredPlayIds]);
 
   const recentReviews = useMemo(() => {
     return reviews.slice(0, 2);

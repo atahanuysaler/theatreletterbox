@@ -12,6 +12,7 @@ import {
   Sparkles,
   Bookmark,
   X,
+  Search,
   MoreHorizontal,
   ChevronRight,
   Share2,
@@ -183,10 +184,23 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
 
   const isLeaderRank1 = userRank === 1;
 
+  const [seenSearchQuery, setSeenSearchQuery] = useState('');
+
   const seenPlays = useMemo(() => {
     if (!activeProfile?.seenPlayIds) return [];
     return plays.filter(p => activeProfile.seenPlayIds.includes(p.id));
   }, [plays, activeProfile?.seenPlayIds]);
+
+  const filteredSeenPlays = useMemo(() => {
+    if (!seenSearchQuery.trim()) return seenPlays;
+    const q = seenSearchQuery.toLowerCase().trim();
+    return seenPlays.filter(p =>
+      p.title.toLowerCase().includes(q) ||
+      p.playwright?.toLowerCase().includes(q) ||
+      p.venue?.toLowerCase().includes(q) ||
+      p.company?.toLowerCase().includes(q)
+    );
+  }, [seenPlays, seenSearchQuery]);
 
   const watchlistPlays = useMemo(() => {
     const list = activeProfile?.watchlistPlayIds;
@@ -703,17 +717,54 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
       {/* -------------------------------------------------------------- */}
       {activeTab === 'izlediklerim' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between pb-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
             <span className="text-sm italic text-[#6E6862] dark:text-[#A8A199]">
               Toplam {seenPlays.length} oyun izlendi
             </span>
+
+            {/* Search Bar */}
+            {seenPlays.length > 0 && (
+              <div className="relative w-full sm:w-72">
+                <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6E6862] pointer-events-none" />
+                <input
+                  type="text"
+                  value={seenSearchQuery}
+                  onChange={(e) => setSeenSearchQuery(e.target.value)}
+                  placeholder="İzlediklerinde ara…"
+                  className="w-full h-9 pl-9 pr-8 rounded-full bg-white dark:bg-[#1E1C1D] border border-[#E2DCD4] dark:border-[#332F31] focus:border-[#BA1B23] focus:outline-none text-xs font-serif text-[#1C1A1B] dark:text-[#F3EFEA] placeholder:text-[#6E6862]/70 shadow-2xs transition-colors"
+                />
+                {seenSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSeenSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[#E2DCD4] dark:bg-[#332F31] flex items-center justify-center text-[#6E6862] cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
-          {seenPlays.length > 0 ? (
+          {filteredSeenPlays.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-              {seenPlays.map((play) => (
+              {filteredSeenPlays.map((play) => (
                 <CatalogCard key={play.id} play={play} />
               ))}
+            </div>
+          ) : seenPlays.length > 0 ? (
+            <div className="p-8 text-center border border-dashed border-[#E2DCD4] dark:border-[#332F31] rounded-2xl bg-white/40 dark:bg-black/20">
+              <Search className="w-6 h-6 text-[#6E6862] mx-auto opacity-50 mb-2" />
+              <p className="font-extrabold text-sm mb-1 text-[#1C1A1B] dark:text-[#F3EFEA]">
+                "{seenSearchQuery}" ile eşleşen izlenmiş oyun bulunamadı
+              </p>
+              <button
+                type="button"
+                onClick={() => setSeenSearchQuery('')}
+                className="mt-2 text-xs text-[#BA1B23] font-semibold underline cursor-pointer"
+              >
+                Aramayı Temizle
+              </button>
             </div>
           ) : (
             <div className="p-8 text-center border border-dashed border-[#E2DCD4] dark:border-[#332F31] rounded-2xl bg-white/40 dark:bg-black/20">

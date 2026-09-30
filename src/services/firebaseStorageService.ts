@@ -249,13 +249,23 @@ export class FirebaseStorageService implements IStorageService {
   }
 
   async deleteReview(id: string): Promise<void> {
-    const review = await this.getReviewById(id);
+    let playId: string | undefined;
+    try {
+      const review = await this.getReviewById(id);
+      playId = review?.playId;
+    } catch (err) {
+      console.warn('[FirebaseStorage] Could not pre-fetch review before delete:', err);
+    }
+
+    // Delete review document from Firestore
     await deleteDoc(doc(this.getDb(), 'reviews', id));
-    if (review?.playId) {
+
+    // Update play rating and review count if playId is known
+    if (playId) {
       try {
-        const reviews = await this.getReviews(review.playId);
+        const reviews = await this.getReviews(playId);
         const avg = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
-        await this.updatePlay(review.playId, {
+        await this.updatePlay(playId, {
           rating: parseFloat(avg.toFixed(1)),
           reviewCount: reviews.length
         });
@@ -1144,6 +1154,44 @@ export class FirebaseStorageService implements IStorageService {
       const local = await this.getContactMessages();
       const filtered = local.filter(m => m.id !== id);
       localStorage.setItem('tiyatronot_contact_messages', JSON.stringify(filtered));
+    } catch {}
+  }
+
+  // Homepage Highlighted / Featured Plays Configuration
+  async getHomepageFeaturedPlayIds(): Promise<string[]> {
+    try {
+      const snap = await getDoc(doc(this.getDb(), 'config', 'homepage'));
+      if (snap.exists() && Array.isArray(snap.data()?.featuredPlayIds)) {
+        return snap.data().featuredPlayIds as string[];
+      }
+    } catch (err) {
+      console.warn('[FirebaseStorage] Could not fetch homepage config from Firestore:', err);
+    }
+
+    try {
+      const stored = localStorage.getItem('tiyatronot_homepage_featured_plays');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+
+    return [];
+  }
+
+  async setHomepageFeaturedPlayIds(playIds: string[]): Promise<void> {
+    try {
+      await setDoc(doc(this.getDb(), 'config', 'homepage'), {
+        featuredPlayIds: playIds,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.warn('[FirebaseStorage] Could not save homepage config to Firestore:', err);
+    }
+
+    try {
+      localStorage.setItem('tiyatronot_homepage_featured_plays', JSON.stringify(playIds));
+      window.dispatchEvent(new CustomEvent('tiyatronot:homepage-featured-updated', { detail: playIds }));
     } catch {}
   }
 
