@@ -6,6 +6,8 @@ import {
   Share2, 
   Check, 
   Copy,
+  Link as LinkIcon,
+  Mail
 } from 'lucide-react';
 import type { ReviewEntry, Play } from '../types';
 
@@ -24,6 +26,7 @@ interface TemplateMeta {
   label: string;
   badge: string;
   desc: string;
+  shortDesc: string;
   bgPreview: string;
   iconText: string;
 }
@@ -34,6 +37,7 @@ const TEMPLATES: TemplateMeta[] = [
     label: 'Bilet Koçanı',
     badge: '01',
     desc: 'Kesilen biletin kendisi: karanlık sahnede, spot altında, koçan yırtık.',
+    shortDesc: 'sahnede, spot altında',
     bgPreview: '#1C1A1B',
     iconText: '№',
   },
@@ -42,6 +46,7 @@ const TEMPLATES: TemplateMeta[] = [
     label: 'Afiş',
     badge: '02',
     desc: 'Kırmızı tipografik tiyatro afişi. Oyun adı sayfayı doldurur.',
+    shortDesc: 'tipografik tiyatro afişi',
     bgPreview: '#BA1B23',
     iconText: 'Aa',
   },
@@ -50,6 +55,7 @@ const TEMPLATES: TemplateMeta[] = [
     label: 'Alıntı',
     badge: '03',
     desc: 'Notun kendisi başrolde; kağıt beyazı ve dev kırmızı tırnak.',
+    shortDesc: 'notun, büyük harflerle',
     bgPreview: '#FAF8F5',
     iconText: '“',
   },
@@ -58,6 +64,7 @@ const TEMPLATES: TemplateMeta[] = [
     label: 'Perde',
     badge: '04',
     desc: 'Kadife perde açılıyor, ortada kemerli pencerede biletin.',
+    shortDesc: 'kadife perde açılıyor',
     bgPreview: '#8A171D',
     iconText: '∩',
   },
@@ -66,6 +73,7 @@ const TEMPLATES: TemplateMeta[] = [
     label: 'Alkış',
     badge: '05',
     desc: 'Alkış ölçeği görselleşiyor: dev puan ve yükselen çubuklar.',
+    shortDesc: 'alkış ölçeği ve puan',
     bgPreview: '#141414',
     iconText: 'ıll',
   },
@@ -74,6 +82,7 @@ const TEMPLATES: TemplateMeta[] = [
     label: 'Program',
     badge: '06',
     desc: 'Tiyatro programı kapağı: künye satırları noktalı çizgilerle.',
+    shortDesc: 'üzeri program kapağı',
     bgPreview: '#F5EEDB',
     iconText: '≡',
   },
@@ -123,7 +132,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   review,
   play,
 }) => {
-  const [activeTab, setActiveTab] = useState<'studio' | 'gallery'>('studio');
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('9:16');
   const [template, setTemplate] = useState<ShareTemplate>('ticket');
   
@@ -132,7 +140,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   const [showReviewText, setShowReviewText] = useState<boolean>(true);
   const [showSeat, setShowSeat] = useState<boolean>(true);
 
-  // Share destination sheet
+  // Mobile share destination sheet state
   const [isDestinationOpen, setIsDestinationOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -195,7 +203,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.fillRect(0, 0, width, height);
 
       if (targetRatio === '16:9') {
-        // Left Piece
         const leftW = 1000;
         const leftH = 820;
         const leftX = 140;
@@ -211,7 +218,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fill();
         ctx.restore();
 
-        // Right Piece
         const rightW = 540;
         const rightH = 820;
         const rightX = 1240;
@@ -227,7 +233,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fill();
         ctx.restore();
 
-        // Left Content
         ctx.fillStyle = '#6E6862';
         ctx.font = "600 24px 'Newsreader', Georgia, serif";
         ctx.fillText(`TİYATRO·NOT · ${serialNo}`, leftX + 60, leftY + 70);
@@ -263,7 +268,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
           ctx.fillText(`${effectiveAuthor} · Seyirci Günlüğü`, leftX + 60, leftY + leftH - 60);
         }
 
-        // Right Content (Stub)
+        // Stub
         ctx.save();
         ctx.translate(rightX + 270, rightY + 200);
         ctx.rotate(-0.06);
@@ -303,7 +308,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fill();
         ctx.restore();
 
-        // Torn top teeth
+        // Torn teeth
         ctx.fillStyle = '#141414';
         const teethCount = 18;
         const toothW = tW / teethCount;
@@ -783,59 +788,558 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Render the central preview card (shared between desktop & mobile)
+  const renderCardPreview = (isDesktop: boolean) => (
+    <div 
+      className="relative transition-all duration-300 shadow-2xl overflow-hidden rounded-xl border border-white/10 flex flex-col justify-between text-left"
+      style={{
+        width: aspectRatio === '9:16' 
+          ? (isDesktop ? '300px' : '240px') 
+          : aspectRatio === '1:1' 
+          ? (isDesktop ? '380px' : '290px') 
+          : (isDesktop ? '510px' : '360px'),
+        height: aspectRatio === '9:16' 
+          ? (isDesktop ? '520px' : '420px') 
+          : aspectRatio === '1:1' 
+          ? (isDesktop ? '380px' : '290px') 
+          : (isDesktop ? '287px' : '200px'),
+        maxWidth: '100%',
+        backgroundColor: 
+          template === 'poster' ? '#BA1B23' :
+          template === 'curtain' ? '#8A171D' :
+          template === 'quote' ? '#FAF8F5' :
+          template === 'program' ? '#F5EEDB' :
+          template === 'applause' ? '#141414' : '#141414',
+      }}
+    >
+      {/* 1. BİLET KOÇANI PREVIEW */}
+      {template === 'ticket' && (
+        <div className="h-full w-full p-2.5 sm:p-3 flex items-center justify-center">
+          {aspectRatio === '16:9' ? (
+            <div className="flex gap-2 w-full h-full">
+              <div className="flex-1 bg-[#FFFCF7] text-tn-ink rounded-lg p-3 flex flex-col justify-between shadow-md">
+                <div>
+                  <span className="text-[9px] font-sans font-bold text-tn-muted">{serialNo}</span>
+                  <h3 className="m-0 text-sm sm:text-base font-extrabold line-clamp-1">{play.title}</h3>
+                  <span className="text-[10px] italic text-tn-muted">{play.playwright}</span>
+                </div>
+                {showReviewText && (
+                  <p className="text-[10px] italic text-tn-ink/90 line-clamp-2 my-1">
+                    “{effectiveNote}”
+                  </p>
+                )}
+                {showAuthor && (
+                  <span className="text-[9px] italic text-tn-muted">{effectiveAuthor} · Seyirci Günlüğü</span>
+                )}
+              </div>
+              <div className="w-[100px] bg-[#FFFCF7] text-tn-ink rounded-lg p-2.5 flex flex-col items-center justify-between text-center shadow-md">
+                <span className="text-[8px] font-extrabold text-tn-red border border-tn-red px-1 rounded -rotate-2">
+                  GİRİŞ ONAYLI
+                </span>
+                <div>
+                  <span className="text-2xl font-extrabold text-tn-ink">{effectiveRating.toFixed(1)}</span>
+                  <span className="block text-[8px] font-bold text-tn-red">{getBadgeTitle(effectiveRating)}</span>
+                </div>
+                <div className="w-16 h-3 bg-tn-ink/80 rounded-2xs" />
+              </div>
+            </div>
+          ) : (
+            <div className="w-full h-full bg-[#FFFCF7] text-tn-ink rounded-xl p-3.5 sm:p-4 flex flex-col justify-between shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 flex justify-between px-1">
+                {Array.from({ length: 14 }).map((_, i) => (
+                  <div key={i} className="w-2.5 h-1.5 bg-[#141414] rounded-b-full" />
+                ))}
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center text-[9px] font-sans font-bold text-tn-muted pt-1">
+                  <span>TİYATRO·NOT</span>
+                  <span>{serialNo}</span>
+                </div>
+                <h3 className="m-0 mt-1.5 font-extrabold text-base sm:text-lg leading-tight line-clamp-2 text-tn-ink">
+                  {play.title}
+                </h3>
+                <div className="text-[11px] italic text-tn-muted mt-0.5">{play.playwright}</div>
+
+                {showSeat && (
+                  <div className="text-[9px] font-semibold text-tn-muted mt-1.5 border-t border-tn-line pt-1">
+                    {effectiveDate} · {effectiveSession} · {effectiveVenue}
+                  </div>
+                )}
+              </div>
+
+              {showReviewText && (
+                <div className="my-auto py-1">
+                  <p className="text-[11px] italic text-tn-ink/90 leading-snug line-clamp-3">
+                    “{effectiveNote}”
+                  </p>
+                </div>
+              )}
+
+              <div className="pt-2 border-t border-tn-line flex items-end justify-between">
+                <div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="font-extrabold text-2xl text-tn-ink">{effectiveRating.toFixed(1)}</span>
+                    <span className="text-[9px] font-bold text-tn-red">{getBadgeTitle(effectiveRating)}</span>
+                  </div>
+                  {showAuthor && (
+                    <span className="text-[9px] italic text-tn-muted block">{effectiveAuthor}</span>
+                  )}
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="text-[8px] font-extrabold text-tn-red border border-tn-red px-1.5 py-0.5 rounded -rotate-3">
+                    GİRİŞ ONAYLI
+                  </span>
+                  <div className="w-16 h-3 bg-tn-ink/80 rounded-2xs" />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 2. AFİŞ PREVIEW */}
+      {template === 'poster' && (
+        <div className="h-full w-full p-4 sm:p-5 flex flex-col justify-between text-white">
+          {showSeat && (
+            <div className="flex justify-between text-[10px] font-bold pb-2 border-b border-white/20">
+              <span>{effectiveVenue.toUpperCase()}</span>
+              <span>{effectiveDate}</span>
+            </div>
+          )}
+          <div className="my-auto">
+            <h2 className="m-0 font-extrabold text-2xl sm:text-3xl leading-tight line-clamp-2">
+              {play.title}
+            </h2>
+            <div className="text-sm italic opacity-90 mt-1">{play.playwright}</div>
+          </div>
+          <div className="pt-2.5 border-t border-white/20">
+            <div className="font-extrabold text-xs tracking-wider">
+              ★★★★★ {getBadgeTitle(effectiveRating)}
+            </div>
+            {showReviewText && (
+              <p className="text-[11px] italic opacity-90 line-clamp-2 mt-1">
+                “{effectiveNote}”
+              </p>
+            )}
+            <div className="flex justify-between text-[9px] opacity-75 mt-1.5">
+              <span>{showAuthor ? `Seyirci: ${effectiveAuthor}` : ''}</span>
+              <span className="font-bold">TİYATRO·NOT</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. ALINTI PREVIEW */}
+      {template === 'quote' && (
+        <div className="h-full w-full p-4 sm:p-5 flex flex-col justify-between text-tn-ink">
+          <span className="text-4xl font-extrabold text-tn-red leading-none">“</span>
+          {showReviewText && (
+            <p className="text-sm sm:text-base italic leading-relaxed line-clamp-4 my-auto">
+              “{effectiveNote}”
+            </p>
+          )}
+          <div className="pt-2.5 border-t border-tn-line flex items-end justify-between">
+            <div>
+              {showAuthor && <div className="font-extrabold text-xs">— {effectiveAuthor}</div>}
+              {showSeat && <div className="text-[10px] text-tn-muted">{play.title} · ★ {effectiveRating.toFixed(1)}</div>}
+            </div>
+            <span className="font-extrabold text-xs tracking-tight">TİYATRO·NOT</span>
+          </div>
+        </div>
+      )}
+
+      {/* 4. PERDE PREVIEW */}
+      {template === 'curtain' && (
+        <div className="h-full w-full p-3 sm:p-4 flex flex-col justify-between items-center text-white relative">
+          <div className="w-full h-1 bg-[#E4B33A] rounded-full mb-1.5" />
+          <div className="w-full flex-1 bg-white text-tn-ink rounded-t-full p-3 sm:p-4 flex flex-col justify-between text-center shadow-lg">
+            <span className="text-[9px] font-extrabold text-tn-red tracking-wider uppercase pt-1">
+              PERDE AÇILDI
+            </span>
+            <div>
+              <h3 className="m-0 font-extrabold text-sm sm:text-base line-clamp-1">{play.title}</h3>
+              <div className="text-[10px] italic text-tn-muted">{play.playwright} · {effectiveVenue}</div>
+            </div>
+            <div>
+              <span className="font-extrabold text-lg text-tn-ink">{effectiveRating.toFixed(1)}</span>
+              <span className="text-[10px] font-bold text-tn-red block">{getBadgeTitle(effectiveRating)}</span>
+            </div>
+            {showSeat && <span className="text-[9px] text-tn-muted">{effectiveSeat} · Günlük Kaydı</span>}
+          </div>
+          <span className="font-extrabold text-xs tracking-wider pt-1.5 text-white/90">TİYATRO·NOT</span>
+        </div>
+      )}
+
+      {/* 5. ALKIŞ PREVIEW */}
+      {template === 'applause' && (
+        <div className="h-full w-full p-4 sm:p-5 flex flex-col justify-between text-white">
+          <div>
+            <span className="text-[10px] font-extrabold tracking-wider text-[#E4B33A]">ALKIŞ ÖLÇEĞİ</span>
+            <h3 className="m-0 font-extrabold text-base sm:text-lg line-clamp-1">{play.title}</h3>
+            {showSeat && <span className="text-[10px] italic text-white/60">{effectiveVenue} · {effectiveDate}</span>}
+          </div>
+          <div className="flex items-end justify-between my-auto">
+            <div>
+              <span className="text-3xl sm:text-4xl font-extrabold block leading-none">{effectiveRating.toFixed(1)}</span>
+              <span className="text-[11px] italic text-white/80 block mt-0.5">{getBadgeTitle(effectiveRating)}</span>
+              {showReviewText && (
+                <p className="text-[10px] italic text-white/60 line-clamp-2 max-w-[140px] mt-1.5">
+                  “{effectiveNote}”
+                </p>
+              )}
+            </div>
+            <div className="flex items-end gap-1.5 h-20 sm:h-24">
+              {[20, 38, 56, 78, 100].map((h, i) => (
+                <div 
+                  key={i} 
+                  style={{ height: `${h}%` }} 
+                  className="w-3 sm:w-3.5 bg-tn-red rounded-t-sm" 
+                />
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-between text-[9px] text-white/60 pt-1.5 border-t border-white/10">
+            <span>{showAuthor ? effectiveAuthor : ''}</span>
+            <span className="font-bold text-white">TİYATRO·NOT</span>
+          </div>
+        </div>
+      )}
+
+      {/* 6. PROGRAM PREVIEW */}
+      {template === 'program' && (
+        <div className="h-full w-full p-3 sm:p-4 flex flex-col justify-between text-tn-ink">
+          <div className="border border-tn-ink p-1 text-center">
+            <div className="border border-tn-ink p-0.5 text-[9px] font-extrabold tracking-widest">
+              P R O G R A M
+            </div>
+          </div>
+          <div className="text-center my-0.5">
+            <h3 className="m-0 font-extrabold text-sm sm:text-base line-clamp-1">{play.title}</h3>
+            <span className="text-[10px] italic text-tn-muted">yazan {play.playwright}</span>
+            <div className="text-tn-red text-xs mt-0.5">★★★★★</div>
+          </div>
+          <div className="text-[10px] space-y-0.5 border-t border-tn-line pt-1">
+            <div className="flex justify-between border-b border-dotted border-tn-line pb-0.5">
+              <span className="italic text-tn-muted">Seyirci</span>
+              <span className="font-bold">{effectiveAuthor}</span>
+            </div>
+            <div className="flex justify-between border-b border-dotted border-tn-line pb-0.5">
+              <span className="italic text-tn-muted">Temsil</span>
+              <span className="font-bold">{effectiveDate}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="italic text-tn-muted">Alkış</span>
+              <span className="font-bold text-tn-red">{getBadgeTitle(effectiveRating)}</span>
+            </div>
+          </div>
+          <div className="text-center text-[9px] font-extrabold pt-1 border-t border-tn-line">
+            TİYATRO·NOT
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return createPortal(
     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-0 sm:p-4 bg-black/85 backdrop-blur-sm overflow-hidden select-none font-serif text-white">
-      {/* Main Modal Shell (Fullscreen on mobile, rounded modal on desktop) */}
-      <div className="relative w-full sm:max-w-6xl h-full sm:h-auto sm:max-h-[96vh] rounded-none sm:rounded-3xl bg-[#1C1A1B] border-none sm:border border-white/10 shadow-2xl flex flex-col overflow-hidden">
+      
+      {/* ==========================================================
+          DESKTOP 3-COLUMN STUDIO LAYOUT
+          Matching media_1790774243381.png exactly!
+          ========================================================== */}
+      <div className="hidden lg:grid grid-cols-[250px_minmax(0,1fr)_310px] w-full max-w-6xl h-[86vh] max-h-[760px] rounded-[28px] bg-[#141414] border border-white/10 shadow-2xl overflow-hidden">
         
-        {/* Top Header Bar matching screens 01 to 07 */}
-        <div className="flex items-center justify-between px-4 sm:px-8 py-3 sm:py-4 border-b border-white/10 shrink-0">
-          {/* Left: Close Button (✕) */}
+        {/* COLUMN 1: LEFT SIDEBAR (Şablonlar) */}
+        <div className="bg-[#141414] p-5 flex flex-col justify-between border-r border-white/10 text-white overflow-y-auto">
+          <div>
+            {/* Logo */}
+            <div className="font-bold text-xl tracking-tight leading-none font-sans">
+              TİYATRO<span className="text-tn-red font-extrabold">·</span>NOT
+            </div>
+
+            <div className="text-[11px] font-sans font-bold text-white/40 tracking-wider uppercase mt-6 mb-2">
+              ŞABLONLAR
+            </div>
+
+            {/* 6 Vertical Templates List */}
+            <div className="flex flex-col gap-1.5">
+              {TEMPLATES.map((tpl) => {
+                const isSelected = template === tpl.id;
+                return (
+                  <button
+                    key={tpl.id}
+                    type="button"
+                    onClick={() => setTemplate(tpl.id)}
+                    className={`flex items-center gap-3 p-2 rounded-xl transition-all cursor-pointer border text-left ${
+                      isSelected
+                        ? 'bg-white/10 border-white/20 shadow-xs'
+                        : 'bg-transparent border-transparent hover:bg-white/5 opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    {/* Thumbnail Icon */}
+                    <div 
+                      className={`w-9 h-11 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 shadow-inner ${
+                        isSelected ? 'ring-1 ring-white/60' : ''
+                      }`}
+                      style={{ backgroundColor: tpl.bgPreview }}
+                    >
+                      <span style={{ color: tpl.id === 'quote' || tpl.id === 'program' ? '#1C1A1B' : '#FFFFFF' }}>
+                        {tpl.iconText}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col min-w-0">
+                      <span className={`text-xs font-sans truncate ${isSelected ? 'font-bold text-white' : 'font-medium text-white/90'}`}>
+                        {tpl.label}
+                      </span>
+                      <span className="text-[10px] italic text-white/45 truncate">
+                        {tpl.shortDesc}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* COLUMN 2: CENTER CANVAS STAGE */}
+        <div className="bg-[#0D0D0D] relative flex flex-col items-center justify-between p-6 overflow-hidden">
+          {/* Subtle spotlight glow */}
+          <div 
+            className="absolute inset-0 pointer-events-none opacity-45"
+            style={{
+              backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.12) 0%, transparent 70%)'
+            }}
+          />
+
+          {/* Top Floating Format Switcher Capsule */}
+          <div className="z-10 flex items-center p-1 rounded-full bg-white/10 border border-white/10 shadow-md">
+            {(['9:16', '1:1', '16:9'] as AspectRatio[]).map((fmt) => (
+              <button
+                key={fmt}
+                type="button"
+                onClick={() => setAspectRatio(fmt)}
+                className={`h-7 px-4 rounded-full text-xs font-sans font-semibold transition-all cursor-pointer border-none ${
+                  aspectRatio === fmt
+                    ? 'bg-white text-tn-ink shadow-xs'
+                    : 'bg-transparent text-white/70 hover:text-white'
+                }`}
+              >
+                {fmt}
+              </button>
+            ))}
+          </div>
+
+          {/* Live Preview Card */}
+          <div className="z-10 flex-1 flex items-center justify-center my-auto">
+            {renderCardPreview(true)}
+          </div>
+        </div>
+
+        {/* COLUMN 3: RIGHT CONTROLS PANEL */}
+        <div className="bg-[#FFFFFF] dark:bg-[#1E1C1D] text-tn-ink dark:text-white p-6 flex flex-col justify-between border-l border-tn-line dark:border-white/10 overflow-y-auto">
+          <div className="space-y-6">
+            {/* Header: Title + Subtitle + Close (✕) */}
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="m-0 font-extrabold text-xl text-tn-ink dark:text-white">
+                  Bileti Paylaş
+                </h3>
+                <span className="text-xs italic text-tn-muted dark:text-white/60">
+                  {play.title} · Seyirci notum
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Kapat"
+                className="w-8 h-8 rounded-full bg-tn-surface dark:bg-white/10 hover:bg-tn-line dark:hover:bg-white/20 text-tn-muted dark:text-white flex items-center justify-center transition-colors cursor-pointer border-none"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* 1. Kartta göster (Toggles) */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-sans font-bold text-tn-muted dark:text-white/40 tracking-wider uppercase block">
+                Kartta göster
+              </span>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAuthor(!showAuthor)}
+                  className={`h-8 px-3 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 ${
+                    showAuthor
+                      ? 'bg-tn-ink text-white shadow-xs'
+                      : 'bg-tn-surface dark:bg-white/10 text-tn-muted dark:text-white/50'
+                  }`}
+                >
+                  <span>{showAuthor ? '✓' : '○'}</span>
+                  <span>Adın</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowReviewText(!showReviewText)}
+                  className={`h-8 px-3 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 ${
+                    showReviewText
+                      ? 'bg-tn-ink text-white shadow-xs'
+                      : 'bg-tn-surface dark:bg-white/10 text-tn-muted dark:text-white/50'
+                  }`}
+                >
+                  <span>{showReviewText ? '✓' : '○'}</span>
+                  <span>Not metni</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowSeat(!showSeat)}
+                  className={`h-8 px-3 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 ${
+                    showSeat
+                      ? 'bg-tn-ink text-white shadow-xs'
+                      : 'bg-tn-surface dark:bg-white/10 text-tn-muted dark:text-white/50'
+                  }`}
+                >
+                  <span>{showSeat ? '✓' : '○'}</span>
+                  <span>Koltuk</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 2. Gönder (App Targets) */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-sans font-bold text-tn-muted dark:text-white/40 tracking-wider uppercase block">
+                Gönder
+              </span>
+              <div className="grid grid-cols-4 gap-2 text-center">
+                {/* X */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const text = encodeURIComponent(`🎭 ${play.title} izledim. Tiyatronot notum: "${effectiveNote}"`);
+                    window.open(`https://twitter.com/intent/tweet?text=${text}&url=https://${shareableUrl}`, '_blank');
+                  }}
+                  className="flex flex-col items-center gap-1 cursor-pointer border-none bg-transparent group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#1C1A1B] text-white flex items-center justify-center font-sans font-extrabold text-xs group-hover:scale-105 transition-transform shadow-xs">
+                    X
+                  </div>
+                  <span className="text-[10px] font-sans font-medium text-tn-muted dark:text-white/70">
+                    X
+                  </span>
+                </button>
+
+                {/* WhatsApp */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const text = encodeURIComponent(`🎭 ${play.title} — Tiyatronot Notum:\n"${effectiveNote}"\nhttps://${shareableUrl}`);
+                    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+                  }}
+                  className="flex flex-col items-center gap-1 cursor-pointer border-none bg-transparent group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#D6E0D3] text-[#1C1A1B] flex items-center justify-center font-sans font-extrabold text-xs group-hover:scale-105 transition-transform shadow-xs">
+                    WA
+                  </div>
+                  <span className="text-[10px] font-sans font-medium text-tn-muted dark:text-white/70">
+                    WhatsApp Web
+                  </span>
+                </button>
+
+                {/* E-posta */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.open(`mailto:?subject=${encodeURIComponent(`Tiyatronot: ${play.title}`)}&body=${encodeURIComponent(`https://${shareableUrl}`)}`);
+                  }}
+                  className="flex flex-col items-center gap-1 cursor-pointer border-none bg-transparent group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#D9CFF2] text-[#1C1A1B] flex items-center justify-center font-sans font-extrabold text-xs group-hover:scale-105 transition-transform shadow-xs">
+                    ✉
+                  </div>
+                  <span className="text-[10px] font-sans font-medium text-tn-muted dark:text-white/70">
+                    E-posta
+                  </span>
+                </button>
+
+                {/* Bağlantı */}
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="flex flex-col items-center gap-1 cursor-pointer border-none bg-transparent group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#F1E3C4] text-[#1C1A1B] flex items-center justify-center font-sans font-extrabold text-xs group-hover:scale-105 transition-transform shadow-xs">
+                    🔗
+                  </div>
+                  <span className="text-[10px] font-sans font-medium text-tn-muted dark:text-white/70">
+                    Bağlantı
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* 3. Canlı bilet bağlantısı */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-sans font-bold text-tn-muted dark:text-white/40 tracking-wider uppercase block">
+                Canlı bilet bağlantısı
+              </span>
+              <div className="p-2 rounded-xl bg-tn-surface dark:bg-white/5 border border-tn-line dark:border-white/10 flex items-center justify-between gap-1 shadow-2xs">
+                <span className="text-[11px] font-mono text-tn-muted dark:text-white/60 truncate max-w-[170px]">
+                  {shareableUrl}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="h-7 px-3 rounded-full bg-tn-ink text-white hover:bg-tn-ink/85 font-sans text-xs font-semibold flex items-center gap-1 cursor-pointer border-none transition-colors shrink-0"
+                >
+                  {copiedLink ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                  <span>{copiedLink ? 'Kopyalandı' : 'Kopyala'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Action: Görseli İndir · 1080×1920 */}
+          <div className="pt-4">
+            <button
+              type="button"
+              disabled={downloading}
+              onClick={() => handleDownload()}
+              className="w-full h-12 rounded-2xl bg-tn-red hover:bg-tn-red/90 text-white font-sans text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer border-none shadow-md"
+            >
+              <Download className="w-4 h-4" />
+              <span>{downloading ? 'İndiriliyor...' : `Görseli İndir · ${RESOLUTIONS[aspectRatio].text}`}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ==========================================================
+          MOBILE VIEW (Matching screens 01 to 08)
+          ========================================================== */}
+      <div className="lg:hidden relative w-full h-full bg-[#1C1A1B] flex flex-col justify-between overflow-hidden">
+        {/* Top Header Bar */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
           <button
             type="button"
             onClick={onClose}
             aria-label="Kapat"
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer border-none"
+            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer border-none"
           >
             <X className="w-5 h-5" />
           </button>
 
-          {/* Center (Desktop only title & tab switch) */}
-          <div className="hidden sm:flex items-center gap-3">
-            <span className="font-extrabold text-base tracking-tight text-white flex items-center gap-2">
-              <span className="text-tn-red">★</span> Bileti Paylaş
-            </span>
-
-            <div className="flex items-center p-1 rounded-full bg-white/5 border border-white/10 text-xs">
-              <button
-                type="button"
-                onClick={() => setActiveTab('studio')}
-                className={`px-3.5 py-1 rounded-full font-sans font-medium transition-colors ${
-                  activeTab === 'studio' ? 'bg-tn-red text-white' : 'text-white/60 hover:text-white'
-                }`}
-              >
-                Canlı Stüdyo
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('gallery')}
-                className={`px-3.5 py-1 rounded-full font-sans font-medium transition-colors ${
-                  activeTab === 'gallery' ? 'bg-tn-red text-white' : 'text-white/60 hover:text-white'
-                }`}
-              >
-                18 Sahne Galerisi
-              </button>
-            </div>
-          </div>
-
-          {/* Right: Format Switcher Capsule [ 9:16 ] [ 1:1 ] [ 16:9 ] */}
           <div className="flex items-center p-1 rounded-full bg-white/10 border border-white/10">
             {(['9:16', '1:1', '16:9'] as AspectRatio[]).map((fmt) => (
               <button
                 key={fmt}
                 type="button"
                 onClick={() => setAspectRatio(fmt)}
-                className={`h-7 px-3 sm:px-3.5 rounded-full text-xs font-sans font-semibold transition-all cursor-pointer border-none ${
+                className={`h-7 px-3 rounded-full text-xs font-sans font-semibold transition-all cursor-pointer border-none ${
                   aspectRatio === fmt
                     ? 'bg-white text-tn-ink shadow-xs'
                     : 'bg-transparent text-white/70 hover:text-white'
@@ -847,473 +1351,142 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
           </div>
         </div>
 
-        {/* Modal Body: Either "Canlı Stüdyo" or "18 Sahne Galerisi" */}
-        {activeTab === 'studio' ? (
-          /* ==========================================================
-             VIEW 1: CANLI STÜDYO (Mobile & Desktop Live Studio)
-             Matching screens 01 to 07
-             ========================================================== */
-          <div className="flex-1 flex flex-col justify-between overflow-y-auto min-h-0 p-3 sm:p-6 gap-2.5 sm:gap-4 pb-safe">
-            
-            {/* Stage Backdrop & Live Visual Preview */}
-            <div className="flex-1 flex items-center justify-center min-h-[300px] sm:min-h-[420px] rounded-2xl bg-[#141414] border border-white/5 relative overflow-hidden p-3 sm:p-4">
-              {/* Subtle spotlight glow */}
-              <div 
-                className="absolute inset-0 pointer-events-none opacity-45"
-                style={{
-                  backgroundImage: 'radial-gradient(circle at 50% 45%, rgba(255,255,255,0.14) 0%, transparent 68%)'
-                }}
-              />
+        {/* Center Canvas Stage */}
+        <div className="flex-1 flex items-center justify-center min-h-[300px] bg-[#141414] relative overflow-hidden p-3">
+          <div 
+            className="absolute inset-0 pointer-events-none opacity-45"
+            style={{
+              backgroundImage: 'radial-gradient(circle at 50% 45%, rgba(255,255,255,0.14) 0%, transparent 68%)'
+            }}
+          />
+          {renderCardPreview(false)}
+        </div>
 
-              {/* Responsive Card Container matching Aspect Ratio */}
-              <div 
-                className="relative transition-all duration-300 shadow-2xl overflow-hidden rounded-xl border border-white/10 flex flex-col justify-between text-left"
-                style={{
-                  width: aspectRatio === '9:16' ? '240px' : aspectRatio === '1:1' ? '290px' : '360px',
-                  height: aspectRatio === '9:16' ? '420px' : aspectRatio === '1:1' ? '290px' : '200px',
-                  maxWidth: '100%',
-                  backgroundColor: 
-                    template === 'poster' ? '#BA1B23' :
-                    template === 'curtain' ? '#8A171D' :
-                    template === 'quote' ? '#FAF8F5' :
-                    template === 'program' ? '#F5EEDB' :
-                    template === 'applause' ? '#141414' : '#141414',
-                }}
-              >
-                {/* 1. BİLET KOÇANI PREVIEW */}
-                {template === 'ticket' && (
-                  <div className="h-full w-full p-2.5 sm:p-3 flex items-center justify-center">
-                    {aspectRatio === '16:9' ? (
-                      /* 16:9 Split Ticket Preview */
-                      <div className="flex gap-1.5 w-full h-full">
-                        <div className="flex-1 bg-[#FFFCF7] text-tn-ink rounded-lg p-2.5 flex flex-col justify-between shadow-md">
-                          <div>
-                            <span className="text-[8px] font-sans font-bold text-tn-muted">{serialNo}</span>
-                            <h3 className="m-0 text-sm font-extrabold line-clamp-1">{play.title}</h3>
-                            <span className="text-[9px] italic text-tn-muted">{play.playwright}</span>
-                          </div>
-                          {showReviewText && (
-                            <p className="text-[9px] italic text-tn-ink/90 line-clamp-2 my-0.5">
-                              “{effectiveNote}”
-                            </p>
-                          )}
-                          {showAuthor && (
-                            <span className="text-[8px] italic text-tn-muted">{effectiveAuthor} · Seyirci Günlüğü</span>
-                          )}
-                        </div>
-                        <div className="w-[85px] bg-[#FFFCF7] text-tn-ink rounded-lg p-2 flex flex-col items-center justify-between text-center shadow-md">
-                          <span className="text-[7px] font-extrabold text-tn-red border border-tn-red px-1 rounded -rotate-2">
-                            GİRİŞ ONAYLI
-                          </span>
-                          <div>
-                            <span className="text-xl font-extrabold text-tn-ink">{effectiveRating.toFixed(1)}</span>
-                            <span className="block text-[7px] font-bold text-tn-red">{getBadgeTitle(effectiveRating)}</span>
-                          </div>
-                          <div className="w-12 h-2.5 bg-tn-ink/80 rounded-2xs" />
+        {/* Bottom Controls Area matching screens 01 to 07 */}
+        <div className="flex flex-col gap-2.5 p-3 pb-6 shrink-0 bg-[#1C1A1B] border-t border-white/10">
+          {/* Row 1: Template Name on Left, Resolution on Right */}
+          <div className="flex justify-between items-center px-1 text-xs">
+            <span className="font-extrabold text-white text-sm">
+              {TEMPLATES.find(t => t.id === template)?.label}
+            </span>
+            <span className="font-mono text-white/50 text-xs">
+              {RESOLUTIONS[aspectRatio].text}
+            </span>
+          </div>
+
+          {/* Row 2: Template Thumbnails Strip Carousel */}
+          <div className="flex gap-2.5 overflow-x-auto no-scrollbar py-0.5 px-0.5">
+            {TEMPLATES.map((tpl) => {
+              const isSelected = template === tpl.id;
+              return (
+                <button
+                  key={tpl.id}
+                  type="button"
+                  onClick={() => setTemplate(tpl.id)}
+                  className="flex flex-col items-center gap-1.5 cursor-pointer border-none bg-transparent shrink-0 group"
+                >
+                  <div 
+                    className={`w-[52px] h-[72px] rounded-xl flex items-center justify-center font-serif text-lg font-bold shadow-md relative overflow-hidden transition-all ${
+                      isSelected 
+                        ? 'ring-2 ring-white border-2 border-white scale-105' 
+                        : 'border border-white/20 opacity-80 hover:opacity-100'
+                    }`}
+                    style={{ backgroundColor: tpl.bgPreview }}
+                  >
+                    {tpl.id === 'curtain' ? (
+                      <div className="flex flex-col items-center">
+                        <div className="w-5 h-0.5 bg-[#E4B33A] mb-1 rounded-full" />
+                        <div className="w-6 h-7 bg-white rounded-t-full flex items-center justify-center text-[9px] text-tn-ink font-bold">
+                          ∩
                         </div>
                       </div>
-                    ) : (
-                      /* 9:16 or 1:1 Ticket Preview */
-                      <div className="w-full h-full bg-[#FFFCF7] text-tn-ink rounded-xl p-3 flex flex-col justify-between shadow-xl relative overflow-hidden">
-                        {/* Torn teeth */}
-                        <div className="absolute top-0 left-0 right-0 flex justify-between px-1">
-                          {Array.from({ length: 12 }).map((_, i) => (
-                            <div key={i} className="w-2.5 h-1.5 bg-[#141414] rounded-b-full" />
-                          ))}
-                        </div>
-
-                        <div>
-                          <div className="flex justify-between items-center text-[8px] font-sans font-bold text-tn-muted pt-1">
-                            <span>TİYATRO·NOT</span>
-                            <span>{serialNo}</span>
-                          </div>
-                          <h3 className="m-0 mt-1.5 font-extrabold text-base sm:text-lg leading-tight line-clamp-2 text-tn-ink">
-                            {play.title}
-                          </h3>
-                          <div className="text-[10px] italic text-tn-muted mt-0.5">{play.playwright}</div>
-
-                          {showSeat && (
-                            <div className="text-[8px] font-semibold text-tn-muted mt-1.5 border-t border-tn-line pt-1">
-                              {effectiveDate} · {effectiveSession} · {effectiveVenue}
-                            </div>
-                          )}
-                        </div>
-
-                        {showReviewText && (
-                          <div className="my-auto py-1">
-                            <p className="text-[10px] italic text-tn-ink/90 leading-snug line-clamp-3">
-                              “{effectiveNote}”
-                            </p>
-                          </div>
-                        )}
-
-                        <div className="pt-1.5 border-t border-tn-line flex items-end justify-between">
-                          <div>
-                            <div className="flex items-baseline gap-1">
-                              <span className="font-extrabold text-xl text-tn-ink">{effectiveRating.toFixed(1)}</span>
-                              <span className="text-[8px] font-bold text-tn-red">{getBadgeTitle(effectiveRating)}</span>
-                            </div>
-                            {showAuthor && (
-                              <span className="text-[8px] italic text-tn-muted block">{effectiveAuthor}</span>
-                            )}
-                          </div>
-                          <div className="flex flex-col items-end gap-1">
-                            <span className="text-[7px] font-extrabold text-tn-red border border-tn-red px-1 py-0.5 rounded -rotate-3">
-                              GİRİŞ ONAYLI
-                            </span>
-                            <div className="w-14 h-2.5 bg-tn-ink/80 rounded-2xs" />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* 2. AFİŞ PREVIEW */}
-                {template === 'poster' && (
-                  <div className="h-full w-full p-4 flex flex-col justify-between text-white">
-                    {showSeat && (
-                      <div className="flex justify-between text-[9px] font-bold pb-1.5 border-b border-white/20">
-                        <span>{effectiveVenue.toUpperCase()}</span>
-                        <span>{effectiveDate}</span>
-                      </div>
-                    )}
-                    <div className="my-auto">
-                      <h2 className="m-0 font-extrabold text-2xl sm:text-3xl leading-tight line-clamp-2">
-                        {play.title}
-                      </h2>
-                      <div className="text-xs italic opacity-90 mt-1">{play.playwright}</div>
-                    </div>
-                    <div className="pt-2 border-t border-white/20">
-                      <div className="font-extrabold text-[10px] tracking-wider">
-                        ★★★★★ {getBadgeTitle(effectiveRating)}
-                      </div>
-                      {showReviewText && (
-                        <p className="text-[10px] italic opacity-90 line-clamp-2 mt-0.5">
-                          “{effectiveNote}”
-                        </p>
-                      )}
-                      <div className="flex justify-between text-[8px] opacity-75 mt-1.5">
-                        <span>{showAuthor ? `Seyirci: ${effectiveAuthor}` : ''}</span>
-                        <span className="font-bold">TİYATRO·NOT</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 3. ALINTI PREVIEW */}
-                {template === 'quote' && (
-                  <div className="h-full w-full p-4 flex flex-col justify-between text-tn-ink">
-                    <span className="text-3xl sm:text-4xl font-extrabold text-tn-red leading-none">“</span>
-                    {showReviewText && (
-                      <p className="text-xs sm:text-sm italic leading-relaxed line-clamp-4 my-auto">
-                        “{effectiveNote}”
-                      </p>
-                    )}
-                    <div className="pt-2 border-t border-tn-line flex items-end justify-between">
-                      <div>
-                        {showAuthor && <div className="font-extrabold text-[10px]">— {effectiveAuthor}</div>}
-                        {showSeat && <div className="text-[9px] text-tn-muted">{play.title} · ★ {effectiveRating.toFixed(1)}</div>}
-                      </div>
-                      <span className="font-extrabold text-[10px] tracking-tight">TİYATRO·NOT</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* 4. PERDE PREVIEW */}
-                {template === 'curtain' && (
-                  <div className="h-full w-full p-3 flex flex-col justify-between items-center text-white relative">
-                    <div className="w-full h-1 bg-[#E4B33A] rounded-full mb-1.5" />
-                    <div className="w-full flex-1 bg-white text-tn-ink rounded-t-full p-3 flex flex-col justify-between text-center shadow-lg">
-                      <span className="text-[8px] font-extrabold text-tn-red tracking-wider uppercase pt-1">
-                        PERDE AÇILDI
-                      </span>
-                      <div>
-                        <h3 className="m-0 font-extrabold text-sm sm:text-base line-clamp-1">{play.title}</h3>
-                        <div className="text-[9px] italic text-tn-muted">{play.playwright} · {effectiveVenue}</div>
-                      </div>
-                      <div>
-                        <span className="font-extrabold text-base text-tn-ink">{effectiveRating.toFixed(1)}</span>
-                        <span className="text-[9px] font-bold text-tn-red block">{getBadgeTitle(effectiveRating)}</span>
-                      </div>
-                      {showSeat && <span className="text-[8px] text-tn-muted">{effectiveSeat} · Günlük Kaydı</span>}
-                    </div>
-                    <span className="font-extrabold text-[10px] tracking-wider pt-1.5 text-white/90">TİYATRO·NOT</span>
-                  </div>
-                )}
-
-                {/* 5. ALKIŞ PREVIEW */}
-                {template === 'applause' && (
-                  <div className="h-full w-full p-4 flex flex-col justify-between text-white">
-                    <div>
-                      <span className="text-[9px] font-extrabold tracking-wider text-[#E4B33A]">ALKIŞ ÖLÇEĞİ</span>
-                      <h3 className="m-0 font-extrabold text-base line-clamp-1">{play.title}</h3>
-                      {showSeat && <span className="text-[9px] italic text-white/60">{effectiveVenue} · {effectiveDate}</span>}
-                    </div>
-                    <div className="flex items-end justify-between my-auto">
-                      <div>
-                        <span className="text-3xl font-extrabold block leading-none">{effectiveRating.toFixed(1)}</span>
-                        <span className="text-[10px] italic text-white/80 block mt-0.5">{getBadgeTitle(effectiveRating)}</span>
-                        {showReviewText && (
-                          <p className="text-[9px] italic text-white/60 line-clamp-2 max-w-[130px] mt-1.5">
-                            “{effectiveNote}”
-                          </p>
-                        )}
-                      </div>
-                      {/* Bars */}
-                      <div className="flex items-end gap-1 h-20">
-                        {[20, 38, 56, 78, 100].map((h, i) => (
-                          <div 
-                            key={i} 
-                            style={{ height: `${h}%` }} 
-                            className="w-3 bg-tn-red rounded-t-sm" 
-                          />
+                    ) : tpl.id === 'applause' ? (
+                      <div className="flex items-end gap-0.5 h-6">
+                        {[6, 12, 18, 24].map((h, i) => (
+                          <div key={i} style={{ height: `${h}px` }} className="w-1.5 bg-tn-red rounded-t-2xs" />
                         ))}
                       </div>
-                    </div>
-                    <div className="flex justify-between text-[8px] text-white/60 pt-1.5 border-t border-white/10">
-                      <span>{showAuthor ? effectiveAuthor : ''}</span>
-                      <span className="font-bold text-white">TİYATRO·NOT</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* 6. PROGRAM PREVIEW */}
-                {template === 'program' && (
-                  <div className="h-full w-full p-3 flex flex-col justify-between text-tn-ink">
-                    <div className="border border-tn-ink p-1 text-center">
-                      <div className="border border-tn-ink p-0.5 text-[8px] font-extrabold tracking-widest">
-                        P R O G R A M
-                      </div>
-                    </div>
-                    <div className="text-center my-0.5">
-                      <h3 className="m-0 font-extrabold text-sm line-clamp-1">{play.title}</h3>
-                      <span className="text-[9px] italic text-tn-muted">yazan {play.playwright}</span>
-                      <div className="text-tn-red text-[10px] mt-0.5">★★★★★</div>
-                    </div>
-                    <div className="text-[9px] space-y-0.5 border-t border-tn-line pt-1">
-                      <div className="flex justify-between border-b border-dotted border-tn-line pb-0.5">
-                        <span className="italic text-tn-muted">Seyirci</span>
-                        <span className="font-bold">{effectiveAuthor}</span>
-                      </div>
-                      <div className="flex justify-between border-b border-dotted border-tn-line pb-0.5">
-                        <span className="italic text-tn-muted">Temsil</span>
-                        <span className="font-bold">{effectiveDate}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="italic text-tn-muted">Alkış</span>
-                        <span className="font-bold text-tn-red">{getBadgeTitle(effectiveRating)}</span>
-                      </div>
-                    </div>
-                    <div className="text-center text-[8px] font-extrabold pt-1 border-t border-tn-line">
-                      TİYATRO·NOT
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Bottom Controls Area matching screens 01 to 07 */}
-            <div className="flex flex-col gap-2.5 shrink-0">
-              
-              {/* Row 1: Template Name on Left, Resolution on Right */}
-              <div className="flex justify-between items-center px-1 text-xs">
-                <span className="font-extrabold text-white text-sm">
-                  {TEMPLATES.find(t => t.id === template)?.label}
-                </span>
-                <span className="font-mono text-white/50 text-xs">
-                  {RESOLUTIONS[aspectRatio].text}
-                </span>
-              </div>
-
-              {/* Row 2: Template Thumbnails Strip Carousel */}
-              <div className="flex gap-2.5 overflow-x-auto no-scrollbar py-0.5 px-0.5">
-                {TEMPLATES.map((tpl) => {
-                  const isSelected = template === tpl.id;
-                  return (
-                    <button
-                      key={tpl.id}
-                      type="button"
-                      onClick={() => setTemplate(tpl.id)}
-                      className="flex flex-col items-center gap-1.5 cursor-pointer border-none bg-transparent shrink-0 group"
-                    >
-                      <div 
-                        className={`w-[52px] h-[72px] sm:w-[58px] sm:h-[80px] rounded-xl flex items-center justify-center font-serif text-lg font-bold shadow-md relative overflow-hidden transition-all ${
-                          isSelected 
-                            ? 'ring-2 ring-white border-2 border-white scale-105' 
-                            : 'border border-white/20 opacity-80 hover:opacity-100'
-                        }`}
-                        style={{ backgroundColor: tpl.bgPreview }}
-                      >
-                        {tpl.id === 'curtain' ? (
-                          <div className="flex flex-col items-center">
-                            <div className="w-5 h-0.5 bg-[#E4B33A] mb-1 rounded-full" />
-                            <div className="w-6 h-7 bg-white rounded-t-full flex items-center justify-center text-[9px] text-tn-ink font-bold">
-                              ∩
-                            </div>
-                          </div>
-                        ) : tpl.id === 'applause' ? (
-                          <div className="flex items-end gap-0.5 h-6">
-                            {[6, 12, 18, 24].map((h, i) => (
-                              <div key={i} style={{ height: `${h}px` }} className="w-1.5 bg-tn-red rounded-t-2xs" />
-                            ))}
-                          </div>
-                        ) : (
-                          <span style={{ color: tpl.id === 'quote' || tpl.id === 'program' ? '#1C1A1B' : '#FFFFFF' }}>
-                            {tpl.iconText}
-                          </span>
-                        )}
-                      </div>
-                      <span className={`text-[10px] sm:text-[11px] font-sans ${isSelected ? 'text-white font-bold' : 'text-white/60'}`}>
-                        {tpl.label}
+                    ) : (
+                      <span style={{ color: tpl.id === 'quote' || tpl.id === 'program' ? '#1C1A1B' : '#FFFFFF' }}>
+                        {tpl.iconText}
                       </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Row 3: Toggle Pills [ ✓ Adın ] [ ✓ Not metni ] [ ✓ Koltuk ] */}
-              <div className="flex items-center gap-2 pt-0.5">
-                <button
-                  type="button"
-                  onClick={() => setShowAuthor(!showAuthor)}
-                  className={`h-7 sm:h-8 px-3.5 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 ${
-                    showAuthor
-                      ? 'bg-white text-tn-ink shadow-xs'
-                      : 'bg-white/10 text-white/50'
-                  }`}
-                >
-                  <span>{showAuthor ? '✓' : '○'}</span>
-                  <span>Adın</span>
+                    )}
+                  </div>
+                  <span className={`text-[10px] font-sans ${isSelected ? 'text-white font-bold' : 'text-white/60'}`}>
+                    {tpl.label}
+                  </span>
                 </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShowReviewText(!showReviewText)}
-                  className={`h-7 sm:h-8 px-3.5 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 ${
-                    showReviewText
-                      ? 'bg-white text-tn-ink shadow-xs'
-                      : 'bg-white/10 text-white/50'
-                  }`}
-                >
-                  <span>{showReviewText ? '✓' : '○'}</span>
-                  <span>Not metni</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShowSeat(!showSeat)}
-                  className={`h-7 sm:h-8 px-3.5 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 ${
-                    showSeat
-                      ? 'bg-white text-tn-ink shadow-xs'
-                      : 'bg-white/10 text-white/50'
-                  }`}
-                >
-                  <span>{showSeat ? '✓' : '○'}</span>
-                  <span>Koltuk</span>
-                </button>
-              </div>
-
-              {/* Row 4: Action Buttons [ İndir ] and [ Paylaş ] */}
-              <div className="flex items-center gap-2.5 pt-1">
-                <button
-                  type="button"
-                  disabled={downloading}
-                  onClick={() => handleDownload()}
-                  className="h-11 px-6 rounded-xl bg-white/10 hover:bg-white/20 text-white font-sans text-xs sm:text-sm font-semibold flex items-center justify-center transition-colors cursor-pointer border-none"
-                >
-                  {downloading ? 'İndiriliyor...' : 'İndir'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsDestinationOpen(true)}
-                  className="h-11 flex-1 rounded-xl bg-tn-red hover:bg-tn-red/90 text-white font-sans text-xs sm:text-sm font-semibold flex items-center justify-center transition-colors cursor-pointer border-none shadow-md"
-                >
-                  Paylaş
-                </button>
-              </div>
-            </div>
+              );
+            })}
           </div>
-        ) : (
-          /* ==========================================================
-             VIEW 2: 18 SAHNE GALERİSİ (Desktop Gallery View)
-             ========================================================== */
-          <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-10">
-            <div>
-              <span className="text-xs font-extrabold tracking-widest text-tn-red uppercase">
-                PAYLAŞIM ŞABLONLARI · 6 ŞABLON × 3 FORMAT
-              </span>
-              <h2 className="m-0 mt-1 font-normal text-3xl sm:text-4xl text-white">
-                Bir bilet, <span className="font-extrabold">on sekiz</span> <span className="italic font-normal">sahne.</span>
-              </h2>
-            </div>
 
-            {TEMPLATES.map((tpl) => (
-              <section key={tpl.id} className="space-y-3 border-t border-white/10 pt-6">
-                <div>
-                  <span className="text-xs font-extrabold text-tn-red tracking-wider block">{tpl.badge}</span>
-                  <h3 className="m-0 font-extrabold text-2xl text-white">{tpl.label}</h3>
-                  <p className="m-0 text-xs italic text-white/60 pt-0.5">{tpl.desc}</p>
-                </div>
+          {/* Row 3: Toggle Pills */}
+          <div className="flex items-center gap-2 pt-0.5">
+            <button
+              type="button"
+              onClick={() => setShowAuthor(!showAuthor)}
+              className={`h-7 px-3.5 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 ${
+                showAuthor
+                  ? 'bg-white text-tn-ink shadow-xs'
+                  : 'bg-white/10 text-white/50'
+              }`}
+            >
+              <span>{showAuthor ? '✓' : '○'}</span>
+              <span>Adın</span>
+            </button>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                  {(['9:16', '1:1', '16:9'] as AspectRatio[]).map((fmt) => (
-                    <div 
-                      key={fmt}
-                      onClick={() => {
-                        setTemplate(tpl.id);
-                        setAspectRatio(fmt);
-                        setActiveTab('studio');
-                      }}
-                      className="group cursor-pointer rounded-2xl bg-white/5 border border-white/10 hover:border-tn-red p-4 flex flex-col items-center justify-between gap-3 transition-all hover:bg-white/10 shadow-lg"
-                    >
-                      <div 
-                        className="rounded-lg shadow-md flex items-center justify-center text-center p-3 transition-transform group-hover:scale-[1.02]"
-                        style={{
-                          width: fmt === '9:16' ? '120px' : fmt === '1:1' ? '150px' : '200px',
-                          height: fmt === '9:16' ? '210px' : fmt === '1:1' ? '150px' : '112px',
-                          backgroundColor: tpl.bgPreview,
-                        }}
-                      >
-                        <div className="flex flex-col items-center gap-1">
-                          <span 
-                            className="font-bold text-xl"
-                            style={{ color: tpl.id === 'quote' || tpl.id === 'program' ? '#1C1A1B' : '#FFFFFF' }}
-                          >
-                            {tpl.iconText}
-                          </span>
-                          <span 
-                            className="text-[9px] font-sans font-bold uppercase tracking-wider"
-                            style={{ color: tpl.id === 'quote' || tpl.id === 'program' ? '#1C1A1B' : '#FFFFFF' }}
-                          >
-                            {tpl.label}
-                          </span>
-                        </div>
-                      </div>
+            <button
+              type="button"
+              onClick={() => setShowReviewText(!showReviewText)}
+              className={`h-7 px-3.5 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 ${
+                showReviewText
+                  ? 'bg-white text-tn-ink shadow-xs'
+                  : 'bg-white/10 text-white/50'
+              }`}
+            >
+              <span>{showReviewText ? '✓' : '○'}</span>
+              <span>Not metni</span>
+            </button>
 
-                      <div className="w-full flex justify-between items-center text-[11px] font-sans text-white/60 group-hover:text-white pt-1">
-                        <span>{fmt}</span>
-                        <span className="font-mono text-[10px] text-white/40">{RESOLUTIONS[fmt].text}</span>
-                        <span className="text-tn-red opacity-0 group-hover:opacity-100 font-semibold transition-opacity">Seç →</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ))}
+            <button
+              type="button"
+              onClick={() => setShowSeat(!showSeat)}
+              className={`h-7 px-3.5 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 ${
+                showSeat
+                  ? 'bg-white text-tn-ink shadow-xs'
+                  : 'bg-white/10 text-white/50'
+              }`}
+            >
+              <span>{showSeat ? '✓' : '○'}</span>
+              <span>Koltuk</span>
+            </button>
           </div>
-        )}
 
-        {/* ==========================================================
-            SCREEN 08: "NEREYE GÖNDERELİM?" (Mobile & Desktop Bottom Sheet)
-            Matching media_1790774060528.png screen 08
-            ========================================================== */}
+          {/* Row 4: Action Buttons */}
+          <div className="flex items-center gap-2.5 pt-1">
+            <button
+              type="button"
+              disabled={downloading}
+              onClick={() => handleDownload()}
+              className="h-11 px-6 rounded-xl bg-white/10 hover:bg-white/20 text-white font-sans text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer border-none"
+            >
+              {downloading ? 'İndiriliyor...' : 'İndir'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsDestinationOpen(true)}
+              className="h-11 flex-1 rounded-xl bg-tn-red hover:bg-tn-red/90 text-white font-sans text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer border-none shadow-md"
+            >
+              Paylaş
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Screen 08: "Nereye gönderelim?" Bottom Sheet */}
         {isDestinationOpen && (
           <div className="fixed inset-0 z-[1100] bg-black/60 backdrop-blur-xs flex items-end justify-center animate-fadeIn">
             <div className="w-full max-w-lg rounded-t-[28px] bg-[#FFFFFF] text-tn-ink p-5 pb-8 shadow-2xl border-t border-tn-line space-y-4 animate-slideUp">
-              
-              {/* Drag handle bar at top center */}
               <div className="w-10 h-1 bg-black/20 rounded-full mx-auto" />
 
               <div className="flex justify-between items-start">
@@ -1334,9 +1507,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                 </button>
               </div>
 
-              {/* App Targets Row: IG, WA, X, Mesajlar, Kaydet */}
               <div className="grid grid-cols-5 gap-2 pt-1 text-center">
-                {/* 1. Instagram */}
                 <button
                   type="button"
                   onClick={() => {
@@ -1353,7 +1524,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                   </span>
                 </button>
 
-                {/* 2. WhatsApp */}
                 <button
                   type="button"
                   onClick={() => {
@@ -1370,7 +1540,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                   </span>
                 </button>
 
-                {/* 3. X (Twitter) */}
                 <button
                   type="button"
                   onClick={() => {
@@ -1387,7 +1556,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                   </span>
                 </button>
 
-                {/* 4. Mesajlar */}
                 <button
                   type="button"
                   onClick={() => {
@@ -1403,7 +1571,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                   </span>
                 </button>
 
-                {/* 5. Kaydet */}
                 <button
                   type="button"
                   onClick={() => handleDownload()}
@@ -1418,7 +1585,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                 </button>
               </div>
 
-              {/* Shareable Link Box */}
               <div className="p-2.5 rounded-2xl bg-[#F1EDE7] border border-tn-line flex items-center justify-between gap-2 shadow-2xs">
                 <span className="text-xs font-mono text-tn-muted truncate max-w-[260px]">
                   {shareableUrl}
