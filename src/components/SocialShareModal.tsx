@@ -5,30 +5,90 @@ import {
   Download, 
   Share2, 
   Check, 
-  Smartphone, 
-  Square, 
-  Ticket, 
-  Image as ImageIcon, 
-  Quote, 
   Copy, 
-  Sparkles, 
-  Palette,
-  MessageCircle,
-  Eye,
-  EyeOff
+  ChevronRight,
+  Sparkles,
+  Layers,
+  Sliders,
+  ExternalLink
 } from 'lucide-react';
 import type { ReviewEntry, Play } from '../types';
 
-interface SocialShareModalProps {
+export interface SocialShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   review?: ReviewEntry | null;
   play: Play;
 }
 
-type AspectRatio = '9:16' | '1:1' | '16:9';
-type CardStyle = 'ticket' | 'poster' | 'quote';
-type ColorTheme = 'paper' | 'dark' | 'crimson';
+export type AspectRatio = '9:16' | '1:1' | '16:9';
+export type ShareTemplate = 'ticket' | 'poster' | 'quote' | 'curtain' | 'applause' | 'program';
+
+interface TemplateMeta {
+  id: ShareTemplate;
+  label: string;
+  badge: string;
+  desc: string;
+  bgPreview: string;
+  iconText: string;
+}
+
+const TEMPLATES: TemplateMeta[] = [
+  {
+    id: 'ticket',
+    label: 'Bilet Koçanı',
+    badge: '01',
+    desc: 'Kesilen biletin kendisi: karanlık sahnede, spot altında, koçan yırtık.',
+    bgPreview: '#1C1A1B',
+    iconText: '№',
+  },
+  {
+    id: 'poster',
+    label: 'Afiş',
+    badge: '02',
+    desc: 'Kırmızı tipografik tiyatro afişi. Oyun adı sayfayı doldurur.',
+    bgPreview: '#BA1B23',
+    iconText: 'Aa',
+  },
+  {
+    id: 'quote',
+    label: 'Alıntı',
+    badge: '03',
+    desc: 'Notun kendisi başrolde; kağıt beyazı ve dev kırmızı tırnak.',
+    bgPreview: '#FAF8F5',
+    iconText: '“',
+  },
+  {
+    id: 'curtain',
+    label: 'Perde',
+    badge: '04',
+    desc: 'Kadife perde açılıyor, ortada kemerli pencerede biletin.',
+    bgPreview: '#8A171D',
+    iconText: '∩',
+  },
+  {
+    id: 'applause',
+    label: 'Alkış',
+    badge: '05',
+    desc: 'Alkış ölçeği görselleşiyor: dev puan ve yükselen çubuklar.',
+    bgPreview: '#141414',
+    iconText: 'ıll',
+  },
+  {
+    id: 'program',
+    label: 'Program',
+    badge: '06',
+    desc: 'Tiyatro programı kapağı: künye satırları noktalı çizgilerle.',
+    bgPreview: '#F5EEDB',
+    iconText: '≡',
+  },
+];
+
+const RESOLUTIONS: Record<AspectRatio, { width: number; height: number; label: string; text: string }> = {
+  '9:16': { width: 1080, height: 1920, label: '9:16', text: '1080×1920' },
+  '1:1': { width: 1080, height: 1080, label: '1:1', text: '1080×1080' },
+  '16:9': { width: 1920, height: 1080, label: '16:9', text: '1920×1080' },
+};
 
 function renderStars(rating: number): string {
   const full = Math.floor(rating);
@@ -37,10 +97,10 @@ function renderStars(rating: number): string {
 }
 
 function getBadgeTitle(rating: number): string {
-  if (rating >= 4.5) return 'Ayakta Alkış';
-  if (rating >= 3.5) return 'Tavsiye Edilir';
-  if (rating >= 2.5) return 'İzlenebilir';
-  return 'Kararsız';
+  if (rating >= 4.5) return 'AYAKTA ALKIŞ';
+  if (rating >= 3.5) return 'TAVSİYE EDİLİR';
+  if (rating >= 2.5) return 'İZLENEBİLİR';
+  return 'KARARSIZ';
 }
 
 function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, font: string): string[] {
@@ -68,1431 +128,1360 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number,
   return lines;
 }
 
-function getFittedLines(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number,
-  maxHeight: number,
-  idealFontSize = 34,
-  minFontSize = 16,
-  lineHeightRatio = 1.35,
-  fontFamily = "'Newsreader', Georgia, serif",
-  fontStyle = 'italic'
-): { lines: string[]; fontSize: number; lineHeight: number } {
-  let fontSize = idealFontSize;
-  while (fontSize > minFontSize) {
-    const fontStr = `${fontStyle} ${fontSize}px ${fontFamily}`;
-    const lines = wrapText(ctx, text, maxWidth, fontStr);
-    const lineHeight = Math.round(fontSize * lineHeightRatio);
-    if (lines.length * lineHeight <= maxHeight) {
-      return { lines, fontSize, lineHeight };
-    }
-    fontSize -= 2;
-  }
-  const fontStr = `${fontStyle} ${minFontSize}px ${fontFamily}`;
-  const lines = wrapText(ctx, text, maxWidth, fontStr);
-  const lineHeight = Math.round(minFontSize * lineHeightRatio);
-  return { lines, fontSize: minFontSize, lineHeight };
-}
-
-function drawBarcode(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, color: string) {
-  ctx.save();
-  ctx.fillStyle = color;
-  const pattern = [2, 1, 3, 2, 4, 1, 2, 3, 1, 4, 2, 1, 3, 2, 1, 2, 4, 1, 3, 2, 2, 1, 4, 2, 1, 3, 2, 1, 4, 2, 3, 1, 2, 1, 3];
-  const totalUnits = pattern.reduce((a, b) => a + b, 0) + (pattern.length - 1) * 2;
-  const unitW = width / totalUnits;
-  let curX = x;
-  for (let i = 0; i < pattern.length; i++) {
-    const barW = pattern[i] * unitW;
-    ctx.fillRect(curX, y, barW, height);
-    curX += barW + 2 * unitW;
-  }
-  ctx.restore();
-}
-
-function drawStamp(ctx: CanvasRenderingContext2D, x: number, y: number, text: string, color: string, angleRad = -0.07) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(angleRad);
-  ctx.font = "800 24px 'Newsreader', Georgia, serif";
-  const metrics = ctx.measureText(text);
-  const padX = 18;
-  const padY = 8;
-  const rectW = metrics.width + padX * 2;
-  const rectH = 42;
-  
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2.5;
-  ctx.strokeRect(-rectW / 2, -rectH / 2, rectW, rectH);
-  
-  ctx.fillStyle = color;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(text, 0, 1);
-  ctx.restore();
-}
-
 export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   isOpen,
   onClose,
   review,
   play,
 }) => {
+  const [activeTab, setActiveTab] = useState<'studio' | 'gallery'>('studio');
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('9:16');
-  const [cardStyle, setCardStyle] = useState<CardStyle>(review ? 'ticket' : 'poster');
-  const [colorTheme, setColorTheme] = useState<ColorTheme>('paper');
+  const [template, setTemplate] = useState<ShareTemplate>('ticket');
+  
+  // Toggles matching screens
+  const [showAuthor, setShowAuthor] = useState<boolean>(true);
+  const [showReviewText, setShowReviewText] = useState<boolean>(true);
+  const [showSeat, setShowSeat] = useState<boolean>(true);
+
+  // Share destination sheet
+  const [isDestinationOpen, setIsDestinationOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [shared, setShared] = useState(false);
-  const [copiedImage, setCopiedImage] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
-  // Review-specific options
-  const [showAuthor, setShowAuthor] = useState<boolean>(true);
-  const [showSession, setShowSession] = useState<boolean>(true);
-  const [showReviewText, setShowReviewText] = useState<boolean>(true);
-  const [maskSpoiler, setMaskSpoiler] = useState<boolean>(Boolean(review?.hasSpoilers));
-  const [customExcerpt, setCustomExcerpt] = useState<string>('');
+  // Derived effective values
+  const effectiveRating = review ? review.rating : (play.rating || 5.0);
+  const effectiveAuthor = (showAuthor && review?.userName) 
+    ? review.userName 
+    : 'Atahan Uysaler';
+  const effectiveDate = review?.performanceDate || '10.09.2026';
+  const effectiveSession = review?.sessionType ? (review.sessionType === 'matine' ? 'Matine' : 'Suare') : 'Suare';
+  const effectiveVenue = review?.venue || play.venue || 'Zorlu PSM';
+  const effectiveSeat = review?.seatInfo || 'Parter Orta';
+  const effectiveNote = (review?.reviewText?.trim() || play.synopsis || 'Gözlerimi sahneden alamadım, mutlaka izlenmeli.').trim();
+  const serialNo = `IST-TN-${(effectiveDate).slice(0, 4)}-${(review?.id || play.id || '2026').slice(-4).toUpperCase()}`;
+  const shareableUrl = `tiyatronot.uyslab.com/bilet/${serialNo}`;
 
-  const previewImgRef = useRef<HTMLImageElement>(null);
-
+  // Close on Escape key
   useEffect(() => {
-    if (review) {
-      setCustomExcerpt(review.reviewText || play.synopsis || '');
-      setShowSession(Boolean(review.sessionType));
-      setMaskSpoiler(Boolean(review.hasSpoilers));
-      setShowAuthor(Boolean(review.userName));
-    } else {
-      setCustomExcerpt(play.synopsis || '');
-      setShowSession(false);
-      setMaskSpoiler(false);
-      setShowAuthor(false);
-    }
-  }, [review, play]);
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isDestinationOpen) {
+          setIsDestinationOpen(false);
+        } else {
+          onClose();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isDestinationOpen, onClose]);
 
-  const effectiveRating = review ? review.rating : play.rating;
-  const effectiveDate = review?.performanceDate || `${play.year}`;
-  const effectiveVenue = review?.venue || play.venue;
-  const effectiveSession = review?.sessionType || 'suare';
-  const serialNo = `IST-TN-${(review?.performanceDate || '2026').slice(0, 4)}-${(review?.id || play.id).slice(-4).toUpperCase()}`;
-  
-  const displayedText = (maskSpoiler && review?.hasSpoilers)
-    ? '★ Perde Arkası: Sürpriz Bozan (Spoiler) Korumalı Not ★'
-    : customExcerpt.trim();
-
-  // Palette color definitions
-  const palettes = {
-    paper: {
-      bg: '#FAF8F5',
-      ticket: '#FFFCF7',
-      text: '#1C1A1B',
-      subText: '#6E6862',
-      accent: '#BA1B23',
-      border: '#E2DCD4',
-      divider: '#D8D2CA',
-      surface: '#F1EDE7',
-      star: '#BA1B23',
-      gold: '#E4B33A',
-      purple: '#7C3AED',
-      blue: '#2563EB',
-    },
-    dark: {
-      bg: '#141414',
-      ticket: '#1F1D1E',
-      text: '#F3EFEA',
-      subText: '#A8A199',
-      accent: '#BA1B23',
-      border: '#332F31',
-      divider: '#443E40',
-      surface: '#2A2729',
-      star: '#E4B33A',
-      gold: '#E4B33A',
-      purple: '#A78BFA',
-      blue: '#60A5FA',
-    },
-    crimson: {
-      bg: '#5A0C11',
-      ticket: '#771219',
-      text: '#FFFFFF',
-      subText: '#F4D6D8',
-      accent: '#FFFCF7',
-      border: '#9B1E27',
-      divider: '#9B1E27',
-      surface: '#681016',
-      star: '#FFFCF7',
-      gold: '#F6D365',
-      purple: '#DDD6FE',
-      blue: '#BFDBFE',
-    },
-  };
-
-  const currentPalette = palettes[colorTheme];
-
-  // Canvas drawing routine
-  const drawCard = useCallback(async (): Promise<HTMLCanvasElement | null> => {
+  // High-res Canvas drawing routine
+  const generateCanvas = useCallback(async (
+    targetTpl: ShareTemplate = template, 
+    targetRatio: AspectRatio = aspectRatio
+  ): Promise<HTMLCanvasElement | null> => {
     const canvas = document.createElement('canvas');
-    let width = 1080;
-    let height = 1920;
-
-    if (aspectRatio === '1:1') {
-      width = 1080;
-      height = 1080;
-    } else if (aspectRatio === '16:9') {
-      width = 1200;
-      height = 630;
-    }
-
+    const { width, height } = RESOLUTIONS[targetRatio];
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
-    const pal = palettes[colorTheme];
-
-    // Background fill
-    ctx.fillStyle = pal.bg;
-    ctx.fillRect(0, 0, width, height);
-
-    // Poster Image loader
-    let img: HTMLImageElement | null = previewImgRef.current ?? null;
-    let posterLoaded = !!(img && img.complete && img.naturalWidth > 0);
-
-    if (!posterLoaded && play.posterUrl) {
-      await new Promise<void>(resolve => {
-        const tempImg = new Image();
-        tempImg.crossOrigin = 'anonymous';
-        tempImg.onload = () => {
-          img = tempImg;
-          posterLoaded = true;
-          resolve();
-        };
-        tempImg.onerror = () => resolve();
-        tempImg.src = play.posterUrl;
-      });
-    }
+    // Smooth typography
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
     // ----------------------------------------------------
-    // STYLE 1: CLASSIC TICKET STUB (BİLET KOÇANI)
+    // TEMPLATE 1: BİLET KOÇANI
     // ----------------------------------------------------
-    if (cardStyle === 'ticket') {
-      if (aspectRatio === '9:16') {
-        // 9:16 Story Ticket (1080x1920)
-        const tX = 72;
-        const tY = 96;
-        const tW = 1080 - 144;
-        const tH = 1920 - 192;
-        const radius = 24;
+    if (targetTpl === 'ticket') {
+      // Dark vignette stage background
+      ctx.fillStyle = '#141414';
+      ctx.fillRect(0, 0, width, height);
 
-        // Draw Ticket Container
+      const grad = ctx.createRadialGradient(width / 2, height * 0.45, 100, width / 2, height * 0.45, width * 0.7);
+      grad.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0.8)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+
+      if (targetRatio === '16:9') {
+        // 16:9: Ticket torn into two pieces lying side-by-side!
+        // Left Piece (Main Body)
+        const leftW = 1000;
+        const leftH = 820;
+        const leftX = 140;
+        const leftY = 130;
+
         ctx.save();
-        ctx.fillStyle = pal.ticket;
-        ctx.shadowColor = 'rgba(0,0,0,0.14)';
-        ctx.shadowBlur = 32;
-        ctx.shadowOffsetY = 12;
+        ctx.fillStyle = '#FFFCF7';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+        ctx.shadowBlur = 40;
+        ctx.shadowOffsetY = 16;
         ctx.beginPath();
-        ctx.roundRect(tX, tY, tW, tH, radius);
+        ctx.roundRect(leftX, leftY, leftW, leftH, [24, 8, 8, 24]);
         ctx.fill();
         ctx.restore();
 
-        ctx.strokeStyle = pal.border;
-        ctx.lineWidth = 2;
+        // Right Piece (Torn Stub)
+        const rightW = 540;
+        const rightH = 820;
+        const rightX = 1240;
+        const rightY = 130;
+
+        ctx.save();
+        ctx.fillStyle = '#FFFCF7';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+        ctx.shadowBlur = 40;
+        ctx.shadowOffsetY = 16;
         ctx.beginPath();
-        ctx.roundRect(tX, tY, tW, tH, radius);
-        ctx.stroke();
+        ctx.roundRect(rightX, rightY, rightW, rightH, [8, 24, 24, 8]);
+        ctx.fill();
+        ctx.restore();
 
-        // Ticket Header Area
-        let curY = tY + 64;
-        ctx.fillStyle = pal.subText;
+        // Left Piece Content
+        ctx.fillStyle = '#6E6862';
         ctx.font = "600 24px 'Newsreader', Georgia, serif";
-        ctx.textAlign = 'center';
-        ctx.fillText(`BİLET NO · ${serialNo}`, 540, curY);
+        ctx.fillText(`TİYATRO·NOT · ${serialNo}`, leftX + 60, leftY + 70);
 
-        curY += 50;
-        if (showSession) {
-          const sessionLabel = effectiveSession === 'matine' ? 'ÖĞLE MATİNESİ' : 'AKŞAM SUARESİ';
-          ctx.fillStyle = pal.text;
-          ctx.font = "800 36px 'Newsreader', Georgia, serif";
-          ctx.fillText(`★ ${sessionLabel} ★`, 540, curY);
-          curY += 46;
+        ctx.fillStyle = '#1C1A1B';
+        ctx.font = "800 68px 'Newsreader', Georgia, serif";
+        ctx.fillText(play.title, leftX + 60, leftY + 160);
+
+        ctx.fillStyle = '#6E6862';
+        ctx.font = "italic 32px 'Newsreader', Georgia, serif";
+        ctx.fillText(play.playwright || 'Arthur Miller', leftX + 60, leftY + 220);
+
+        if (showSeat) {
+          ctx.font = "600 22px 'Newsreader', Georgia, serif";
+          ctx.fillStyle = '#4A4541';
+          ctx.fillText(`TARİH: ${effectiveDate}    SEANS: ${effectiveSession.toUpperCase()}    SAHNE: ${effectiveVenue}`, leftX + 60, leftY + 300);
         }
 
-        ctx.fillStyle = pal.subText;
-        ctx.font = "italic 26px 'Newsreader', Georgia, serif";
-        ctx.fillText(`${effectiveVenue} · ${effectiveDate}`, 540, curY);
-        curY += 36;
+        if (showReviewText && effectiveNote) {
+          ctx.fillStyle = '#1C1A1B';
+          ctx.font = "italic 36px 'Newsreader', Georgia, serif";
+          const quoteLines = wrapText(ctx, `“${effectiveNote}”`, leftW - 120, "italic 36px 'Newsreader', Georgia, serif");
+          let qY = leftY + 390;
+          for (const line of quoteLines.slice(0, 3)) {
+            ctx.fillText(line, leftX + 60, qY);
+            qY += 50;
+          }
+        }
+
+        if (showAuthor) {
+          ctx.fillStyle = '#6E6862';
+          ctx.font = "italic 26px 'Newsreader', Georgia, serif";
+          ctx.fillText(`${effectiveAuthor} · Seyirci Günlüğü`, leftX + 60, leftY + leftH - 60);
+        }
+
+        // Right Piece Content (Stub)
+        ctx.save();
+        ctx.translate(rightX + 270, rightY + 200);
+        ctx.rotate(-0.06);
+        ctx.strokeStyle = '#BA1B23';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(-160, -45, 320, 90);
+        ctx.fillStyle = '#BA1B23';
+        ctx.font = "800 36px 'Newsreader', Georgia, serif";
+        ctx.textAlign = 'center';
+        ctx.fillText('GİRİŞ ONAYLI', 0, 12);
+        ctx.restore();
+
+        ctx.fillStyle = '#1C1A1B';
+        ctx.font = "800 100px 'Newsreader', Georgia, serif";
+        ctx.textAlign = 'center';
+        ctx.fillText(effectiveRating.toFixed(1), rightX + 270, rightY + 450);
+
+        ctx.fillStyle = '#BA1B23';
+        ctx.font = "bold 32px 'Newsreader', Georgia, serif";
+        ctx.fillText(getBadgeTitle(effectiveRating), rightX + 270, rightY + 510);
 
         // Barcode
-        drawBarcode(ctx, 540 - 240, curY, 480, 52, pal.text);
-        curY += 80;
+        ctx.fillStyle = '#1C1A1B';
+        ctx.fillRect(rightX + 110, rightY + 600, 320, 70);
+      } else {
+        // 9:16 or 1:1 format
+        const tW = targetRatio === '9:16' ? 920 : 880;
+        const tH = targetRatio === '9:16' ? 1580 : 920;
+        const tX = (width - tW) / 2;
+        const tY = (height - tH) / 2;
 
-        // Stamp
-        drawStamp(ctx, 540, curY, 'GİRİŞ ONAYLI', pal.accent, -0.06);
-        curY += 70;
-
-        // Perforation dashed line with bite notches
-        const perfY = curY;
         ctx.save();
-        ctx.strokeStyle = pal.divider;
-        ctx.lineWidth = 3;
-        ctx.setLineDash([16, 12]);
+        ctx.fillStyle = '#FFFCF7';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+        ctx.shadowBlur = 50;
+        ctx.shadowOffsetY = 20;
         ctx.beginPath();
-        ctx.moveTo(tX + 32, perfY);
-        ctx.lineTo(tX + tW - 32, perfY);
-        ctx.stroke();
+        ctx.roundRect(tX, tY, tW, tH, 24);
+        ctx.fill();
         ctx.restore();
 
-        // Cutout bite notches
-        ctx.fillStyle = pal.bg;
-        ctx.beginPath();
-        ctx.arc(tX, perfY, 26, -Math.PI / 2, Math.PI / 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(tX + tW, perfY, 26, Math.PI / 2, (Math.PI * 3) / 2);
-        ctx.fill();
+        // Torn top teeth (koçan yırtık)
+        ctx.fillStyle = '#141414';
+        const teethCount = 18;
+        const toothW = tW / teethCount;
+        for (let i = 0; i < teethCount; i++) {
+          ctx.beginPath();
+          ctx.arc(tX + i * toothW + toothW / 2, tY, 9, 0, Math.PI);
+          ctx.fill();
+        }
 
+        // Header
+        ctx.fillStyle = '#6E6862';
+        ctx.font = "600 24px 'Newsreader', Georgia, serif";
+        ctx.textAlign = 'left';
+        ctx.fillText(`TİYATRO·NOT`, tX + 70, tY + 80);
+        ctx.textAlign = 'right';
+        ctx.fillText(serialNo, tX + tW - 70, tY + 80);
+
+        // Title
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#1C1A1B';
+        ctx.font = targetRatio === '9:16' ? "800 76px 'Newsreader', Georgia, serif" : "800 64px 'Newsreader', Georgia, serif";
+        const titleLines = wrapText(ctx, play.title, tW - 140, ctx.font);
+        let curY = tY + 180;
+        for (const line of titleLines.slice(0, 2)) {
+          ctx.fillText(line, tX + 70, curY);
+          curY += targetRatio === '9:16' ? 84 : 70;
+        }
+
+        ctx.fillStyle = '#6E6862';
+        ctx.font = "italic 36px 'Newsreader', Georgia, serif";
+        ctx.fillText(play.playwright || 'Arthur Miller', tX + 70, curY + 10);
         curY += 60;
 
-        // Play Title
-        ctx.fillStyle = pal.text;
-        ctx.font = "800 56px 'Newsreader', Georgia, serif";
-        ctx.textAlign = 'left';
-        const titleLines = wrapText(ctx, play.title, tW - 120, "800 56px 'Newsreader', Georgia, serif");
-        for (const line of titleLines.slice(0, 2)) {
-          ctx.fillText(line, tX + 60, curY);
-          curY += 64;
-        }
-
-        ctx.fillStyle = pal.subText;
-        ctx.font = "italic 28px 'Newsreader', Georgia, serif";
-        ctx.fillText(`${play.playwright} · ${play.company}`, tX + 60, curY);
-        curY += 56;
-
-        // Rating & Badge row
-        ctx.fillStyle = pal.star;
-        ctx.font = "bold 52px 'Newsreader', Georgia, serif";
-        ctx.fillText(renderStars(effectiveRating), tX + 60, curY);
-
-        ctx.fillStyle = pal.text;
-        ctx.font = "800 44px 'Newsreader', Georgia, serif";
-        ctx.fillText(`${effectiveRating.toFixed(1)}`, tX + 320, curY - 2);
-
-        ctx.fillStyle = pal.subText;
-        ctx.font = "italic 24px 'Newsreader', Georgia, serif";
-        ctx.fillText('/ 5.0', tX + 390, curY - 4);
-
-        ctx.fillStyle = pal.accent;
-        ctx.font = "800 24px 'Newsreader', Georgia, serif";
-        ctx.fillText(getBadgeTitle(effectiveRating), tX + 470, curY - 4);
-        curY += 46;
-
-        // Sub ratings (Cast & Production) if present
-        if (review?.performanceRating || review?.technicalRating) {
-          let badgeX = tX + 60;
-          if (review?.performanceRating) {
-            ctx.fillStyle = pal.purple;
-            ctx.font = "800 22px 'Newsreader', Georgia, serif";
-            ctx.fillText(`★ Oyuncular: ${review.performanceRating}/5`, badgeX, curY);
-            badgeX += 260;
-          }
-          if (review?.technicalRating) {
-            ctx.fillStyle = pal.blue;
-            ctx.font = "800 22px 'Newsreader', Georgia, serif";
-            ctx.fillText(`★ Prodüksiyon: ${review.technicalRating}/5`, badgeX, curY);
-          }
-          curY += 46;
-        }
-
-        // Review Quote / Note Excerpt
-        if (showReviewText && displayedText) {
-          const availH = (tY + tH) - curY - 220;
-          const { lines: quoteLines, fontSize: qSize, lineHeight: qLineH } = getFittedLines(
-            ctx,
-            `“${displayedText}”`,
-            tW - 140,
-            availH,
-            38,
-            20
-          );
-
-          ctx.fillStyle = pal.text;
-          ctx.font = `italic ${qSize}px 'Newsreader', Georgia, serif`;
-          for (const line of quoteLines) {
-            ctx.fillText(line, tX + 70, curY + qSize);
-            curY += qLineH;
-          }
-        }
-
-        // Bottom User & Watermark Footer
-        const footerY = tY + tH - 72;
-        ctx.save();
-        ctx.strokeStyle = pal.border;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(tX + 60, footerY - 50);
-        ctx.lineTo(tX + tW - 60, footerY - 50);
-        ctx.stroke();
-        ctx.restore();
-
-        if (showAuthor && review?.userName) {
-          // User Avatar Initials
-          ctx.fillStyle = pal.accent;
-          ctx.beginPath();
-          ctx.arc(tX + 90, footerY - 8, 28, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.fillStyle = '#FFFFFF';
-          ctx.font = "800 22px 'Newsreader', Georgia, serif";
-          ctx.textAlign = 'center';
-          ctx.fillText(review.userName.slice(0, 2).toUpperCase(), tX + 90, footerY);
-
-          ctx.textAlign = 'left';
-          ctx.fillStyle = pal.text;
-          ctx.font = "800 26px 'Newsreader', Georgia, serif";
-          ctx.fillText(review.userName, tX + 130, footerY - 14);
-
-          ctx.fillStyle = pal.subText;
-          ctx.font = "italic 20px 'Newsreader', Georgia, serif";
-          ctx.fillText('Seyirci Günlüğü', tX + 130, footerY + 12);
-        }
-
-        ctx.textAlign = 'right';
-        ctx.fillStyle = pal.subText;
-        ctx.font = "italic 22px 'Newsreader', Georgia, serif";
-        ctx.fillText('TİYATRONOT · tiyatronot.com', tX + tW - 60, footerY);
-
-      } else if (aspectRatio === '1:1') {
-        // 1:1 Square Ticket (1080x1080)
-        const tX = 54;
-        const tY = 54;
-        const tW = 1080 - 108;
-        const tH = 1080 - 108;
-        const radius = 20;
-
-        ctx.fillStyle = pal.ticket;
-        ctx.beginPath();
-        ctx.roundRect(tX, tY, tW, tH, radius);
-        ctx.fill();
-
-        ctx.strokeStyle = pal.border;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.roundRect(tX, tY, tW, tH, radius);
-        ctx.stroke();
-
-        // Left Stub (Width: 320)
-        const stubW = 320;
-        ctx.fillStyle = pal.surface;
-        ctx.beginPath();
-        ctx.roundRect(tX, tY, stubW, tH, [radius, 0, 0, radius]);
-        ctx.fill();
-
-        // Left Stub info
-        ctx.textAlign = 'center';
-        ctx.fillStyle = pal.subText;
-        ctx.font = "600 18px 'Newsreader', Georgia, serif";
-        ctx.fillText(serialNo, tX + stubW / 2, tY + 60);
-
-        if (showSession) {
-          ctx.fillStyle = pal.text;
-          ctx.font = "800 24px 'Newsreader', Georgia, serif";
-          ctx.fillText(effectiveSession === 'matine' ? 'ÖĞLE MATİNESİ' : 'AKŞAM SUARESİ', tX + stubW / 2, tY + 110);
-        }
-
-        ctx.fillStyle = pal.subText;
-        ctx.font = "italic 20px 'Newsreader', Georgia, serif";
-        ctx.fillText(effectiveDate, tX + stubW / 2, tY + 155);
-
-        // Barcode in stub
-        drawBarcode(ctx, tX + 30, tY + 210, stubW - 60, 44, pal.text);
-
-        // Stamp in stub
-        drawStamp(ctx, tX + stubW / 2, tY + 340, 'GİRİŞ ONAYLI', pal.accent, -0.08);
-
-        // Vertical Perforation Line
-        ctx.save();
-        ctx.strokeStyle = pal.divider;
-        ctx.lineWidth = 2.5;
-        ctx.setLineDash([12, 10]);
-        ctx.beginPath();
-        ctx.moveTo(tX + stubW, tY);
-        ctx.lineTo(tX + stubW, tY + tH);
-        ctx.stroke();
-        ctx.restore();
-
-        // Cutout bite notches
-        ctx.fillStyle = pal.bg;
-        ctx.beginPath();
-        ctx.arc(tX + stubW, tY, 20, 0, Math.PI);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(tX + stubW, tY + tH, 20, Math.PI, 0);
-        ctx.fill();
-
-        // Right Content Area
-        const rx = tX + stubW + 48;
-        const rMaxW = tW - stubW - 96;
-        let curY = tY + 70;
-
-        ctx.fillStyle = pal.text;
-        ctx.font = "800 46px 'Newsreader', Georgia, serif";
-        ctx.textAlign = 'left';
-        const titleLines = wrapText(ctx, play.title, rMaxW, "800 46px 'Newsreader', Georgia, serif");
-        for (const line of titleLines.slice(0, 2)) {
-          ctx.fillText(line, rx, curY);
-          curY += 52;
-        }
-
-        ctx.fillStyle = pal.subText;
-        ctx.font = "italic 24px 'Newsreader', Georgia, serif";
-        ctx.fillText(`${play.playwright} · ${effectiveVenue}`, rx, curY);
-        curY += 56;
-
-        // Rating
-        ctx.fillStyle = pal.star;
-        ctx.font = "bold 44px 'Newsreader', Georgia, serif";
-        ctx.fillText(renderStars(effectiveRating), rx, curY);
-
-        ctx.fillStyle = pal.text;
-        ctx.font = "800 36px 'Newsreader', Georgia, serif";
-        ctx.fillText(`${effectiveRating.toFixed(1)} / 5.0`, rx + 260, curY - 4);
-
-        ctx.fillStyle = pal.accent;
-        ctx.font = "800 20px 'Newsreader', Georgia, serif";
-        ctx.fillText(getBadgeTitle(effectiveRating), rx + 440, curY - 4);
-        curY += 50;
-
-        // Review Text
-        if (showReviewText && displayedText) {
-          const availH = (tY + tH) - curY - 120;
-          const { lines: qLines, fontSize: qSize, lineHeight: qLineH } = getFittedLines(
-            ctx,
-            `“${displayedText}”`,
-            rMaxW,
-            availH,
-            32,
-            18
-          );
-          ctx.fillStyle = pal.text;
-          ctx.font = `italic ${qSize}px 'Newsreader', Georgia, serif`;
-          for (const line of qLines) {
-            ctx.fillText(line, rx, curY + qSize);
-            curY += qLineH;
-          }
-        }
-
-        // Bottom Author & Brand
-        const footerY = tY + tH - 44;
-        if (showAuthor && review?.userName) {
-          ctx.fillStyle = pal.text;
-          ctx.font = "800 22px 'Newsreader', Georgia, serif";
-          ctx.fillText(`Seyirci: ${review.userName}`, rx, footerY);
-        }
-        ctx.textAlign = 'right';
-        ctx.fillStyle = pal.subText;
-        ctx.font = "italic 20px 'Newsreader', Georgia, serif";
-        ctx.fillText('tiyatronot.com', tX + tW - 48, footerY);
-
-      } else {
-        // 16:9 Landscape / Twitter (1200x630)
-        const tX = 40;
-        const tY = 40;
-        const tW = 1200 - 80;
-        const tH = 630 - 80;
-        const radius = 20;
-
-        ctx.fillStyle = pal.ticket;
-        ctx.beginPath();
-        ctx.roundRect(tX, tY, tW, tH, radius);
-        ctx.fill();
-
-        ctx.strokeStyle = pal.border;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.roundRect(tX, tY, tW, tH, radius);
-        ctx.stroke();
-
-        // Left Stub (340px)
-        const stubW = 340;
-        ctx.fillStyle = pal.surface;
-        ctx.beginPath();
-        ctx.roundRect(tX, tY, stubW, tH, [radius, 0, 0, radius]);
-        ctx.fill();
-
-        ctx.textAlign = 'center';
-        ctx.fillStyle = pal.accent;
-        ctx.font = "800 26px 'Newsreader', Georgia, serif";
-        ctx.fillText('TİYATRONOT', tX + stubW / 2, tY + 64);
-
-        ctx.fillStyle = pal.subText;
-        ctx.font = "600 18px 'Newsreader', Georgia, serif";
-        ctx.fillText(serialNo, tX + stubW / 2, tY + 104);
-
-        if (showSession) {
-          ctx.fillStyle = pal.text;
-          ctx.font = "800 20px 'Newsreader', Georgia, serif";
-          ctx.fillText(effectiveSession === 'matine' ? 'ÖĞLE MATİNESİ' : 'AKŞAM SUARESİ', tX + stubW / 2, tY + 144);
-        }
-
-        ctx.fillStyle = pal.subText;
-        ctx.font = "italic 18px 'Newsreader', Georgia, serif";
-        ctx.fillText(`${effectiveVenue} · ${effectiveDate}`, tX + stubW / 2, tY + 180);
-
-        drawBarcode(ctx, tX + 30, tY + 220, stubW - 60, 40, pal.text);
-        drawStamp(ctx, tX + stubW / 2, tY + 340, 'GİRİŞ ONAYLI', pal.accent, -0.06);
-
-        if (showAuthor && review?.userName) {
-          ctx.fillStyle = pal.text;
-          ctx.font = "800 20px 'Newsreader', Georgia, serif";
-          ctx.fillText(`@${review.userName}`, tX + stubW / 2, tY + tH - 44);
-        }
-
-        // Perforation
-        ctx.save();
-        ctx.strokeStyle = pal.divider;
-        ctx.lineWidth = 2.5;
-        ctx.setLineDash([12, 10]);
-        ctx.beginPath();
-        ctx.moveTo(tX + stubW, tY);
-        ctx.lineTo(tX + stubW, tY + tH);
-        ctx.stroke();
-        ctx.restore();
-
-        // Notches
-        ctx.fillStyle = pal.bg;
-        ctx.beginPath();
-        ctx.arc(tX + stubW, tY, 18, 0, Math.PI);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(tX + stubW, tY + tH, 18, Math.PI, 0);
-        ctx.fill();
-
-        // Right side
-        const rx = tX + stubW + 48;
-        const rMaxW = tW - stubW - 96;
-        let curY = tY + 68;
-
-        ctx.textAlign = 'left';
-        ctx.fillStyle = pal.text;
-        ctx.font = "800 44px 'Newsreader', Georgia, serif";
-        const titleLines = wrapText(ctx, play.title, rMaxW, "800 44px 'Newsreader', Georgia, serif");
-        for (const line of titleLines.slice(0, 1)) {
-          ctx.fillText(line, rx, curY);
+        if (showSeat) {
+          ctx.font = "600 22px 'Newsreader', Georgia, serif";
+          ctx.fillStyle = '#4A4541';
+          ctx.fillText(`TARİH: ${effectiveDate}    SEANS: ${effectiveSession.toUpperCase()}    SAHNE: ${effectiveVenue}`, tX + 70, curY + 20);
           curY += 50;
         }
 
-        ctx.fillStyle = pal.subText;
-        ctx.font = "italic 22px 'Newsreader', Georgia, serif";
-        ctx.fillText(`${play.playwright} · ${play.company}`, rx, curY);
-        curY += 46;
-
-        ctx.fillStyle = pal.star;
-        ctx.font = "bold 40px 'Newsreader', Georgia, serif";
-        ctx.fillText(renderStars(effectiveRating), rx, curY);
-
-        ctx.fillStyle = pal.text;
-        ctx.font = "800 32px 'Newsreader', Georgia, serif";
-        ctx.fillText(`${effectiveRating.toFixed(1)} / 5.0`, rx + 240, curY - 4);
-
-        ctx.fillStyle = pal.accent;
-        ctx.font = "800 20px 'Newsreader', Georgia, serif";
-        ctx.fillText(getBadgeTitle(effectiveRating), rx + 400, curY - 4);
-        curY += 44;
-
-        if (showReviewText && displayedText) {
-          const availH = (tY + tH) - curY - 80;
-          const { lines: qLines, fontSize: qSize, lineHeight: qLineH } = getFittedLines(
-            ctx,
-            `“${displayedText}”`,
-            rMaxW,
-            availH,
-            28,
-            16
-          );
-          ctx.fillStyle = pal.text;
-          ctx.font = `italic ${qSize}px 'Newsreader', Georgia, serif`;
-          for (const line of qLines) {
-            ctx.fillText(line, rx, curY + qSize);
-            curY += qLineH;
+        if (showReviewText && effectiveNote) {
+          curY += 30;
+          ctx.fillStyle = '#1C1A1B';
+          ctx.font = targetRatio === '9:16' ? "italic 40px 'Newsreader', Georgia, serif" : "italic 32px 'Newsreader', Georgia, serif";
+          const quoteLines = wrapText(ctx, `“${effectiveNote}”`, tW - 140, ctx.font);
+          for (const line of quoteLines.slice(0, targetRatio === '9:16' ? 4 : 2)) {
+            ctx.fillText(line, tX + 70, curY);
+            curY += targetRatio === '9:16' ? 56 : 46;
           }
         }
 
-        const footerY = tY + tH - 36;
+        if (showAuthor) {
+          curY += 20;
+          ctx.fillStyle = '#6E6862';
+          ctx.font = "italic 26px 'Newsreader', Georgia, serif";
+          ctx.fillText(`${effectiveAuthor} · Seyirci Günlüğü`, tX + 70, curY);
+        }
+
+        // Bottom Section
+        const botY = tY + tH - 120;
+        // Stamp
+        ctx.save();
+        ctx.translate(tX + tW - 190, botY - 70);
+        ctx.rotate(-0.06);
+        ctx.strokeStyle = '#BA1B23';
+        ctx.lineWidth = 3.5;
+        ctx.strokeRect(-110, -32, 220, 64);
+        ctx.fillStyle = '#BA1B23';
+        ctx.font = "800 26px 'Newsreader', Georgia, serif";
+        ctx.textAlign = 'center';
+        ctx.fillText('GİRİŞ ONAYLI', 0, 9);
+        ctx.restore();
+
+        // Rating
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#1C1A1B';
+        ctx.font = "800 84px 'Newsreader', Georgia, serif";
+        ctx.fillText(effectiveRating.toFixed(1), tX + 70, botY);
+        ctx.fillStyle = '#BA1B23';
+        ctx.font = "bold 26px 'Newsreader', Georgia, serif";
+        ctx.fillText(getBadgeTitle(effectiveRating), tX + 220, botY - 20);
+
+        // Barcode
+        ctx.fillStyle = '#1C1A1B';
+        ctx.fillRect(tX + tW - 320, botY - 30, 250, 50);
+      }
+    }
+
+    // ----------------------------------------------------
+    // TEMPLATE 2: AFİŞ
+    // ----------------------------------------------------
+    else if (targetTpl === 'poster') {
+      ctx.fillStyle = '#BA1B23';
+      ctx.fillRect(0, 0, width, height);
+
+      // Top info
+      if (showSeat) {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = "800 24px 'Newsreader', Georgia, serif";
+        ctx.textAlign = 'left';
+        ctx.fillText(effectiveVenue.toUpperCase(), 80, 90);
         ctx.textAlign = 'right';
-        ctx.fillStyle = pal.subText;
-        ctx.font = "italic 18px 'Newsreader', Georgia, serif";
-        ctx.fillText('tiyatronot.com · Sahne Not Defteri', tX + tW - 48, footerY);
+        ctx.fillText(`${effectiveDate} - ${effectiveSession.toUpperCase()}`, width - 80, 90);
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(80, 120);
+        ctx.lineTo(width - 80, 120);
+        ctx.stroke();
       }
 
+      // Main Giant Title
+      ctx.fillStyle = '#FFFFFF';
+      ctx.textAlign = 'left';
+      const titleFont = targetRatio === '9:16' 
+        ? "800 130px 'Newsreader', Georgia, serif" 
+        : targetRatio === '1:1' 
+        ? "800 100px 'Newsreader', Georgia, serif" 
+        : "800 90px 'Newsreader', Georgia, serif";
+      ctx.font = titleFont;
+
+      const titleLines = wrapText(ctx, play.title, width - 160, titleFont);
+      let titleY = targetRatio === '16:9' ? 320 : 420;
+      for (const line of titleLines.slice(0, 2)) {
+        ctx.fillText(line, 80, titleY);
+        titleY += targetRatio === '9:16' ? 134 : 106;
+      }
+
+      ctx.font = "italic 52px 'Newsreader', Georgia, serif";
+      ctx.fillText(play.playwright || 'Arthur Miller', 80, titleY + 20);
+
+      // Bottom section
+      const bY = height - 320;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(80, bY);
+      ctx.lineTo(width - 80, bY);
+      ctx.stroke();
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = "800 34px 'Newsreader', Georgia, serif";
+      ctx.fillText(`★★★★★   ${getBadgeTitle(effectiveRating)}`, 80, bY + 60);
+
+      if (showReviewText && effectiveNote) {
+        ctx.font = "italic 36px 'Newsreader', Georgia, serif";
+        const qLines = wrapText(ctx, `“${effectiveNote}”`, width - 160, ctx.font);
+        let qY = bY + 130;
+        for (const l of qLines.slice(0, 2)) {
+          ctx.fillText(l, 80, qY);
+          qY += 50;
+        }
+      }
+
+      if (showAuthor) {
+        ctx.font = "600 24px 'Newsreader', Georgia, serif";
+        ctx.fillText(`Seyirci: ${effectiveAuthor}`, 80, height - 70);
+      }
+      ctx.textAlign = 'right';
+      ctx.fillText('TİYATRO·NOT', width - 80, height - 70);
+    }
+
     // ----------------------------------------------------
-    // STYLE 2: POSTER ART CARD (AFİŞ & BİLET)
+    // TEMPLATE 3: ALINTI
     // ----------------------------------------------------
-    } else if (cardStyle === 'poster') {
-      if (aspectRatio === '9:16') {
-        const posterH = 880;
-        if (posterLoaded && img) {
-          ctx.drawImage(img, 0, 0, 1080, posterH);
-        } else {
-          ctx.fillStyle = pal.surface;
-          ctx.fillRect(0, 0, 1080, posterH);
+    else if (targetTpl === 'quote') {
+      ctx.fillStyle = '#FAF8F5';
+      ctx.fillRect(0, 0, width, height);
+
+      // Giant red quotation mark
+      ctx.fillStyle = '#BA1B23';
+      ctx.font = "800 160px 'Newsreader', Georgia, serif";
+      ctx.textAlign = 'left';
+      ctx.fillText('“', 100, 220);
+
+      // Quote text
+      if (showReviewText && effectiveNote) {
+        ctx.fillStyle = '#1C1A1B';
+        const qFont = targetRatio === '9:16' 
+          ? "italic 62px 'Newsreader', Georgia, serif" 
+          : "italic 52px 'Newsreader', Georgia, serif";
+        ctx.font = qFont;
+        const qLines = wrapText(ctx, `“${effectiveNote}”`, width - 200, qFont);
+        let qY = 340;
+        for (const l of qLines.slice(0, 5)) {
+          ctx.fillText(l, 100, qY);
+          qY += targetRatio === '9:16' ? 82 : 70;
         }
+      }
 
-        // Gradient fade
-        const grad = ctx.createLinearGradient(0, posterH - 240, 0, posterH);
-        grad.addColorStop(0, 'rgba(0,0,0,0)');
-        grad.addColorStop(1, pal.bg);
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, posterH - 240, 1080, 240);
+      // Bottom Divider
+      const botY = height - 200;
+      ctx.strokeStyle = '#E2DCD4';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(100, botY);
+      ctx.lineTo(width - 100, botY);
+      ctx.stroke();
 
-        let curY = posterH + 60;
-        ctx.textAlign = 'center';
-        ctx.fillStyle = pal.text;
-        ctx.font = "800 58px 'Newsreader', Georgia, serif";
-        const titleLines = wrapText(ctx, play.title, 920, "800 58px 'Newsreader', Georgia, serif");
-        for (const line of titleLines.slice(0, 2)) {
-          ctx.fillText(line, 540, curY);
-          curY += 66;
+      if (showAuthor) {
+        ctx.fillStyle = '#1C1A1B';
+        ctx.font = "800 32px 'Newsreader', Georgia, serif";
+        ctx.fillText(`— ${effectiveAuthor}`, 100, botY + 50);
+      }
+
+      if (showSeat) {
+        ctx.fillStyle = '#6E6862';
+        ctx.font = "600 24px 'Newsreader', Georgia, serif";
+        ctx.fillText(`${play.title} · ${effectiveVenue} · ★ ${effectiveRating.toFixed(1)}`, 100, botY + 95);
+      }
+
+      ctx.fillStyle = '#1C1A1B';
+      ctx.font = "800 28px 'Newsreader', Georgia, serif";
+      ctx.textAlign = 'right';
+      ctx.fillText('TİYATRO·NOT', width - 100, botY + 70);
+    }
+
+    // ----------------------------------------------------
+    // TEMPLATE 4: PERDE
+    // ----------------------------------------------------
+    else if (targetTpl === 'curtain') {
+      // Crimson curtain with vertical drapes
+      ctx.fillStyle = '#8A171D';
+      ctx.fillRect(0, 0, width, height);
+
+      // Vertical pleats
+      for (let x = 0; x < width; x += 36) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.14)';
+        ctx.fillRect(x, 0, 18, height);
+      }
+
+      // Top golden rod
+      ctx.fillStyle = '#E4B33A';
+      ctx.fillRect(40, 40, width - 80, 14);
+
+      // Arched white window portal
+      const aW = targetRatio === '16:9' ? 1200 : width - 200;
+      const aH = targetRatio === '16:9' ? 700 : height - 380;
+      const aX = (width - aW) / 2;
+      const aY = targetRatio === '16:9' ? 140 : 200;
+
+      ctx.save();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = 40;
+      ctx.beginPath();
+      // Arch top, straight bottom
+      const r = Math.min(aW / 2, 140);
+      ctx.roundRect(aX, aY, aW, aH, [r, r, 16, 16]);
+      ctx.fill();
+      ctx.restore();
+
+      // Inside arch
+      ctx.fillStyle = '#BA1B23';
+      ctx.font = "800 24px 'Newsreader', Georgia, serif";
+      ctx.textAlign = 'center';
+      ctx.fillText('PERDE AÇILDI', width / 2, aY + 120);
+
+      ctx.fillStyle = '#1C1A1B';
+      ctx.font = targetRatio === '9:16' ? "800 68px 'Newsreader', Georgia, serif" : "800 56px 'Newsreader', Georgia, serif";
+      ctx.fillText(play.title, width / 2, aY + 210);
+
+      ctx.fillStyle = '#6E6862';
+      ctx.font = "italic 32px 'Newsreader', Georgia, serif";
+      ctx.fillText(`${play.playwright || 'Arthur Miller'} · ${effectiveVenue}`, width / 2, aY + 270);
+
+      ctx.fillStyle = '#1C1A1B';
+      ctx.font = "800 56px 'Newsreader', Georgia, serif";
+      ctx.fillText(`${effectiveRating.toFixed(1)} ${getBadgeTitle(effectiveRating)}`, width / 2, aY + 360);
+
+      if (showSeat) {
+        ctx.fillStyle = '#6E6862';
+        ctx.font = "600 24px 'Newsreader', Georgia, serif";
+        ctx.fillText(`${effectiveSeat} · Günlük Kaydı`, width / 2, aY + 410);
+      }
+
+      // Branding at bottom curtain
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = "800 36px 'Newsreader', Georgia, serif";
+      ctx.textAlign = 'center';
+      ctx.fillText('TİYATRO·NOT', width / 2, height - 70);
+    }
+
+    // ----------------------------------------------------
+    // TEMPLATE 5: ALKIŞ
+    // ----------------------------------------------------
+    else if (targetTpl === 'applause') {
+      ctx.fillStyle = '#141414';
+      ctx.fillRect(0, 0, width, height);
+
+      // Top info
+      ctx.fillStyle = '#E4B33A';
+      ctx.font = "800 26px 'Newsreader', Georgia, serif";
+      ctx.textAlign = 'left';
+      ctx.fillText('ALKIŞ ÖLÇEĞİ', 80, 110);
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = "800 48px 'Newsreader', Georgia, serif";
+      ctx.fillText(play.title, 80, 180);
+
+      if (showSeat) {
+        ctx.fillStyle = '#A8A199';
+        ctx.font = "italic 26px 'Newsreader', Georgia, serif";
+        ctx.fillText(`${effectiveVenue} · ${effectiveDate}`, 80, 230);
+      }
+
+      // Giant Numeric Rating
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = "800 170px 'Newsreader', Georgia, serif";
+      ctx.fillText(effectiveRating.toFixed(1), 80, 440);
+
+      ctx.font = "italic 44px 'Newsreader', Georgia, serif";
+      ctx.fillText(getBadgeTitle(effectiveRating), 80, 510);
+
+      if (showReviewText && effectiveNote) {
+        ctx.fillStyle = '#A8A199';
+        ctx.font = "italic 32px 'Newsreader', Georgia, serif";
+        const qLines = wrapText(ctx, `“${effectiveNote}”`, 560, ctx.font);
+        let qY = 620;
+        for (const l of qLines.slice(0, 3)) {
+          ctx.fillText(l, 80, qY);
+          qY += 46;
         }
+      }
 
-        ctx.fillStyle = pal.subText;
-        ctx.font = "italic 28px 'Newsreader', Georgia, serif";
-        ctx.fillText(`${play.playwright} · ${effectiveVenue}`, 540, curY);
-        curY += 60;
+      // Ascending Red Pillars (Equalizer/Applause bars)
+      const barCount = 5;
+      const barW = targetRatio === '16:9' ? 90 : 80;
+      const barGap = 24;
+      const maxH = targetRatio === '16:9' ? 480 : 420;
+      const startX = targetRatio === '16:9' ? width - 620 : width - 580;
+      const baseY = targetRatio === '16:9' ? height - 200 : height - 260;
 
-        ctx.fillStyle = pal.star;
-        ctx.font = "bold 52px 'Newsreader', Georgia, serif";
-        ctx.fillText(renderStars(effectiveRating), 540, curY);
-        curY += 50;
+      for (let i = 0; i < barCount; i++) {
+        const stepH = ((i + 1) / barCount) * maxH;
+        ctx.fillStyle = '#BA1B23';
+        ctx.beginPath();
+        ctx.roundRect(startX + i * (barW + barGap), baseY - stepH, barW, stepH, [16, 16, 4, 4]);
+        ctx.fill();
+      }
 
-        ctx.fillStyle = pal.text;
-        ctx.font = "800 40px 'Newsreader', Georgia, serif";
-        ctx.fillText(`${effectiveRating.toFixed(1)} / 5.0 · ${getBadgeTitle(effectiveRating)}`, 540, curY);
-        curY += 64;
+      // Footer
+      if (showAuthor) {
+        ctx.fillStyle = '#A8A199';
+        ctx.font = "italic 24px 'Newsreader', Georgia, serif";
+        ctx.fillText(effectiveAuthor, 80, height - 70);
+      }
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = "800 28px 'Newsreader', Georgia, serif";
+      ctx.fillText('TİYATRO·NOT', width - 80, height - 70);
+    }
 
-        if (showReviewText && displayedText) {
-          const availH = 1920 - curY - 200;
-          const { lines: qLines, fontSize: qSize, lineHeight: qLineH } = getFittedLines(
-            ctx,
-            `“${displayedText}”`,
-            880,
-            availH,
-            36,
-            20
-          );
-          ctx.fillStyle = pal.text;
-          ctx.font = `italic ${qSize}px 'Newsreader', Georgia, serif`;
-          for (const line of qLines) {
-            ctx.fillText(line, 540, curY + qSize);
-            curY += qLineH;
-          }
-        }
+    // ----------------------------------------------------
+    // TEMPLATE 6: PROGRAM
+    // ----------------------------------------------------
+    else if (targetTpl === 'program') {
+      ctx.fillStyle = '#F5EEDB';
+      ctx.fillRect(0, 0, width, height);
 
-        drawStamp(ctx, 540, 1920 - 130, 'GİRİŞ ONAYLI', pal.accent, -0.05);
+      // Header double borders
+      ctx.strokeStyle = '#1C1A1B';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(70, 70, width - 140, 150);
+      ctx.lineWidth = 1;
+      ctx.strokeRect(76, 76, width - 152, 138);
 
-        ctx.fillStyle = pal.subText;
-        ctx.font = "italic 22px 'Newsreader', Georgia, serif";
-        ctx.fillText('TİYATRONOT · tiyatronot.com', 540, 1920 - 60);
+      ctx.fillStyle = '#1C1A1B';
+      ctx.font = "800 54px 'Newsreader', Georgia, serif";
+      ctx.textAlign = 'center';
+      ctx.fillText('P R O G R A M', width / 2, 146);
 
-      } else {
-        // 1:1 or 16:9 poster split
-        const posterW = width * 0.42;
-        if (posterLoaded && img) {
-          ctx.drawImage(img, 0, 0, posterW, height);
-        } else {
-          ctx.fillStyle = pal.surface;
-          ctx.fillRect(0, 0, posterW, height);
-        }
+      if (showSeat) {
+        ctx.font = "600 22px 'Newsreader', Georgia, serif";
+        ctx.fillText(`2025–2026 Sezonu · ${effectiveVenue}`, width / 2, 186);
+      }
 
-        const rx = posterW + 54;
-        const rMaxW = width - posterW - 108;
-        let curY = 80;
+      // Center title
+      ctx.font = "800 74px 'Newsreader', Georgia, serif";
+      ctx.fillText(play.title, width / 2, 330);
+
+      ctx.font = "italic 36px 'Newsreader', Georgia, serif";
+      ctx.fillText(`yazan ${play.playwright || 'Arthur Miller'}`, width / 2, 390);
+
+      ctx.fillStyle = '#BA1B23';
+      ctx.font = "800 36px 'Newsreader', Georgia, serif";
+      ctx.fillText('★★★★★', width / 2, 450);
+
+      // Dotted leader table (künye satırları noktalı çizgilerle)
+      const tableY = 540;
+      const rows = [
+        { label: 'Seyirci', value: effectiveAuthor, show: showAuthor },
+        { label: 'Temsil', value: `${effectiveDate} - ${effectiveSession}`, show: showSeat },
+        { label: 'Koltuk', value: effectiveSeat, show: showSeat },
+        { label: 'Görüş', value: 'Kusursuz', show: true },
+        { label: 'Alkış', value: getBadgeTitle(effectiveRating), show: true },
+      ].filter(r => r.show);
+
+      let rowY = tableY;
+      ctx.font = "italic 26px 'Newsreader', Georgia, serif";
+      for (const r of rows) {
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#6E6862';
+        ctx.fillText(r.label, 120, rowY);
+
+        // Dotted leader line
+        ctx.strokeStyle = '#D8D2CA';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 6]);
+        ctx.beginPath();
+        ctx.moveTo(240, rowY - 6);
+        ctx.lineTo(width - 360, rowY - 6);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#1C1A1B';
+        ctx.font = "800 26px 'Newsreader', Georgia, serif";
+        ctx.fillText(r.value, width - 120, rowY);
+        rowY += 56;
+      }
+
+      // Review box
+      if (showReviewText && effectiveNote) {
+        rowY += 40;
+        ctx.save();
+        ctx.fillStyle = '#FAF4E6';
+        ctx.strokeStyle = '#E2DCD4';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(100, rowY, width - 200, 180, 16);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
 
         ctx.textAlign = 'left';
-        ctx.fillStyle = pal.text;
-        ctx.font = "800 44px 'Newsreader', Georgia, serif";
-        const titleLines = wrapText(ctx, play.title, rMaxW, "800 44px 'Newsreader', Georgia, serif");
-        for (const line of titleLines.slice(0, 2)) {
-          ctx.fillText(line, rx, curY);
-          curY += 52;
+        ctx.fillStyle = '#8A827A';
+        ctx.font = "800 18px 'Newsreader', Georgia, serif";
+        ctx.fillText('SEYİRCİNİN NOTU', 130, rowY + 44);
+
+        ctx.fillStyle = '#1C1A1B';
+        ctx.font = "italic 28px 'Newsreader', Georgia, serif";
+        const nLines = wrapText(ctx, effectiveNote, width - 260, ctx.font);
+        let nY = rowY + 90;
+        for (const l of nLines.slice(0, 2)) {
+          ctx.fillText(l, 130, nY);
+          nY += 38;
         }
-
-        ctx.fillStyle = pal.subText;
-        ctx.font = "italic 24px 'Newsreader', Georgia, serif";
-        ctx.fillText(`${play.playwright} · ${effectiveVenue}`, rx, curY);
-        curY += 50;
-
-        ctx.fillStyle = pal.star;
-        ctx.font = "bold 44px 'Newsreader', Georgia, serif";
-        ctx.fillText(renderStars(effectiveRating), rx, curY);
-
-        ctx.fillStyle = pal.text;
-        ctx.font = "800 34px 'Newsreader', Georgia, serif";
-        ctx.fillText(`${effectiveRating.toFixed(1)} / 5.0`, rx + 250, curY - 4);
-        curY += 48;
-
-        if (showReviewText && displayedText) {
-          const availH = height - curY - 100;
-          const { lines: qLines, fontSize: qSize, lineHeight: qLineH } = getFittedLines(
-            ctx,
-            `“${displayedText}”`,
-            rMaxW,
-            availH,
-            30,
-            16
-          );
-          ctx.fillStyle = pal.text;
-          ctx.font = `italic ${qSize}px 'Newsreader', Georgia, serif`;
-          for (const line of qLines) {
-            ctx.fillText(line, rx, curY + qSize);
-            curY += qLineH;
-          }
-        }
-
-        const footerY = height - 44;
-        if (showAuthor && review?.userName) {
-          ctx.fillStyle = pal.text;
-          ctx.font = "800 20px 'Newsreader', Georgia, serif";
-          ctx.fillText(`Seyirci: ${review.userName}`, rx, footerY);
-        }
-        ctx.textAlign = 'right';
-        ctx.fillStyle = pal.subText;
-        ctx.font = "italic 18px 'Newsreader', Georgia, serif";
-        ctx.fillText('tiyatronot.com', width - 54, footerY);
       }
 
-    // ----------------------------------------------------
-    // STYLE 3: EDITORIAL QUOTE CARD (ALINTI KARTI)
-    // ----------------------------------------------------
-    } else {
-      const padX = width * 0.1;
-      let curY = height * 0.18;
-
+      // Branding
       ctx.textAlign = 'center';
-      ctx.fillStyle = pal.accent;
-      ctx.font = "800 120px 'Newsreader', Georgia, serif";
-      ctx.fillText('“', width / 2, curY);
-      curY += 40;
-
-      const availH = height * 0.42;
-      const { lines: qLines, fontSize: qSize, lineHeight: qLineH } = getFittedLines(
-        ctx,
-        displayedText,
-        width - padX * 2,
-        availH,
-        aspectRatio === '9:16' ? 44 : 36,
-        20
-      );
-
-      ctx.fillStyle = pal.text;
-      ctx.font = `italic ${qSize}px 'Newsreader', Georgia, serif`;
-      for (const line of qLines) {
-        ctx.fillText(line, width / 2, curY);
-        curY += qLineH;
-      }
-
-      curY += 40;
-      ctx.fillStyle = pal.text;
-      ctx.font = "800 36px 'Newsreader', Georgia, serif";
-      ctx.fillText(play.title, width / 2, curY);
-      curY += 42;
-
-      ctx.fillStyle = pal.subText;
-      ctx.font = "italic 24px 'Newsreader', Georgia, serif";
-      ctx.fillText(`${play.playwright} · ${effectiveVenue}`, width / 2, curY);
-      curY += 50;
-
-      ctx.fillStyle = pal.star;
-      ctx.font = "bold 46px 'Newsreader', Georgia, serif";
-      ctx.fillText(renderStars(effectiveRating), width / 2, curY);
-
-      drawStamp(ctx, width / 2, height - 120, 'GİRİŞ ONAYLI', pal.accent, -0.05);
-
-      ctx.fillStyle = pal.subText;
-      ctx.font = "italic 20px 'Newsreader', Georgia, serif";
-      ctx.fillText('TİYATRONOT · tiyatronot.com', width / 2, height - 54);
+      ctx.fillStyle = '#1C1A1B';
+      ctx.font = "800 28px 'Newsreader', Georgia, serif";
+      ctx.fillText('TİYATRO·NOT', width / 2, height - 70);
     }
 
     return canvas;
-  }, [aspectRatio, cardStyle, colorTheme, customExcerpt, displayedText, effectiveDate, effectiveRating, effectiveSession, effectiveVenue, play, review, serialNo, showAuthor, showReviewText, showSession]);
+  }, [
+    template, 
+    aspectRatio, 
+    play, 
+    review, 
+    effectiveRating, 
+    effectiveAuthor, 
+    effectiveDate, 
+    effectiveSession, 
+    effectiveVenue, 
+    effectiveSeat, 
+    effectiveNote, 
+    serialNo, 
+    showAuthor, 
+    showReviewText, 
+    showSeat
+  ]);
 
-  // Export handlers
-  const handleDownload = useCallback(async () => {
-    setDownloading(true);
+  // Handle Download action
+  const handleDownload = async (targetTpl: ShareTemplate = template, targetRatio: AspectRatio = aspectRatio) => {
     try {
-      const canvas = await drawCard();
+      setDownloading(true);
+      const canvas = await generateCanvas(targetTpl, targetRatio);
       if (!canvas) return;
-      canvas.toBlob(blob => {
-        if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        const tag = aspectRatio === '9:16' ? 'hikaye' : aspectRatio === '1:1' ? 'kare' : 'bilet';
-        a.download = `tiyatronot-${play.id}-${tag}.png`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }, 'image/png');
+
+      const link = document.createElement('a');
+      link.download = `tiyatronot-${play.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${targetTpl}-${targetRatio.replace(':', 'x')}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error('Download error:', err);
     } finally {
       setDownloading(false);
     }
-  }, [aspectRatio, drawCard, play.id]);
+  };
 
-  const handleCopyImage = useCallback(async () => {
+  // Copy live link to clipboard
+  const handleCopyLink = async () => {
     try {
-      const canvas = await drawCard();
-      if (!canvas) return;
-      canvas.toBlob(async blob => {
-        if (!blob) return;
-        try {
-          if (navigator.clipboard && (window as any).ClipboardItem) {
-            await navigator.clipboard.write([
-              new (window as any).ClipboardItem({ 'image/png': blob })
-            ]);
-            setCopiedImage(true);
-            setTimeout(() => setCopiedImage(false), 2500);
-          } else {
-            handleDownload();
-          }
-        } catch {
-          handleDownload();
-        }
-      }, 'image/png');
+      await navigator.clipboard.writeText(`https://${shareableUrl}`);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
     } catch {
-      handleDownload();
+      // Fallback
     }
-  }, [drawCard, handleDownload]);
-
-  const handleCopyLink = useCallback(async () => {
-    const url = `${window.location.origin}/oyun/${play.id}`;
-    await navigator.clipboard.writeText(url);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2500);
-  }, [play.id]);
-
-  const handleShare = useCallback(async () => {
-    const url = `${window.location.origin}/oyun/${play.id}`;
-    const authorTag = review?.userName ? `\nSeyirci: @${review.userName}` : '';
-    const text = `${play.title} — ${effectiveRating.toFixed(1)}/5.0${authorTag}\n\n"${displayedText}"\n\n${url}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: play.title, text, url });
-      } else {
-        await navigator.clipboard.writeText(text);
-        setShared(true);
-        setTimeout(() => setShared(false), 2500);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, [displayedText, effectiveRating, play.title, play.id, review]);
-
-  // Lock background body scrolling when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
-  // Close modal on Escape key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-    }
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  };
 
   if (!isOpen) return null;
 
-  const shareTextEncoded = encodeURIComponent(
-    `${play.title} — ${effectiveRating.toFixed(1)}/5.0\n"${displayedText}"\n${window.location.origin}/oyun/${play.id}`
-  );
-
-  const modalContent = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/65 backdrop-blur-md transition-opacity" 
-        onClick={onClose} 
-        aria-hidden 
-      />
-
+  return createPortal(
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm overflow-hidden select-none font-serif text-white">
       {/* Main Modal Card */}
-      <div className="relative z-10 w-full max-w-4xl bg-[#FAF8F5] dark:bg-[#141414] border border-[#E2DCD4] dark:border-[#332F31] rounded-[24px] shadow-2xl overflow-hidden animate-fade-in my-auto max-h-[92vh] flex flex-col font-serif">
+      <div className="relative w-full max-w-6xl max-h-[96vh] rounded-3xl bg-[#1C1A1B] border border-white/10 shadow-2xl flex flex-col overflow-hidden">
         
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E2DCD4] dark:border-[#332F31] bg-[#FAF8F5] dark:bg-[#141414]">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-full bg-[#BA1B23]/10 text-[#BA1B23] flex items-center justify-center">
-                <Ticket className="w-4 h-4" />
+        {/* Top Header Bar */}
+        <div className="flex items-center justify-between px-5 sm:px-8 py-3.5 sm:py-4 border-b border-white/10 shrink-0">
+          <div className="flex items-center gap-4">
+            <span className="font-extrabold text-base sm:text-xl tracking-tight text-white flex items-center gap-2">
+              <span className="text-tn-red">★</span> Bileti Paylaş
+              <span className="hidden md:inline text-xs font-normal text-white/50 pl-1">
+                — imza deneyim: 6 şablon × 3 format
               </span>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-[#1C1A1B] dark:text-[#F3EFEA] tracking-tight">
-                Bileti Paylaş
-              </h2>
-              {review && (
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#BA1B23]/10 text-[#BA1B23] font-semibold border border-[#BA1B23]/20">
-                  Seyirci Notu
-                </span>
-              )}
+            </span>
+
+            {/* View Switcher: Canlı Stüdyo vs 18 Sahne Galerisi */}
+            <div className="hidden sm:flex items-center p-1 rounded-full bg-white/5 border border-white/10 text-xs">
+              <button
+                type="button"
+                onClick={() => setActiveTab('studio')}
+                className={`px-3.5 py-1 rounded-full font-sans font-medium transition-colors ${
+                  activeTab === 'studio' ? 'bg-tn-red text-white' : 'text-white/60 hover:text-white'
+                }`}
+              >
+                Canlı Stüdyo
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('gallery')}
+                className={`px-3.5 py-1 rounded-full font-sans font-medium transition-colors ${
+                  activeTab === 'gallery' ? 'bg-tn-red text-white' : 'text-white/60 hover:text-white'
+                }`}
+              >
+                18 Sahne Galerisi
+              </button>
             </div>
-            <p className="text-xs sm:text-sm text-[#6E6862] dark:text-[#A8A199] italic mt-0.5">
-              Tiyatro pasaportunu sosyal medyada paylaşabileceğin yüksek çözünürlüklü bir bilet görseline dönüştür.
-            </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-9 h-9 rounded-full bg-[#F1EDE7] dark:bg-[#2A2729] text-[#1C1A1B] dark:text-[#F3EFEA] hover:bg-[#E2DCD4] dark:hover:bg-[#332F31] flex items-center justify-center cursor-pointer transition-colors"
-            aria-label="Kapat"
-          >
-            <X className="w-4 h-4" />
-          </button>
+
+          <div className="flex items-center gap-3">
+            {/* Format Switcher Pills (when in Studio mode) */}
+            {activeTab === 'studio' && (
+              <div className="flex items-center gap-1.5 p-1 rounded-full bg-white/5 border border-white/10">
+                {(['9:16', '1:1', '16:9'] as AspectRatio[]).map((fmt) => (
+                  <button
+                    key={fmt}
+                    type="button"
+                    onClick={() => setAspectRatio(fmt)}
+                    className={`h-7 px-3 rounded-full text-xs font-sans font-semibold transition-all cursor-pointer ${
+                      aspectRatio === fmt
+                        ? 'bg-white text-tn-ink shadow-xs'
+                        : 'text-white/70 hover:text-white'
+                    }`}
+                  >
+                    {fmt}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer border-none"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Scrollable Body: 2 Columns on Desktop */}
-        <div className="p-5 sm:p-6 overflow-y-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          {/* LEFT COLUMN: LIVE TICKET PREVIEW (lg:col-span-5) */}
-          <div className="lg:col-span-5 flex flex-col items-center justify-center">
-            <div className="w-full flex items-center justify-between text-xs text-[#6E6862] dark:text-[#A8A199] mb-2 px-1">
-              <span className="flex items-center gap-1.5 font-semibold text-[#1C1A1B] dark:text-[#F3EFEA]">
-                <Sparkles className="w-3.5 h-3.5 text-[#BA1B23]" />
-                <span>CANLI ÖNİZLEME</span>
-              </span>
-              <span className="italic">
-                {aspectRatio === '9:16' ? '1080×1920 (Hikaye)' : aspectRatio === '1:1' ? '1080×1080 (Kare)' : '1200×630 (Bilet)'}
-              </span>
-            </div>
-
-            {/* Preview Frame */}
-            <div className="w-full bg-[#EAE5DE] dark:bg-[#0A0A0A] p-4 rounded-2xl border border-[#E2DCD4] dark:border-[#332F31] flex items-center justify-center min-h-[380px] max-h-[500px] overflow-hidden">
+        {/* Modal Body: Either "Canlı Stüdyo" or "18 Sahne Galerisi" */}
+        {activeTab === 'studio' ? (
+          /* ==========================================================
+             VIEW 1: CANLI STÜDYO (Interactive Studio)
+             ========================================================== */
+          <div className="flex-1 flex flex-col justify-between overflow-y-auto min-h-0 p-4 sm:p-6 gap-4">
+            
+            {/* Stage Backdrop & Live Visual Preview */}
+            <div className="flex-1 flex items-center justify-center min-h-[340px] sm:min-h-[440px] rounded-2xl bg-[#141414] border border-white/5 relative overflow-hidden p-4">
+              {/* Subtle spotlight glow */}
               <div 
-                className="relative rounded-2xl shadow-xl border border-[#E2DCD4] dark:border-black/30 overflow-hidden transition-all duration-300 flex flex-col justify-between"
+                className="absolute inset-0 pointer-events-none opacity-40"
                 style={{
-                  aspectRatio: aspectRatio === '9:16' ? '9/16' : aspectRatio === '1:1' ? '1/1' : '16/9',
-                  width: aspectRatio === '9:16' ? '220px' : aspectRatio === '1:1' ? '280px' : '100%',
-                  maxHeight: '440px',
-                  backgroundColor: currentPalette.bg,
-                  color: currentPalette.text,
+                  backgroundImage: 'radial-gradient(circle at 50% 45%, rgba(255,255,255,0.12) 0%, transparent 65%)'
+                }}
+              />
+
+              {/* Responsive Card Container matching Aspect Ratio */}
+              <div 
+                className="relative transition-all duration-300 shadow-2xl overflow-hidden rounded-xl border border-white/10 flex flex-col justify-between text-left"
+                style={{
+                  width: aspectRatio === '9:16' ? '280px' : aspectRatio === '1:1' ? '360px' : '520px',
+                  height: aspectRatio === '9:16' ? '490px' : aspectRatio === '1:1' ? '360px' : '290px',
+                  maxWidth: '100%',
+                  backgroundColor: 
+                    template === 'poster' ? '#BA1B23' :
+                    template === 'curtain' ? '#8A171D' :
+                    template === 'quote' ? '#FAF8F5' :
+                    template === 'program' ? '#F5EEDB' :
+                    template === 'applause' ? '#141414' : '#141414',
                 }}
               >
-                {/* HTML PREVIEW - TICKET STUB */}
-                {cardStyle === 'ticket' ? (
-                  <div className="h-full p-2.5 flex flex-col justify-between">
-                    <div 
-                      className="h-full rounded-xl border border-[#E2DCD4] dark:border-white/10 flex flex-col justify-between p-3 relative overflow-hidden"
-                      style={{ backgroundColor: currentPalette.ticket }}
-                    >
-                      {/* Top Header */}
-                      <div className="text-center flex flex-col items-center gap-1">
-                        <span className="text-[9px] font-semibold tracking-wider opacity-70">
-                          BİLET NO · {serialNo}
-                        </span>
-                        {showSession && (
-                          <span className="text-[11px] font-extrabold tracking-widest text-[#BA1B23]">
-                            ★ {effectiveSession === 'matine' ? 'ÖĞLE MATİNESİ' : 'AKŞAM SUARESİ'} ★
+                {/* 1. BİLET KOÇANI PREVIEW */}
+                {template === 'ticket' && (
+                  <div className="h-full w-full p-3.5 flex items-center justify-center">
+                    {aspectRatio === '16:9' ? (
+                      /* 16:9 Split Ticket Preview */
+                      <div className="flex gap-2 w-full h-full">
+                        <div className="flex-1 bg-[#FFFCF7] text-tn-ink rounded-lg p-3 flex flex-col justify-between shadow-md">
+                          <div>
+                            <span className="text-[9px] font-sans font-bold text-tn-muted">{serialNo}</span>
+                            <h3 className="m-0 text-base font-extrabold line-clamp-1">{play.title}</h3>
+                            <span className="text-[10px] italic text-tn-muted">{play.playwright}</span>
+                          </div>
+                          {showReviewText && (
+                            <p className="text-[10px] italic text-tn-ink/90 line-clamp-2 my-1">
+                              “{effectiveNote}”
+                            </p>
+                          )}
+                          {showAuthor && (
+                            <span className="text-[9px] italic text-tn-muted">{effectiveAuthor} · Seyirci Günlüğü</span>
+                          )}
+                        </div>
+                        <div className="w-[110px] bg-[#FFFCF7] text-tn-ink rounded-lg p-2.5 flex flex-col items-center justify-between text-center shadow-md">
+                          <span className="text-[8px] font-extrabold text-tn-red border border-tn-red px-1 rounded -rotate-2">
+                            GİRİŞ ONAYLI
                           </span>
-                        )}
-                        <span className="text-[9px] italic opacity-75 truncate max-w-full">
-                          {effectiveVenue} · {effectiveDate}
-                        </span>
-                        {/* Barcode Strip */}
-                        <div 
-                          className="w-3/4 h-5 my-0.5 opacity-80"
-                          style={{
-                            backgroundImage: 'repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 4px, currentColor 4px 5px, transparent 5px 8px, currentColor 8px 11px, transparent 11px 13px)'
-                          }}
-                        />
-                        {/* Stamp */}
-                        <span className="text-[9px] font-extrabold tracking-wider px-1.5 py-0.5 border border-[#BA1B23] text-[#BA1B23] rounded -rotate-3 select-none">
-                          GİRİŞ ONAYLI
-                        </span>
+                          <div>
+                            <span className="text-2xl font-extrabold text-tn-ink">{effectiveRating.toFixed(1)}</span>
+                            <span className="block text-[8px] font-bold text-tn-red">{getBadgeTitle(effectiveRating)}</span>
+                          </div>
+                          <div className="w-16 h-3 bg-tn-ink/80 rounded-2xs" />
+                        </div>
                       </div>
+                    ) : (
+                      /* 9:16 or 1:1 Ticket Preview */
+                      <div className="w-full h-full bg-[#FFFCF7] text-tn-ink rounded-xl p-4 flex flex-col justify-between shadow-xl relative overflow-hidden">
+                        {/* Torn teeth */}
+                        <div className="absolute top-0 left-0 right-0 flex justify-between px-1">
+                          {Array.from({ length: 14 }).map((_, i) => (
+                            <div key={i} className="w-2.5 h-1.5 bg-[#141414] rounded-b-full" />
+                          ))}
+                        </div>
 
-                      {/* Dashed perforation */}
-                      <div className="relative my-2">
-                        <div className="border-t-2 border-dashed border-[#D8D2CA] dark:border-white/20" />
-                        <span className="absolute -left-5 -top-2 w-3.5 h-3.5 rounded-full" style={{ backgroundColor: currentPalette.bg }} />
-                        <span className="absolute -right-5 -top-2 w-3.5 h-3.5 rounded-full" style={{ backgroundColor: currentPalette.bg }} />
-                      </div>
-
-                      {/* Ticket Body */}
-                      <div className="flex-1 flex flex-col justify-between gap-1.5 overflow-hidden">
                         <div>
-                          <div className="font-extrabold text-sm leading-tight truncate">
+                          <div className="flex justify-between items-center text-[9px] font-sans font-bold text-tn-muted pt-1">
+                            <span>TİYATRO·NOT</span>
+                            <span>{serialNo}</span>
+                          </div>
+                          <h3 className="m-0 mt-2 font-extrabold text-lg sm:text-xl leading-tight line-clamp-2 text-tn-ink">
                             {play.title}
-                          </div>
-                          <div className="text-[9px] italic opacity-75 truncate">
-                            {play.playwright}
-                          </div>
+                          </h3>
+                          <div className="text-[11px] italic text-tn-muted mt-0.5">{play.playwright}</div>
 
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <span className="text-xs font-bold" style={{ color: currentPalette.star }}>
-                              {renderStars(effectiveRating)}
-                            </span>
-                            <span className="text-[10px] font-extrabold">
-                              {effectiveRating.toFixed(1)}
-                            </span>
-                            <span className="text-[9px] font-bold text-[#BA1B23]">
-                              {getBadgeTitle(effectiveRating)}
-                            </span>
-                          </div>
-
-                          {/* Sub ratings */}
-                          {(review?.performanceRating || review?.technicalRating) && (
-                            <div className="flex items-center gap-1.5 mt-1 text-[8px] font-bold">
-                              {review?.performanceRating && (
-                                <span className="text-purple-600 dark:text-purple-400">
-                                  Oyuncu: {review.performanceRating}/5
-                                </span>
-                              )}
-                              {review?.technicalRating && (
-                                <span className="text-blue-600 dark:text-blue-400">
-                                  Reji: {review.technicalRating}/5
-                                </span>
-                              )}
+                          {showSeat && (
+                            <div className="text-[9px] font-semibold text-tn-muted mt-2 border-t border-tn-line pt-1.5">
+                              {effectiveDate} · {effectiveSession} · {effectiveVenue}
                             </div>
                           )}
                         </div>
 
-                        {showReviewText && displayedText && (
-                          <p className="text-[10px] italic leading-snug line-clamp-3 my-0 opacity-90">
-                            “{displayedText}”
-                          </p>
+                        {showReviewText && (
+                          <div className="my-auto py-2">
+                            <p className="text-[11px] italic text-tn-ink/90 leading-snug line-clamp-3">
+                              “{effectiveNote}”
+                            </p>
+                          </div>
                         )}
 
-                        {/* Footer */}
-                        <div className="pt-1 border-t border-black/10 dark:border-white/10 flex items-center justify-between text-[8px]">
-                          {showAuthor && review?.userName ? (
-                            <span className="font-bold truncate">@{review.userName}</span>
-                          ) : (
-                            <span className="italic opacity-70">Tiyatronot</span>
-                          )}
-                          <span className="italic opacity-70">tiyatronot.com</span>
+                        <div className="pt-2 border-t border-tn-line flex items-end justify-between">
+                          <div>
+                            <div className="flex items-baseline gap-1">
+                              <span className="font-extrabold text-2xl text-tn-ink">{effectiveRating.toFixed(1)}</span>
+                              <span className="text-[9px] font-bold text-tn-red">{getBadgeTitle(effectiveRating)}</span>
+                            </div>
+                            {showAuthor && (
+                              <span className="text-[9px] italic text-tn-muted block">{effectiveAuthor}</span>
+                            )}
+                          </div>
+                          <div className="flex flex-col items-end gap-1.5">
+                            <span className="text-[8px] font-extrabold text-tn-red border border-tn-red px-1.5 py-0.5 rounded -rotate-3">
+                              GİRİŞ ONAYLI
+                            </span>
+                            <div className="w-16 h-3 bg-tn-ink/80 rounded-2xs" />
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
-                ) : cardStyle === 'poster' ? (
-                  /* POSTER PREVIEW */
-                  <div className="h-full flex flex-col justify-between overflow-hidden">
-                    <div className="h-1/2 relative bg-black/20 overflow-hidden">
-                      {play.posterUrl && (
-                        <img 
-                          src={play.posterUrl} 
-                          alt={play.title} 
-                          className="w-full h-full object-cover" 
-                        />
-                      )}
-                      <div 
-                        className="absolute inset-0"
-                        style={{
-                          backgroundImage: `linear-gradient(to top, ${currentPalette.bg} 0%, transparent 80%)`
-                        }}
-                      />
-                    </div>
-                    <div className="p-3 flex-1 flex flex-col justify-between">
-                      <div>
-                        <div className="font-extrabold text-xs leading-tight truncate">
-                          {play.title}
-                        </div>
-                        <div className="text-[9px] italic opacity-75 truncate">
-                          {play.playwright} · {effectiveVenue}
-                        </div>
-                        <div className="flex items-center gap-1 mt-1">
-                          <span className="text-xs" style={{ color: currentPalette.star }}>
-                            {renderStars(effectiveRating)}
-                          </span>
-                          <span className="text-[10px] font-bold">
-                            {effectiveRating.toFixed(1)}
-                          </span>
-                        </div>
+                )}
+
+                {/* 2. AFİŞ PREVIEW */}
+                {template === 'poster' && (
+                  <div className="h-full w-full p-5 flex flex-col justify-between text-white">
+                    {showSeat && (
+                      <div className="flex justify-between text-[10px] font-bold pb-2 border-b border-white/20">
+                        <span>{effectiveVenue.toUpperCase()}</span>
+                        <span>{effectiveDate}</span>
                       </div>
-                      {showReviewText && displayedText && (
-                        <p className="text-[9px] italic line-clamp-2 my-0 opacity-85">
-                          “{displayedText}”
+                    )}
+                    <div className="my-auto">
+                      <h2 className="m-0 font-extrabold text-2xl sm:text-3xl leading-tight line-clamp-2">
+                        {play.title}
+                      </h2>
+                      <div className="text-sm italic opacity-90 mt-1">{play.playwright}</div>
+                    </div>
+                    <div className="pt-3 border-t border-white/20">
+                      <div className="font-extrabold text-xs tracking-wider">
+                        ★★★★★ {getBadgeTitle(effectiveRating)}
+                      </div>
+                      {showReviewText && (
+                        <p className="text-[11px] italic opacity-90 line-clamp-2 mt-1">
+                          “{effectiveNote}”
                         </p>
                       )}
-                      <div className="text-[8px] italic opacity-70 flex justify-between">
-                        <span>{showAuthor && review?.userName ? `@${review.userName}` : 'Tiyatronot'}</span>
-                        <span>tiyatronot.com</span>
+                      <div className="flex justify-between text-[9px] opacity-75 mt-2">
+                        <span>{showAuthor ? `Seyirci: ${effectiveAuthor}` : ''}</span>
+                        <span className="font-bold">TİYATRO·NOT</span>
                       </div>
                     </div>
                   </div>
-                ) : (
-                  /* QUOTE PREVIEW */
-                  <div className="h-full p-4 flex flex-col justify-between text-center">
-                    <span className="text-3xl font-extrabold leading-none text-[#BA1B23]">“</span>
-                    <p className="text-[11px] italic leading-relaxed line-clamp-4 my-auto px-1">
-                      “{displayedText}”
-                    </p>
-                    <div className="pt-2 border-t border-black/10 dark:border-white/10">
-                      <div className="font-extrabold text-[11px] truncate">{play.title}</div>
-                      <div className="text-[8px] italic opacity-70">
-                        {renderStars(effectiveRating)} · {effectiveRating.toFixed(1)}
+                )}
+
+                {/* 3. ALINTI PREVIEW */}
+                {template === 'quote' && (
+                  <div className="h-full w-full p-5 flex flex-col justify-between text-tn-ink">
+                    <span className="text-4xl font-extrabold text-tn-red leading-none">“</span>
+                    {showReviewText && (
+                      <p className="text-sm sm:text-base italic leading-relaxed line-clamp-4 my-auto">
+                        “{effectiveNote}”
+                      </p>
+                    )}
+                    <div className="pt-3 border-t border-tn-line flex items-end justify-between">
+                      <div>
+                        {showAuthor && <div className="font-extrabold text-xs">— {effectiveAuthor}</div>}
+                        {showSeat && <div className="text-[10px] text-tn-muted">{play.title} · ★ {effectiveRating.toFixed(1)}</div>}
                       </div>
+                      <span className="font-extrabold text-xs tracking-tight">TİYATRO·NOT</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. PERDE PREVIEW */}
+                {template === 'curtain' && (
+                  <div className="h-full w-full p-4 flex flex-col justify-between items-center text-white relative">
+                    <div className="w-full h-1 bg-[#E4B33A] rounded-full mb-2" />
+                    <div className="w-full flex-1 bg-white text-tn-ink rounded-t-full p-4 flex flex-col justify-between text-center shadow-lg">
+                      <span className="text-[10px] font-extrabold text-tn-red tracking-wider uppercase pt-2">
+                        PERDE AÇILDI
+                      </span>
+                      <div>
+                        <h3 className="m-0 font-extrabold text-lg line-clamp-1">{play.title}</h3>
+                        <div className="text-[11px] italic text-tn-muted">{play.playwright} · {effectiveVenue}</div>
+                      </div>
+                      <div>
+                        <span className="font-extrabold text-lg text-tn-ink">{effectiveRating.toFixed(1)}</span>
+                        <span className="text-xs font-bold text-tn-red block">{getBadgeTitle(effectiveRating)}</span>
+                      </div>
+                      {showSeat && <span className="text-[9px] text-tn-muted">{effectiveSeat} · Günlük Kaydı</span>}
+                    </div>
+                    <span className="font-extrabold text-xs tracking-wider pt-2 text-white/90">TİYATRO·NOT</span>
+                  </div>
+                )}
+
+                {/* 5. ALKIŞ PREVIEW */}
+                {template === 'applause' && (
+                  <div className="h-full w-full p-5 flex flex-col justify-between text-white">
+                    <div>
+                      <span className="text-[10px] font-extrabold tracking-wider text-[#E4B33A]">ALKIŞ ÖLÇEĞİ</span>
+                      <h3 className="m-0 font-extrabold text-lg line-clamp-1">{play.title}</h3>
+                      {showSeat && <span className="text-[10px] italic text-white/60">{effectiveVenue} · {effectiveDate}</span>}
+                    </div>
+                    <div className="flex items-end justify-between my-auto">
+                      <div>
+                        <span className="text-4xl font-extrabold block leading-none">{effectiveRating.toFixed(1)}</span>
+                        <span className="text-xs italic text-white/80 block mt-1">{getBadgeTitle(effectiveRating)}</span>
+                        {showReviewText && (
+                          <p className="text-[10px] italic text-white/60 line-clamp-2 max-w-[150px] mt-2">
+                            “{effectiveNote}”
+                          </p>
+                        )}
+                      </div>
+                      {/* Bars */}
+                      <div className="flex items-end gap-1.5 h-24">
+                        {[20, 38, 56, 78, 100].map((h, i) => (
+                          <div 
+                            key={i} 
+                            style={{ height: `${h}%` }} 
+                            className="w-3.5 bg-tn-red rounded-t-sm" 
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex justify-between text-[9px] text-white/60 pt-2 border-t border-white/10">
+                      <span>{showAuthor ? effectiveAuthor : ''}</span>
+                      <span className="font-bold text-white">TİYATRO·NOT</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 6. PROGRAM PREVIEW */}
+                {template === 'program' && (
+                  <div className="h-full w-full p-4 flex flex-col justify-between text-tn-ink">
+                    <div className="border-2 border-tn-ink p-1.5 text-center">
+                      <div className="border border-tn-ink p-1 text-[10px] font-extrabold tracking-widest">
+                        P R O G R A M
+                      </div>
+                    </div>
+                    <div className="text-center my-1">
+                      <h3 className="m-0 font-extrabold text-base line-clamp-1">{play.title}</h3>
+                      <span className="text-[10px] italic text-tn-muted">yazan {play.playwright}</span>
+                      <div className="text-tn-red text-xs mt-0.5">★★★★★</div>
+                    </div>
+                    <div className="text-[10px] space-y-1 border-t border-tn-line pt-2">
+                      <div className="flex justify-between border-b border-dotted border-tn-line pb-0.5">
+                        <span className="italic text-tn-muted">Seyirci</span>
+                        <span className="font-bold">{effectiveAuthor}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-dotted border-tn-line pb-0.5">
+                        <span className="italic text-tn-muted">Temsil</span>
+                        <span className="font-bold">{effectiveDate}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="italic text-tn-muted">Alkış</span>
+                        <span className="font-bold text-tn-red">{getBadgeTitle(effectiveRating)}</span>
+                      </div>
+                    </div>
+                    <div className="text-center text-[9px] font-extrabold pt-2 border-t border-tn-line">
+                      TİYATRO·NOT
                     </div>
                   </div>
                 )}
               </div>
             </div>
-          </div>
 
-          {/* RIGHT COLUMN: CONTROLS & ACTIONS (lg:col-span-7) */}
-          <div className="lg:col-span-7 space-y-4">
-            
-            {/* 1. Format & Boyut */}
-            <div>
-              <label className="block text-xs font-bold text-[#1C1A1B] dark:text-[#F3EFEA] mb-1.5 uppercase tracking-wide">
-                1. Format & Boyut
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { key: '9:16', label: '9:16 Hikaye', icon: Smartphone },
-                  { key: '1:1', label: '1:1 Kare', icon: Square },
-                  { key: '16:9', label: 'Bilet Yatay', icon: Ticket },
-                ].map(({ key, label, icon: Icon }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setAspectRatio(key as AspectRatio)}
-                    className={`py-2 px-3 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
-                      aspectRatio === key
-                        ? 'bg-[#1C1A1B] dark:bg-[#F3EFEA] text-white dark:text-[#1C1A1B] border-[#1C1A1B] dark:border-[#F3EFEA] shadow-sm'
-                        : 'bg-[#F1EDE7] dark:bg-[#2A2729] text-[#1C1A1B] dark:text-[#F3EFEA] border-transparent hover:bg-[#E2DCD4] dark:hover:bg-[#332F31]'
-                    }`}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    <span>{label}</span>
-                  </button>
-                ))}
+            {/* Bottom Controls Area: Info, Template Strip, Toggles, and Buttons */}
+            <div className="flex flex-col gap-3 shrink-0">
+              
+              {/* Template Label and Resolution indicator */}
+              <div className="flex justify-between items-center px-1 text-xs">
+                <span className="font-extrabold text-white">
+                  {TEMPLATES.find(t => t.id === template)?.label}
+                </span>
+                <span className="font-mono text-white/50 text-[11px]">
+                  {RESOLUTIONS[aspectRatio].text}
+                </span>
               </div>
-            </div>
 
-            {/* 2. Şablon Tasarımı */}
-            <div>
-              <label className="block text-xs font-bold text-[#1C1A1B] dark:text-[#F3EFEA] mb-1.5 uppercase tracking-wide">
-                2. Şablon Tasarımı
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { key: 'ticket', label: 'Bilet Koçanı', icon: Ticket },
-                  { key: 'poster', label: 'Afiş & Not', icon: ImageIcon },
-                  { key: 'quote', label: 'Alıntı Kartı', icon: Quote },
-                ].map(({ key, label, icon: Icon }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setCardStyle(key as CardStyle)}
-                    className={`py-2 px-3 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
-                      cardStyle === key
-                        ? 'bg-[#BA1B23] text-white border-[#BA1B23] shadow-sm'
-                        : 'bg-[#F1EDE7] dark:bg-[#2A2729] text-[#1C1A1B] dark:text-[#F3EFEA] border-transparent hover:bg-[#E2DCD4] dark:hover:bg-[#332F31]'
-                    }`}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    <span>{label}</span>
-                  </button>
-                ))}
+              {/* Template Thumbnail Strip Carousel */}
+              <div className="flex gap-2.5 overflow-x-auto no-scrollbar py-1">
+                {TEMPLATES.map((tpl) => {
+                  const isSelected = template === tpl.id;
+                  return (
+                    <button
+                      key={tpl.id}
+                      type="button"
+                      onClick={() => setTemplate(tpl.id)}
+                      className={`flex flex-col items-center gap-1.5 p-2 rounded-2xl border transition-all cursor-pointer shrink-0 ${
+                        isSelected 
+                          ? 'border-tn-red bg-white/10 ring-2 ring-tn-red/40 shadow-md' 
+                          : 'border-white/10 bg-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      {/* Mini Thumbnail Card */}
+                      <div 
+                        className="w-14 h-18 rounded-lg flex items-center justify-center font-serif text-lg font-bold shadow-inner relative overflow-hidden"
+                        style={{ backgroundColor: tpl.bgPreview }}
+                      >
+                        <span style={{ color: tpl.id === 'quote' || tpl.id === 'program' ? '#1C1A1B' : '#FFFFFF' }}>
+                          {tpl.iconText}
+                        </span>
+                      </div>
+                      <span className={`text-[11px] font-sans font-medium whitespace-nowrap ${isSelected ? 'text-white font-bold' : 'text-white/70'}`}>
+                        {tpl.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-            </div>
 
-            {/* 3. Renk Teması */}
-            <div>
-              <label className="block text-xs font-bold text-[#1C1A1B] dark:text-[#F3EFEA] mb-1.5 uppercase tracking-wide">
-                3. Renk Teması
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { key: 'paper', label: 'Krem Bilet', dotBg: '#FFFCF7', border: '#E2DCD4' },
-                  { key: 'dark', label: 'Karanlık Sahne', dotBg: '#1F1D1E', border: '#443E40' },
-                  { key: 'crimson', label: 'Kadife Perde', dotBg: '#85151B', border: '#9B1E27' },
-                ].map(({ key, label, dotBg, border }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setColorTheme(key as ColorTheme)}
-                    className={`py-2 px-3 rounded-full text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer border ${
-                      colorTheme === key
-                        ? 'bg-[#1C1A1B] dark:bg-[#F3EFEA] text-white dark:text-[#1C1A1B] border-[#1C1A1B] dark:border-[#F3EFEA] shadow-sm'
-                        : 'bg-[#F1EDE7] dark:bg-[#2A2729] text-[#1C1A1B] dark:text-[#F3EFEA] border-transparent hover:bg-[#E2DCD4] dark:hover:bg-[#332F31]'
-                    }`}
-                  >
-                    <span 
-                      className="w-3 h-3 rounded-full shrink-0 border"
-                      style={{ backgroundColor: dotBg, borderColor: border }}
-                    />
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 4. Kart Seçenekleri (Toggles) */}
-            <div className="p-3 bg-[#F1EDE7] dark:bg-[#1F1D1E] rounded-2xl border border-[#E2DCD4] dark:border-[#332F31] space-y-2">
-              <span className="block text-[11px] font-bold text-[#6E6862] dark:text-[#A8A199] uppercase tracking-wide">
-                Kart Detayları
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {review?.userName && (
+              {/* Toggles Row: [✓ Adın] [✓ Not metni] [✓ Koltuk] */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-white/10">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setShowAuthor(!showAuthor)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer border transition-colors ${
+                    className={`h-8 px-3 rounded-full text-xs font-sans font-medium cursor-pointer transition-colors border flex items-center gap-1.5 ${
                       showAuthor
-                        ? 'bg-[#1C1A1B] dark:bg-[#F3EFEA] text-white dark:text-[#1C1A1B] border-transparent'
-                        : 'bg-[#FAF8F5] dark:bg-[#2A2729] text-[#6E6862] dark:text-[#A8A199] border-[#E2DCD4] dark:border-[#332F31]'
+                        ? 'bg-white/15 text-white border-white/30'
+                        : 'bg-transparent text-white/40 border-white/10'
                     }`}
                   >
-                    Yazar Adı
+                    <span>{showAuthor ? '✓' : '○'}</span>
+                    <span>Adın</span>
                   </button>
-                )}
 
-                {review?.sessionType && (
                   <button
                     type="button"
-                    onClick={() => setShowSession(!showSession)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer border transition-colors ${
-                      showSession
-                        ? 'bg-[#1C1A1B] dark:bg-[#F3EFEA] text-white dark:text-[#1C1A1B] border-transparent'
-                        : 'bg-[#FAF8F5] dark:bg-[#2A2729] text-[#6E6862] dark:text-[#A8A199] border-[#E2DCD4] dark:border-[#332F31]'
+                    onClick={() => setShowReviewText(!showReviewText)}
+                    className={`h-8 px-3 rounded-full text-xs font-sans font-medium cursor-pointer transition-colors border flex items-center gap-1.5 ${
+                      showReviewText
+                        ? 'bg-white/15 text-white border-white/30'
+                        : 'bg-transparent text-white/40 border-white/10'
                     }`}
                   >
-                    Seans Damgası
+                    <span>{showReviewText ? '✓' : '○'}</span>
+                    <span>Not metni</span>
                   </button>
-                )}
 
-                <button
-                  type="button"
-                  onClick={() => setShowReviewText(!showReviewText)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer border transition-colors ${
-                    showReviewText
-                      ? 'bg-[#1C1A1B] dark:bg-[#F3EFEA] text-white dark:text-[#1C1A1B] border-transparent'
-                      : 'bg-[#FAF8F5] dark:bg-[#2A2729] text-[#6E6862] dark:text-[#A8A199] border-[#E2DCD4] dark:border-[#332F31]'
-                  }`}
-                >
-                  Not Metni
-                </button>
-
-                {review?.hasSpoilers && (
                   <button
                     type="button"
-                    onClick={() => setMaskSpoiler(!maskSpoiler)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer border transition-colors flex items-center gap-1 ${
-                      maskSpoiler
-                        ? 'bg-[#BA1B23] text-white border-transparent'
-                        : 'bg-[#FAF8F5] dark:bg-[#2A2729] text-[#BA1B23] border-[#BA1B23]/40'
+                    onClick={() => setShowSeat(!showSeat)}
+                    className={`h-8 px-3 rounded-full text-xs font-sans font-medium cursor-pointer transition-colors border flex items-center gap-1.5 ${
+                      showSeat
+                        ? 'bg-white/15 text-white border-white/30'
+                        : 'bg-transparent text-white/40 border-white/10'
                     }`}
                   >
-                    {maskSpoiler ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                    <span>Spoiler Maskesi</span>
+                    <span>{showSeat ? '✓' : '○'}</span>
+                    <span>Koltuk</span>
                   </button>
-                )}
+                </div>
+
+                {/* Action Buttons: İndir & Paylaş */}
+                <div className="flex items-center gap-2.5">
+                  <button
+                    type="button"
+                    disabled={downloading}
+                    onClick={() => handleDownload()}
+                    className="h-10 px-5 rounded-full bg-white/10 hover:bg-white/20 text-white font-sans text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer border border-white/15"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>{downloading ? 'İndiriliyor...' : 'İndir'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsDestinationOpen(true)}
+                    className="h-10 px-7 rounded-full bg-tn-red hover:bg-tn-red/90 text-white font-sans text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer border-none shadow-md"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    <span>Paylaş</span>
+                  </button>
+                </div>
               </div>
             </div>
-
-            {/* 5. Not Metnini Düzenle */}
-            {showReviewText && (
-              <div>
-                <label className="block text-xs font-bold text-[#1C1A1B] dark:text-[#F3EFEA] mb-1">
-                  Kart Üzerindeki Alıntı ({customExcerpt.length} karakter)
-                </label>
-                <textarea
-                  value={customExcerpt}
-                  onChange={(e) => setCustomExcerpt(e.target.value)}
-                  rows={2}
-                  className="w-full text-xs italic font-serif p-2.5 rounded-xl border border-[#E2DCD4] dark:border-[#332F31] bg-[#FAF8F5] dark:bg-[#1A1819] text-[#1C1A1B] dark:text-[#F3EFEA] focus:outline-none focus:border-[#BA1B23] resize-none"
-                  placeholder="Karta basılacak seyirci notu..."
-                />
-              </div>
-            )}
-
-            {/* 6. EYLEMLER (Download & Share Buttons) */}
-            <div className="pt-2 space-y-2">
-              {/* Main PNG Download */}
-              <button
-                type="button"
-                onClick={handleDownload}
-                disabled={downloading}
-                className="w-full py-3 px-4 rounded-full bg-[#BA1B23] hover:bg-[#9E1B22] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-all active:scale-[0.99] disabled:opacity-50"
-              >
-                <Download className="w-4 h-4" />
-                <span>{downloading ? 'Görsel Çiziliyor...' : 'Resmi İndir (PNG)'}</span>
-              </button>
-
-              {/* Secondary Buttons Row */}
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={handleCopyImage}
-                  className="py-2.5 px-3 rounded-full bg-[#F1EDE7] dark:bg-[#2A2729] hover:bg-[#E2DCD4] dark:hover:bg-[#332F31] text-[#1C1A1B] dark:text-[#F3EFEA] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-[#E2DCD4] dark:border-[#332F31]"
-                >
-                  {copiedImage ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedImage ? 'Kopyalandı!' : 'Görseli Kopyala'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  className="py-2.5 px-3 rounded-full bg-[#F1EDE7] dark:bg-[#2A2729] hover:bg-[#E2DCD4] dark:hover:bg-[#332F31] text-[#1C1A1B] dark:text-[#F3EFEA] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-[#E2DCD4] dark:border-[#332F31]"
-                >
-                  {shared ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Share2 className="w-3.5 h-3.5 text-[#BA1B23]" />}
-                  <span>{shared ? 'Paylaşıldı!' : 'Paylaş / Bağlantı'}</span>
-                </button>
-              </div>
-
-              {/* Quick Social Share Shortcuts */}
-              <div className="flex items-center justify-center gap-3 pt-1 text-xs text-[#6E6862] dark:text-[#A8A199]">
-                <span>Doğrudan Paylaş:</span>
-                <a
-                  href={`https://api.whatsapp.com/send?text=${shareTextEncoded}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-[#1C1A1B] dark:text-[#F3EFEA] hover:text-[#BA1B23] transition-colors"
-                >
-                  <MessageCircle className="w-3.5 h-3.5 text-green-600" />
-                  <span>WhatsApp</span>
-                </a>
-                <span>·</span>
-                <a
-                  href={`https://twitter.com/intent/tweet?text=${shareTextEncoded}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-[#1C1A1B] dark:text-[#F3EFEA] hover:text-[#BA1B23] transition-colors"
-                >
-                  <span>X (Twitter)</span>
-                </a>
-              </div>
-            </div>
-
           </div>
-        </div>
+        ) : (
+          /* ==========================================================
+             VIEW 2: 18 SAHNE GALERİSİ (All 6 Templates × 3 Formats)
+             Matching media_1790773452507.png, 1790773471128, 1790773477293
+             ========================================================== */
+          <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-10">
+            {/* Gallery Eyebrow & Headline */}
+            <div>
+              <span className="text-xs font-extrabold tracking-widest text-tn-red uppercase">
+                PAYLAŞIM ŞABLONLARI · 6 ŞABLON × 3 FORMAT
+              </span>
+              <h2 className="m-0 mt-1 font-normal text-3xl sm:text-4xl text-white">
+                Bir bilet, <span className="font-extrabold">on sekiz</span> <span className="italic font-normal">sahne.</span>
+              </h2>
+            </div>
+
+            {/* 6 Template Rows */}
+            {TEMPLATES.map((tpl) => (
+              <section key={tpl.id} className="space-y-3 border-t border-white/10 pt-6">
+                <div>
+                  <span className="text-xs font-extrabold text-tn-red tracking-wider block">{tpl.badge}</span>
+                  <h3 className="m-0 font-extrabold text-2xl text-white">{tpl.label}</h3>
+                  <p className="m-0 text-xs italic text-white/60 pt-0.5">{tpl.desc}</p>
+                </div>
+
+                {/* 3 Formats Side-by-Side: 9:16, 1:1, 16:9 */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                  {(['9:16', '1:1', '16:9'] as AspectRatio[]).map((fmt) => (
+                    <div 
+                      key={fmt}
+                      onClick={() => {
+                        setTemplate(tpl.id);
+                        setAspectRatio(fmt);
+                        setActiveTab('studio');
+                      }}
+                      className="group cursor-pointer rounded-2xl bg-white/5 border border-white/10 hover:border-tn-red p-4 flex flex-col items-center justify-between gap-3 transition-all hover:bg-white/10 shadow-lg"
+                    >
+                      {/* Scaled Preview Box */}
+                      <div 
+                        className="rounded-lg shadow-md flex items-center justify-center text-center p-3 transition-transform group-hover:scale-[1.02]"
+                        style={{
+                          width: fmt === '9:16' ? '120px' : fmt === '1:1' ? '150px' : '200px',
+                          height: fmt === '9:16' ? '210px' : fmt === '1:1' ? '150px' : '112px',
+                          backgroundColor: tpl.bgPreview,
+                        }}
+                      >
+                        <div className="flex flex-col items-center gap-1">
+                          <span 
+                            className="font-bold text-xl"
+                            style={{ color: tpl.id === 'quote' || tpl.id === 'program' ? '#1C1A1B' : '#FFFFFF' }}
+                          >
+                            {tpl.iconText}
+                          </span>
+                          <span 
+                            className="text-[9px] font-sans font-bold uppercase tracking-wider"
+                            style={{ color: tpl.id === 'quote' || tpl.id === 'program' ? '#1C1A1B' : '#FFFFFF' }}
+                          >
+                            {tpl.label}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="w-full flex justify-between items-center text-[11px] font-sans text-white/60 group-hover:text-white pt-1">
+                        <span>{fmt}</span>
+                        <span className="font-mono text-[10px] text-white/40">{RESOLUTIONS[fmt].text}</span>
+                        <span className="text-tn-red opacity-0 group-hover:opacity-100 font-semibold transition-opacity">Seç →</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
+
+        {/* ==========================================================
+            SCREEN 08: "NEREYE GÖNDERELİM?" (Share Destination Sheet)
+            Matching media_1790773381368.png screen 08
+            ========================================================== */}
+        {isDestinationOpen && (
+          <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 sm:p-6 animate-fadeIn">
+            <div className="w-full max-w-md rounded-3xl bg-[#FFFCF7] text-tn-ink p-6 shadow-2xl border border-tn-line space-y-4">
+              
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="m-0 font-extrabold text-xl text-tn-ink">
+                    Nereye gönderelim?
+                  </h3>
+                  <span className="text-xs italic text-tn-muted">
+                    {TEMPLATES.find(t => t.id === template)?.label} · {RESOLUTIONS[aspectRatio].text}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsDestinationOpen(false)}
+                  className="w-8 h-8 rounded-full bg-tn-surface hover:bg-tn-line flex items-center justify-center text-tn-muted hover:text-tn-ink transition-colors cursor-pointer border-none"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* App Targets Row: IG, WA, X, Mesajlar, Kaydet */}
+              <div className="grid grid-cols-5 gap-2 pt-2 text-center">
+                {/* 1. Instagram */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleDownload();
+                    handleCopyLink();
+                  }}
+                  className="flex flex-col items-center gap-1.5 p-1 cursor-pointer border-none bg-transparent group"
+                >
+                  <div className="w-12 h-12 rounded-full bg-[#1C1A1B] text-white flex items-center justify-center font-sans font-extrabold text-sm group-hover:scale-105 transition-transform shadow-xs">
+                    IG
+                  </div>
+                  <span className="text-[10px] font-sans font-medium text-tn-muted leading-tight">
+                    Instagram Hikaye
+                  </span>
+                </button>
+
+                {/* 2. WhatsApp */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const text = encodeURIComponent(`🎭 ${play.title} — Tiyatronot Notum:\n"${effectiveNote}"\nhttps://${shareableUrl}`);
+                    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+                  }}
+                  className="flex flex-col items-center gap-1.5 p-1 cursor-pointer border-none bg-transparent group"
+                >
+                  <div className="w-12 h-12 rounded-full bg-[#D6E0D3] text-[#1C1A1B] flex items-center justify-center font-sans font-extrabold text-sm group-hover:scale-105 transition-transform shadow-xs">
+                    WA
+                  </div>
+                  <span className="text-[10px] font-sans font-medium text-tn-muted leading-tight">
+                    WhatsApp
+                  </span>
+                </button>
+
+                {/* 3. X (Twitter) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const text = encodeURIComponent(`🎭 ${play.title} izledim. Tiyatronot notum: "${effectiveNote}"`);
+                    window.open(`https://twitter.com/intent/tweet?text=${text}&url=https://${shareableUrl}`, '_blank');
+                  }}
+                  className="flex flex-col items-center gap-1.5 p-1 cursor-pointer border-none bg-transparent group"
+                >
+                  <div className="w-12 h-12 rounded-full bg-[#1C1A1B] text-white flex items-center justify-center font-sans font-extrabold text-sm group-hover:scale-105 transition-transform shadow-xs">
+                    X
+                  </div>
+                  <span className="text-[10px] font-sans font-medium text-tn-muted leading-tight">
+                    X
+                  </span>
+                </button>
+
+                {/* 4. Mesajlar */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.open(`mailto:?subject=${encodeURIComponent(`Tiyatronot: ${play.title}`)}&body=${encodeURIComponent(`https://${shareableUrl}`)}`);
+                  }}
+                  className="flex flex-col items-center gap-1.5 p-1 cursor-pointer border-none bg-transparent group"
+                >
+                  <div className="w-12 h-12 rounded-full bg-[#D9CFF2] text-[#1C1A1B] flex items-center justify-center font-sans font-extrabold text-sm group-hover:scale-105 transition-transform shadow-xs">
+                    ✉
+                  </div>
+                  <span className="text-[10px] font-sans font-medium text-tn-muted leading-tight">
+                    Mesajlar
+                  </span>
+                </button>
+
+                {/* 5. Kaydet */}
+                <button
+                  type="button"
+                  onClick={() => handleDownload()}
+                  className="flex flex-col items-center gap-1.5 p-1 cursor-pointer border-none bg-transparent group"
+                >
+                  <div className="w-12 h-12 rounded-full bg-[#F1E3C4] text-[#1C1A1B] flex items-center justify-center font-sans font-extrabold text-sm group-hover:scale-105 transition-transform shadow-xs">
+                    ↓
+                  </div>
+                  <span className="text-[10px] font-sans font-medium text-tn-muted leading-tight">
+                    Kaydet
+                  </span>
+                </button>
+              </div>
+
+              {/* Shareable Link Box */}
+              <div className="p-2.5 rounded-2xl bg-[#F1EDE7] border border-tn-line flex items-center justify-between gap-2 shadow-2xs">
+                <span className="text-xs font-mono text-tn-muted truncate max-w-[260px]">
+                  https://{shareableUrl}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="h-8 px-4 rounded-full bg-tn-ink text-white hover:bg-tn-ink/85 font-sans text-xs font-semibold flex items-center gap-1.5 cursor-pointer border-none transition-colors shrink-0"
+                >
+                  {copiedLink ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedLink ? 'Kopyalandı' : 'Kopyala'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Hidden reference poster image */}
-      {play.posterUrl && (
-        <img
-          ref={previewImgRef}
-          src={play.posterUrl}
-          alt=""
-          aria-hidden="true"
-          className="absolute -top-[9999px] -left-[9999px] opacity-0 pointer-events-none"
-          crossOrigin="anonymous"
-        />
-      )}
-    </div>
+    </div>,
+    document.body
   );
-
-  return typeof document !== 'undefined'
-    ? createPortal(modalContent, document.body)
-    : modalContent;
 };
 
 export default SocialShareModal;
