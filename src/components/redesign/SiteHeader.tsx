@@ -43,24 +43,16 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             onClick={() => {
               window.dispatchEvent(new CustomEvent('tiyatronot:reset-catalog'));
             }}
-            className="flex items-center gap-2.5 sm:gap-3 text-tn-text no-underline hover:text-tn-red transition-colors cursor-pointer group"
+            className="flex items-center gap-2.5 sm:gap-3 text-tn-text no-underline hover:text-tn-red transition-colors cursor-pointer"
           >
             <img
               src="/logo.png"
               alt="Tiyatronot Logo"
-              className="w-8.5 h-8.5 sm:w-10 sm:h-10 rounded-xl object-contain flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform duration-200"
+              className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl object-contain flex-shrink-0 shadow-2xs"
             />
-            <div className="flex items-baseline gap-2 sm:gap-2.5">
-              <span 
-                className="font-bold text-[22px] sm:text-[28px] tracking-tight leading-none whitespace-nowrap text-tn-text"
-                style={{ fontFamily: UI_FONT_FAMILY }}
-              >
-                TİYATRO<span className="text-tn-red font-bold mx-0.5">·</span>NOT
-              </span>
-              <span className="font-serif italic text-xs sm:text-[14px] text-tn-muted hidden xs:inline whitespace-nowrap tracking-normal">
-                dijital oyun günlüğü
-              </span>
-            </div>
+            <span className="font-extrabold text-[26px] sm:text-[34px] tracking-tight leading-none whitespace-nowrap font-serif">
+              TİYATRO<span className="text-tn-red">·</span>NOT
+            </span>
           </Link>
         </div>
 
