@@ -54,45 +54,50 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
           </Link>
         </div>
 
-        {/* Right: Exactly 3 buttons: Oyun Ekle, Profil, Not Ekle (Red) */}
-        <div className="flex justify-end gap-2 sm:gap-2.5 items-center flex-shrink-0">
-          {/* 1. Oyun Ekle - Light Surface Pill */}
+        {/* Right: Exactly 3 buttons: Oyun Ekle (Black), Not Ekle (Red), Profil */}
+        <div className="flex justify-end gap-1.5 sm:gap-2.5 items-center flex-shrink-0">
+          {/* 1. Oyun Ekle - Black Button with text next to icon (hidden on mobile) */}
           <Link
             to="/oyun-ekle"
-            className="hidden sm:inline-flex h-9 sm:h-10 px-3.5 sm:px-4 rounded-full bg-tn-surface/90 hover:bg-tn-line/60 border border-tn-line text-tn-text font-serif text-[13px] sm:text-[14px] font-semibold items-center justify-center transition-all no-underline whitespace-nowrap shadow-2xs"
+            className="hidden sm:flex h-10 sm:h-11 px-3 sm:px-4.5 rounded-full bg-tn-ink text-white hover:bg-tn-ink/85 border-none font-serif text-[13px] sm:text-[15px] font-semibold items-center gap-1.5 sm:gap-2 transition-all no-underline whitespace-nowrap shadow-2xs"
           >
+            <Plus className="w-4 h-4 text-white flex-shrink-0" />
             <span>Oyun Ekle</span>
           </Link>
 
-          {/* 2. Profil - Light Surface Pill */}
+          {/* 2. Not Ekle - Red Button (hidden on mobile since bottom navbar has dedicated (+) Not Ekle button) */}
+          <button
+            type="button"
+            onClick={onOpenLogModal}
+            className="hidden sm:flex h-10 sm:h-11 px-3.5 sm:px-4.5 rounded-full bg-tn-red text-white hover:bg-tn-red/90 border-none font-serif text-[13px] sm:text-[15px] font-semibold items-center gap-1.5 sm:gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+          >
+            <PenLine className="w-4 h-4 text-white flex-shrink-0" />
+            <span>Not Ekle</span>
+          </button>
+
+          {/* 3. Profil (hidden on mobile, accessible via SideMenu and bottom nav) */}
           {user ? (
             <Link
               to="/profil"
-              className="hidden sm:inline-flex h-9 sm:h-10 px-3.5 sm:px-4 rounded-full bg-tn-surface/90 hover:bg-tn-line/60 border border-tn-line text-tn-text font-serif text-[13px] sm:text-[14px] font-semibold items-center gap-1.5 transition-all no-underline whitespace-nowrap shadow-2xs"
+              className="hidden sm:flex h-10 sm:h-11 px-3 sm:px-4 rounded-full bg-[#F6F4FA] dark:bg-tn-surface/90 hover:bg-[#EDE8F5] dark:hover:bg-tn-surface border border-[#E3DCF0] dark:border-tn-line/40 text-tn-text font-serif text-[14px] sm:text-[15px] font-medium items-center gap-1.5 sm:gap-2 transition-all no-underline whitespace-nowrap shadow-2xs"
             >
-              {user.photoURL && (
-                <img src={user.photoURL} alt={user.displayName || 'Profil'} className="w-4 h-4 rounded-full object-cover flex-shrink-0" />
+              {user.photoURL ? (
+                <img src={user.photoURL} alt={user.displayName || 'Profil'} className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
+              ) : (
+                <User className="w-4 h-4 text-tn-muted flex-shrink-0" />
               )}
-              <span className="truncate max-w-[80px]">{user.displayName?.split(' ')[0] || 'Profil'}</span>
+              <span className="hidden xs:inline truncate max-w-[90px]">{user.displayName?.split(' ')[0] || 'Profil'}</span>
             </Link>
           ) : (
             <button
               type="button"
               onClick={() => loginWithGoogle?.()}
-              className="hidden sm:inline-flex h-9 sm:h-10 px-3.5 sm:px-4 rounded-full bg-tn-surface/90 hover:bg-tn-line/60 border border-tn-line text-tn-text font-serif text-[13px] sm:text-[14px] font-semibold items-center justify-center transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+              className="hidden sm:flex h-10 sm:h-11 px-3 sm:px-4 rounded-full bg-[#F6F4FA] dark:bg-tn-surface/90 hover:bg-[#EDE8F5] dark:hover:bg-tn-surface border border-[#E3DCF0] dark:border-tn-line/40 text-tn-text font-serif text-[14px] sm:text-[15px] font-medium items-center gap-1.5 sm:gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
             >
-              <span>Profil</span>
+              <User className="w-4 h-4 text-tn-muted flex-shrink-0" />
+              <span className="hidden xs:inline">Profil</span>
             </button>
           )}
-
-          {/* 3. Not Ekle - Red Pill */}
-          <button
-            type="button"
-            onClick={onOpenLogModal}
-            className="hidden sm:inline-flex h-9 sm:h-10 px-4 sm:px-5 rounded-full bg-tn-red text-white hover:bg-tn-red/90 border-none font-serif text-[13px] sm:text-[14px] font-semibold items-center justify-center transition-all cursor-pointer whitespace-nowrap shadow-2xs"
-          >
-            <span>Not Ekle</span>
-          </button>
         </div>
       </header>
 
