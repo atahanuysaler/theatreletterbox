@@ -75,27 +75,27 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             <span>Not Ekle</span>
           </button>
 
-          {/* 3. Profil (hidden on mobile, accessible via SideMenu and bottom nav) */}
+          {/* 3. Profil (visible on mobile and desktop) */}
           {user ? (
             <Link
               to="/profil"
-              className="hidden sm:flex h-10 sm:h-11 px-3 sm:px-4 rounded-full bg-[#F6F4FA] dark:bg-tn-surface/90 hover:bg-[#EDE8F5] dark:hover:bg-tn-surface border border-[#E3DCF0] dark:border-tn-line/40 text-tn-text font-serif text-[14px] sm:text-[15px] font-medium items-center gap-1.5 sm:gap-2 transition-all no-underline whitespace-nowrap shadow-2xs"
+              className="flex h-8 sm:h-11 px-3 sm:px-4 rounded-full bg-[#F6F4FA] dark:bg-tn-surface/90 hover:bg-[#EDE8F5] dark:hover:bg-tn-surface border border-[#E3DCF0] dark:border-tn-line/40 text-tn-text font-serif text-[12px] sm:text-[14px] font-medium items-center gap-1.5 transition-all no-underline whitespace-nowrap shadow-2xs"
             >
               {user.photoURL ? (
-                <img src={user.photoURL} alt={user.displayName || 'Profil'} className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
+                <img src={user.photoURL} alt={user.displayName || 'Profil'} className="w-4 h-4 rounded-full object-cover flex-shrink-0" />
               ) : (
-                <User className="w-4 h-4 text-tn-muted flex-shrink-0" />
+                <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-tn-muted flex-shrink-0" />
               )}
-              <span className="hidden xs:inline truncate max-w-[90px]">{user.displayName?.split(' ')[0] || 'Profil'}</span>
+              <span className="truncate max-w-[80px]">{user.displayName?.split(' ')[0] || 'Profil'}</span>
             </Link>
           ) : (
             <button
               type="button"
               onClick={() => loginWithGoogle?.()}
-              className="hidden sm:flex h-10 sm:h-11 px-3 sm:px-4 rounded-full bg-[#F6F4FA] dark:bg-tn-surface/90 hover:bg-[#EDE8F5] dark:hover:bg-tn-surface border border-[#E3DCF0] dark:border-tn-line/40 text-tn-text font-serif text-[14px] sm:text-[15px] font-medium items-center gap-1.5 sm:gap-2 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+              className="flex h-8 sm:h-11 px-3 sm:px-4 rounded-full bg-[#F6F4FA] dark:bg-tn-surface/90 hover:bg-[#EDE8F5] dark:hover:bg-tn-surface border border-[#E3DCF0] dark:border-tn-line/40 text-tn-text font-serif text-[12px] sm:text-[14px] font-medium items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap shadow-2xs"
             >
-              <User className="w-4 h-4 text-tn-muted flex-shrink-0" />
-              <span className="hidden xs:inline">Profil</span>
+              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-tn-muted flex-shrink-0" />
+              <span>Profil</span>
             </button>
           )}
         </div>

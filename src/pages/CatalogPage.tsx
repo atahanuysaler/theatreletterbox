@@ -415,17 +415,17 @@ export const CatalogPage: React.FC<CatalogPageProps> = () => {
             /* Screenshot 08: Arama Sonuçları */
             <>
               {/* Summary and Filter Pills */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
-                <span className="italic text-base sm:text-lg text-tn-muted">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 px-1">
+                <span className="italic text-sm sm:text-lg text-tn-muted">
                   "{searchQuery}" için <strong className="text-tn-text not-italic">{searchResults.totalCount} sonuç</strong>
                 </span>
 
-                {/* Filter Pills */}
-                <div className="flex flex-wrap gap-1.5 items-center">
+                {/* Filter Pills (horizontally scrollable on mobile) */}
+                <div className="flex gap-1.5 items-center overflow-x-auto no-scrollbar -mx-1 px-1 py-0.5">
                   <button
                     type="button"
                     onClick={() => setSearchCategory('all')}
-                    className={`h-8 px-4 rounded-full font-serif text-xs font-semibold cursor-pointer transition-colors border ${
+                    className={`h-8 px-3.5 sm:px-4 rounded-full font-serif text-xs font-semibold cursor-pointer transition-colors border whitespace-nowrap shrink-0 ${
                       searchCategory === 'all'
                         ? 'bg-tn-ink text-white border-tn-ink shadow-2xs'
                         : 'bg-tn-surface text-tn-text border-tn-line hover:bg-tn-line/40'
@@ -437,7 +437,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = () => {
                   <button
                     type="button"
                     onClick={() => setSearchCategory('plays')}
-                    className={`h-8 px-4 rounded-full font-serif text-xs font-semibold cursor-pointer transition-colors border ${
+                    className={`h-8 px-3.5 sm:px-4 rounded-full font-serif text-xs font-semibold cursor-pointer transition-colors border whitespace-nowrap shrink-0 ${
                       searchCategory === 'plays'
                         ? 'bg-tn-ink text-white border-tn-ink shadow-2xs'
                         : 'bg-tn-surface text-tn-text border-tn-line hover:bg-tn-line/40'
@@ -449,7 +449,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = () => {
                   <button
                     type="button"
                     onClick={() => setSearchCategory('people')}
-                    className={`h-8 px-4 rounded-full font-serif text-xs font-semibold cursor-pointer transition-colors border ${
+                    className={`h-8 px-3.5 sm:px-4 rounded-full font-serif text-xs font-semibold cursor-pointer transition-colors border whitespace-nowrap shrink-0 ${
                       searchCategory === 'people'
                         ? 'bg-tn-ink text-white border-tn-ink shadow-2xs'
                         : 'bg-tn-surface text-tn-text border-tn-line hover:bg-tn-line/40'
@@ -461,7 +461,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = () => {
                   <button
                     type="button"
                     onClick={() => setSearchCategory('companies')}
-                    className={`h-8 px-4 rounded-full font-serif text-xs font-semibold cursor-pointer transition-colors border ${
+                    className={`h-8 px-3.5 sm:px-4 rounded-full font-serif text-xs font-semibold cursor-pointer transition-colors border whitespace-nowrap shrink-0 ${
                       searchCategory === 'companies'
                         ? 'bg-tn-ink text-white border-tn-ink shadow-2xs'
                         : 'bg-tn-surface text-tn-text border-tn-line hover:bg-tn-line/40'
@@ -636,7 +636,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = () => {
               </div>
 
               {/* Bottom Banner Card: Aradığın oyun katalogda yok mu? */}
-              <div className="rounded-2xl bg-tn-surface border border-tn-line p-5 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-2xs">
+              <div className="rounded-2xl bg-tn-surface border border-tn-line p-5 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-2xs">
                 <div>
                   <div className="font-extrabold text-base sm:text-lg text-tn-text">
                     Aradığın oyun katalogda yok mu?
@@ -648,7 +648,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = () => {
 
                 <Link
                   to="/oyun-ekle"
-                  className="h-9 px-6 rounded-full bg-tn-red text-white hover:bg-tn-red/90 font-serif text-sm font-semibold flex items-center justify-center no-underline transition-colors shadow-2xs shrink-0"
+                  className="w-full sm:w-auto h-10 sm:h-9 px-6 rounded-full bg-tn-red text-white hover:bg-tn-red/90 font-serif text-sm font-semibold flex items-center justify-center no-underline transition-colors shadow-2xs shrink-0 text-center"
                 >
                   Oyun Ekle
                 </Link>

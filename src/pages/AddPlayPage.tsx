@@ -196,7 +196,7 @@ export const AddPlayPage: React.FC = () => {
       </div>
 
       {/* 2. Main Card Container */}
-      <div className="w-full max-w-3xl mx-auto rounded-2xl bg-tn-surface border border-tn-line p-6 sm:p-9 shadow-2xs">
+      <div className="w-full max-w-3xl mx-auto rounded-2xl bg-tn-surface border border-tn-line p-4 sm:p-9 shadow-2xs">
         {submitted ? (
           /* Step 4 / Success State (06 Oyun Ekle - gönderildi) */
           <div className="py-8 sm:py-12 flex flex-col items-center text-center gap-3 font-serif">
@@ -231,9 +231,9 @@ export const AddPlayPage: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-5 sm:gap-6">
             {/* Stepper Indicator */}
-            <div className="flex items-center gap-6 sm:gap-8 border-b border-tn-line/80 pb-3 text-xs sm:text-[13px] font-semibold">
+            <div className="flex items-center gap-4 sm:gap-8 border-b border-tn-line/80 pb-3 text-xs sm:text-[13px] font-semibold overflow-x-auto no-scrollbar whitespace-nowrap">
               <button
                 type="button"
                 onClick={() => setStep(1)}
@@ -475,7 +475,7 @@ export const AddPlayPage: React.FC = () => {
                         <select
                           value={member.role}
                           onChange={(e) => handleCrewChange(idx, 'role', e.target.value)}
-                          className="w-[180px] sm:w-[210px] h-10 px-3 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-xs sm:text-sm text-tn-text focus:outline-none focus:border-tn-red transition-colors cursor-pointer shrink-0"
+                          className="w-[125px] sm:w-[210px] h-10 px-2 sm:px-3 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-xs sm:text-sm text-tn-text focus:outline-none focus:border-tn-red transition-colors cursor-pointer shrink-0"
                         >
                           {CREW_ROLES.map((r) => (
                             <option key={r} value={r}>

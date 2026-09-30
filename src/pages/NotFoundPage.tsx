@@ -32,19 +32,19 @@ export const NotFoundPage: React.FC = () => {
         </div>
 
         {/* Action buttons on bottom */}
-        <div className="flex flex-wrap items-center gap-3 pt-8 z-10">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-8 z-10">
           <Link
             to="/katalog"
-            className="h-10 sm:h-11 px-6 rounded-full bg-white text-tn-text font-serif text-sm font-semibold flex items-center justify-center hover:bg-white/90 transition-all no-underline shadow-xs"
+            className="h-11 px-6 rounded-full bg-white text-tn-text font-serif text-sm font-semibold flex items-center justify-center hover:bg-white/90 transition-all no-underline shadow-xs text-center"
           >
             Kataloğa Dön
           </Link>
 
           <Link
             to="/bulmacalar"
-            className="h-10 sm:h-11 px-5 rounded-full border border-white/40 bg-white/5 hover:bg-white/15 text-white font-serif text-sm font-semibold flex items-center justify-center transition-all no-underline backdrop-blur-xs"
+            className="h-11 px-5 rounded-full border border-white/40 bg-white/5 hover:bg-white/15 text-white font-serif text-sm font-semibold flex items-center justify-center transition-all no-underline backdrop-blur-xs text-center"
           >
-            Günün Başlığı'nı Çöz
+            Günün Repliği'ni Çöz
           </Link>
         </div>
       </div>

@@ -117,8 +117,8 @@ export const ListsPage: React.FC<ListsPageProps> = () => {
         </p>
       </div>
 
-      {/* 2. Top Category / List Selector Pills */}
-      <div className="flex flex-wrap gap-2 items-center">
+      {/* 2. Top Category / List Selector Pills (horizontally scrollable on mobile) */}
+      <div className="flex gap-2 items-center overflow-x-auto no-scrollbar -mx-2 px-2 py-1">
         {curatedLists.map((list) => {
           const isSelected = list.id === selectedList?.id;
           return (
@@ -126,7 +126,7 @@ export const ListsPage: React.FC<ListsPageProps> = () => {
               key={list.id}
               type="button"
               onClick={() => setSelectedListId(list.id)}
-              className={`h-9 px-4 rounded-full font-serif text-xs sm:text-[13px] cursor-pointer transition-all border whitespace-nowrap ${
+              className={`h-9 px-4 rounded-full font-serif text-xs sm:text-[13px] cursor-pointer transition-all border whitespace-nowrap shrink-0 ${
                 isSelected
                   ? 'bg-tn-red text-white border-tn-red font-semibold shadow-2xs'
                   : 'bg-tn-surface hover:bg-tn-line/60 border-tn-line text-tn-text font-medium'
@@ -142,7 +142,7 @@ export const ListsPage: React.FC<ListsPageProps> = () => {
       {/* 3. Selected List Hero Banner */}
       {selectedList && (
         <section
-          className={`rounded-2xl p-6 sm:p-8 flex flex-col justify-between min-h-[220px] shadow-sm relative overflow-hidden transition-colors ${
+          className={`rounded-2xl p-5 sm:p-8 flex flex-col justify-between min-h-[200px] sm:min-h-[220px] shadow-sm relative overflow-hidden transition-colors ${
             isCurrentListRed ? 'bg-tn-red text-white' : 'bg-tn-ink text-white'
           }`}
         >
