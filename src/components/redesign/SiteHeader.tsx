@@ -61,13 +61,13 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
           className="flex justify-end gap-2 sm:gap-2.5 items-center flex-shrink-0 font-sans"
           style={{ fontFamily: UI_FONT_FAMILY }}
         >
-          {/* 1. Oyun Ekle - Subtle warm surface pill button (hidden on mobile) */}
+          {/* 1. Oyun Ekle - Sleek black pill button (hidden on mobile) */}
           <Link
             to="/oyun-ekle"
             style={{ fontFamily: UI_FONT_FAMILY }}
-            className="hidden sm:flex h-[38px] sm:h-10 px-4 rounded-full bg-tn-surface hover:bg-tn-line/70 border border-tn-line/80 text-tn-text text-[13.5px] sm:text-[14px] font-medium items-center gap-1.5 sm:gap-2 transition-all no-underline whitespace-nowrap shadow-2xs hover:shadow-xs active:scale-[0.98]"
+            className="hidden sm:flex h-[38px] sm:h-10 px-4 rounded-full bg-tn-ink text-white hover:bg-tn-ink/85 border border-transparent text-[13.5px] sm:text-[14px] font-medium items-center gap-1.5 sm:gap-2 transition-all no-underline whitespace-nowrap shadow-2xs hover:shadow-xs active:scale-[0.98]"
           >
-            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-tn-text/75 stroke-[2] flex-shrink-0" />
+            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/90 stroke-[2] flex-shrink-0" />
             <span>Oyun Ekle</span>
           </Link>
 
