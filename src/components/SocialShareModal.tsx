@@ -126,6 +126,27 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number,
   return lines;
 }
 
+function drawRoundedImage(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  radius: number = 8
+) {
+  ctx.save();
+  ctx.beginPath();
+  if (typeof ctx.roundRect === 'function') {
+    ctx.roundRect(x, y, w, h, radius);
+  } else {
+    ctx.rect(x, y, w, h);
+  }
+  ctx.clip();
+  ctx.drawImage(img, x, y, w, h);
+  ctx.restore();
+}
+
 export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   isOpen,
   onClose,
@@ -136,6 +157,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   const [template, setTemplate] = useState<ShareTemplate>('ticket');
   
   // Toggles matching screens
+  const [showPoster, setShowPoster] = useState<boolean>(true);
   const [showAuthor, setShowAuthor] = useState<boolean>(true);
   const [showReviewText, setShowReviewText] = useState<boolean>(true);
   const [showSeat, setShowSeat] = useState<boolean>(true);
@@ -152,8 +174,8 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
     : 'Atahan Uysaler';
   const effectiveDate = review?.performanceDate || '10.09.2026';
   const effectiveSession = review?.sessionType ? (review.sessionType === 'matine' ? 'Matine' : 'Suare') : 'Suare';
-  const effectiveVenue = review?.venue || play.venue || 'Zorlu PSM';
   const effectiveSeat = review?.seatInfo || 'Parter Orta';
+  const effectivePoster = play.posterUrl || review?.playPosterUrl || play.thumbnailUrl || '';
   const effectiveNote = (review?.reviewText?.trim() || play.synopsis || 'Gözlerimi arda ergulden alamadim maalesef.').trim();
   const serialNo = `IST-TN-${(effectiveDate).slice(0, 4)}-${(review?.id || play.id || '2026').slice(-4).toUpperCase()}`;
   const shareableUrl = `tiyatronot.uyslab.com/bilet/${serialNo}`;
@@ -188,6 +210,17 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
+
+    let posterImg: HTMLImageElement | null = null;
+    if (showPoster && effectivePoster) {
+      posterImg = await new Promise<HTMLImageElement | null>((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = effectivePoster;
+      });
+    }
 
     // ----------------------------------------------------
     // TEMPLATE 1: BİLET KOÇANI
@@ -233,29 +266,39 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fill();
         ctx.restore();
 
+        if (showPoster && posterImg) {
+          drawRoundedImage(ctx, posterImg, leftX + leftW - 200, leftY + 60, 140, 200, 10);
+        }
+
         ctx.fillStyle = '#6E6862';
         ctx.font = "600 24px 'Newsreader', Georgia, serif";
         ctx.fillText(`TİYATRO·NOT · ${serialNo}`, leftX + 60, leftY + 70);
 
         ctx.fillStyle = '#1C1A1B';
         ctx.font = "800 68px 'Newsreader', Georgia, serif";
-        ctx.fillText(play.title, leftX + 60, leftY + 160);
+        const maxTitleW = (showPoster && posterImg) ? leftW - 300 : leftW - 120;
+        const tLines = wrapText(ctx, play.title, maxTitleW, "800 68px 'Newsreader', Georgia, serif");
+        let tY = leftY + 160;
+        for (const line of tLines.slice(0, 2)) {
+          ctx.fillText(line, leftX + 60, tY);
+          tY += 76;
+        }
 
         ctx.fillStyle = '#6E6862';
         ctx.font = "italic 32px 'Newsreader', Georgia, serif";
-        ctx.fillText(play.playwright || 'Arthur Miller', leftX + 60, leftY + 220);
+        ctx.fillText(play.playwright || 'Arthur Miller', leftX + 60, tY + 10);
 
         if (showSeat) {
           ctx.font = "600 22px 'Newsreader', Georgia, serif";
           ctx.fillStyle = '#4A4541';
-          ctx.fillText(`TARİH: ${effectiveDate}    SEANS: ${effectiveSession.toUpperCase()}    SAHNE: ${effectiveVenue}`, leftX + 60, leftY + 300);
+          ctx.fillText(`TARİH: ${effectiveDate}    SEANS: ${effectiveSession.toUpperCase()}`, leftX + 60, tY + 80);
         }
 
         if (showReviewText && effectiveNote) {
           ctx.fillStyle = '#1C1A1B';
           ctx.font = "italic 36px 'Newsreader', Georgia, serif";
           const quoteLines = wrapText(ctx, `“${effectiveNote}”`, leftW - 120, "italic 36px 'Newsreader', Georgia, serif");
-          let qY = leftY + 390;
+          let qY = leftY + 410;
           for (const line of quoteLines.slice(0, 3)) {
             ctx.fillText(line, leftX + 60, qY);
             qY += 50;
@@ -318,6 +361,10 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
           ctx.fill();
         }
 
+        if (showPoster && posterImg) {
+          drawRoundedImage(ctx, posterImg, tX + tW - 200, tY + 110, 130, 180, 10);
+        }
+
         ctx.fillStyle = '#6E6862';
         ctx.font = "600 24px 'Newsreader', Georgia, serif";
         ctx.textAlign = 'left';
@@ -328,7 +375,8 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.textAlign = 'left';
         ctx.fillStyle = '#1C1A1B';
         ctx.font = targetRatio === '9:16' ? "800 76px 'Newsreader', Georgia, serif" : "800 64px 'Newsreader', Georgia, serif";
-        const titleLines = wrapText(ctx, play.title, tW - 140, ctx.font);
+        const maxTitleW = (showPoster && posterImg) ? tW - 290 : tW - 140;
+        const titleLines = wrapText(ctx, play.title, maxTitleW, ctx.font);
         let curY = tY + 180;
         for (const line of titleLines.slice(0, 2)) {
           ctx.fillText(line, tX + 70, curY);
@@ -343,7 +391,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         if (showSeat) {
           ctx.font = "600 22px 'Newsreader', Georgia, serif";
           ctx.fillStyle = '#4A4541';
-          ctx.fillText(`TARİH: ${effectiveDate}    SEANS: ${effectiveSession.toUpperCase()}    SAHNE: ${effectiveVenue}`, tX + 70, curY + 20);
+          ctx.fillText(`TARİH: ${effectiveDate}    SEANS: ${effectiveSession.toUpperCase()}`, tX + 70, curY + 20);
           curY += 50;
         }
 
@@ -402,7 +450,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fillStyle = '#FFFFFF';
         ctx.font = "800 24px 'Newsreader', Georgia, serif";
         ctx.textAlign = 'left';
-        ctx.fillText(effectiveVenue.toUpperCase(), 80, 90);
+        ctx.fillText('TİYATRO·NOT', 80, 90);
         ctx.textAlign = 'right';
         ctx.fillText(`${effectiveDate} - ${effectiveSession.toUpperCase()}`, width - 80, 90);
 
@@ -414,6 +462,14 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.stroke();
       }
 
+      if (showPoster && posterImg) {
+        if (targetRatio === '16:9') {
+          drawRoundedImage(ctx, posterImg, width - 460, 180, 360, 520, 20);
+        } else {
+          drawRoundedImage(ctx, posterImg, width - 360, 220, 280, 400, 16);
+        }
+      }
+
       ctx.fillStyle = '#FFFFFF';
       ctx.textAlign = 'left';
       const titleFont = targetRatio === '9:16' 
@@ -423,7 +479,10 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         : "800 90px 'Newsreader', Georgia, serif";
       ctx.font = titleFont;
 
-      const titleLines = wrapText(ctx, play.title, width - 160, titleFont);
+      const maxTitleW = (showPoster && posterImg) 
+        ? (targetRatio === '16:9' ? width - 520 : width - 420) 
+        : width - 160;
+      const titleLines = wrapText(ctx, play.title, maxTitleW, titleFont);
       let titleY = targetRatio === '16:9' ? 320 : 420;
       for (const line of titleLines.slice(0, 2)) {
         ctx.fillText(line, 80, titleY);
@@ -470,6 +529,10 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.fillStyle = '#FAF8F5';
       ctx.fillRect(0, 0, width, height);
 
+      if (showPoster && posterImg) {
+        drawRoundedImage(ctx, posterImg, width - 240, height - 260, 140, 200, 12);
+      }
+
       ctx.fillStyle = '#BA1B23';
       ctx.font = "800 160px 'Newsreader', Georgia, serif";
       ctx.textAlign = 'left';
@@ -506,7 +569,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       if (showSeat) {
         ctx.fillStyle = '#6E6862';
         ctx.font = "600 24px 'Newsreader', Georgia, serif";
-        ctx.fillText(`${play.title} · ${effectiveVenue} · ★ ${effectiveRating.toFixed(1)}`, 100, botY + 95);
+        ctx.fillText(`${play.title} · ★ ${effectiveRating.toFixed(1)}`, 100, botY + 95);
       }
 
       ctx.fillStyle = '#1C1A1B';
@@ -556,16 +619,21 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
       ctx.fillStyle = '#6E6862';
       ctx.font = "italic 32px 'Newsreader', Georgia, serif";
-      ctx.fillText(`${play.playwright || 'Arthur Miller'} · ${effectiveVenue}`, width / 2, aY + 270);
+      ctx.fillText(play.playwright || 'Arthur Miller', width / 2, aY + 270);
 
+      if (showPoster && posterImg) {
+        drawRoundedImage(ctx, posterImg, width / 2 - 110, aY + 300, 220, 300, 14);
+      }
+
+      const ratingY = (showPoster && posterImg) ? aY + 640 : aY + 360;
       ctx.fillStyle = '#1C1A1B';
       ctx.font = "800 56px 'Newsreader', Georgia, serif";
-      ctx.fillText(`${effectiveRating.toFixed(1)} ${getBadgeTitle(effectiveRating)}`, width / 2, aY + 360);
+      ctx.fillText(`${effectiveRating.toFixed(1)} ${getBadgeTitle(effectiveRating)}`, width / 2, ratingY);
 
       if (showSeat) {
         ctx.fillStyle = '#6E6862';
         ctx.font = "600 24px 'Newsreader', Georgia, serif";
-        ctx.fillText(`${effectiveSeat} · Günlük Kaydı`, width / 2, aY + 410);
+        ctx.fillText(`${effectiveSeat} · Günlük Kaydı`, width / 2, ratingY + 50);
       }
 
       ctx.fillStyle = '#FFFFFF';
@@ -593,15 +661,21 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       if (showSeat) {
         ctx.fillStyle = '#A8A199';
         ctx.font = "italic 26px 'Newsreader', Georgia, serif";
-        ctx.fillText(`${effectiveVenue} · ${effectiveDate}`, 80, 230);
+        ctx.fillText(`${effectiveDate} · ${effectiveSession}`, 80, 230);
       }
 
+      if (showPoster && posterImg) {
+        drawRoundedImage(ctx, posterImg, 80, 270, 150, 220, 12);
+      }
+
+      const ratingStartX = (showPoster && posterImg) ? 260 : 80;
       ctx.fillStyle = '#FFFFFF';
       ctx.font = "800 170px 'Newsreader', Georgia, serif";
-      ctx.fillText(effectiveRating.toFixed(1), 80, 440);
+      ctx.fillText(effectiveRating.toFixed(1), ratingStartX, 440);
 
+      ctx.fillStyle = '#E4B33A';
       ctx.font = "italic 44px 'Newsreader', Georgia, serif";
-      ctx.fillText(getBadgeTitle(effectiveRating), 80, 510);
+      ctx.fillText(getBadgeTitle(effectiveRating), ratingStartX, 510);
 
       if (showReviewText && effectiveNote) {
         ctx.fillStyle = '#A8A199';
@@ -660,20 +734,25 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
       if (showSeat) {
         ctx.font = "600 22px 'Newsreader', Georgia, serif";
-        ctx.fillText(`2025–2026 Sezonu · ${effectiveVenue}`, width / 2, 186);
+        ctx.fillText('2025–2026 Sezonu', width / 2, 186);
       }
 
+      if (showPoster && posterImg) {
+        drawRoundedImage(ctx, posterImg, width / 2 - 90, 240, 180, 250, 10);
+      }
+
+      const progTitleY = (showPoster && posterImg) ? 530 : 330;
       ctx.font = "800 74px 'Newsreader', Georgia, serif";
-      ctx.fillText(play.title, width / 2, 330);
+      ctx.fillText(play.title, width / 2, progTitleY);
 
       ctx.font = "italic 36px 'Newsreader', Georgia, serif";
-      ctx.fillText(`yazan ${play.playwright || 'Arthur Miller'}`, width / 2, 390);
+      ctx.fillText(`yazan ${play.playwright || 'Arthur Miller'}`, width / 2, progTitleY + 60);
 
       ctx.fillStyle = '#BA1B23';
       ctx.font = "800 36px 'Newsreader', Georgia, serif";
-      ctx.fillText('★★★★★', width / 2, 450);
+      ctx.fillText('★★★★★', width / 2, progTitleY + 120);
 
-      const tableY = 540;
+      const tableY = (showPoster && posterImg) ? 730 : 540;
       const rows = [
         { label: 'Seyirci', value: effectiveAuthor, show: showAuthor },
         { label: 'Temsil', value: `${effectiveDate} - ${effectiveSession}`, show: showSeat },
@@ -748,10 +827,11 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
     effectiveAuthor, 
     effectiveDate, 
     effectiveSession, 
-    effectiveVenue, 
     effectiveSeat, 
+    effectivePoster,
     effectiveNote, 
     serialNo, 
+    showPoster,
     showAuthor, 
     showReviewText, 
     showSeat
@@ -818,10 +898,20 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
           {aspectRatio === '16:9' ? (
             <div className="flex gap-2 w-full h-full">
               <div className="flex-1 bg-[#FFFCF7] text-tn-ink rounded-lg p-3 flex flex-col justify-between shadow-md">
-                <div>
-                  <span className="text-[9px] font-sans font-bold text-tn-muted">{serialNo}</span>
-                  <h3 className="m-0 text-sm sm:text-base font-extrabold line-clamp-1">{play.title}</h3>
-                  <span className="text-[10px] italic text-tn-muted">{play.playwright}</span>
+                <div className="flex gap-2.5 items-start">
+                  {showPoster && effectivePoster && (
+                    <img 
+                      src={effectivePoster} 
+                      alt={play.title} 
+                      className="w-14 h-20 object-cover rounded shadow-md shrink-0 border border-black/10" 
+                      crossOrigin="anonymous"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[9px] font-sans font-bold text-tn-muted">{serialNo}</span>
+                    <h3 className="m-0 text-sm sm:text-base font-extrabold line-clamp-1">{play.title}</h3>
+                    <span className="text-[10px] italic text-tn-muted">{play.playwright}</span>
+                  </div>
                 </div>
                 {showReviewText && (
                   <p className="text-[10px] italic text-tn-ink/90 line-clamp-2 my-1">
@@ -856,16 +946,28 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                   <span>TİYATRO·NOT</span>
                   <span>{serialNo}</span>
                 </div>
-                <h3 className="m-0 mt-1.5 font-extrabold text-base sm:text-lg leading-tight line-clamp-2 text-tn-ink">
-                  {play.title}
-                </h3>
-                <div className="text-[11px] italic text-tn-muted mt-0.5">{play.playwright}</div>
+                <div className="flex gap-2.5 items-start mt-1.5">
+                  {showPoster && effectivePoster && (
+                    <img 
+                      src={effectivePoster} 
+                      alt={play.title} 
+                      className="w-12 h-16 sm:w-14 sm:h-20 object-cover rounded shadow-md shrink-0 border border-black/10" 
+                      crossOrigin="anonymous"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="m-0 font-extrabold text-base sm:text-lg leading-tight line-clamp-2 text-tn-ink">
+                      {play.title}
+                    </h3>
+                    <div className="text-[11px] italic text-tn-muted mt-0.5">{play.playwright}</div>
 
-                {showSeat && (
-                  <div className="text-[9px] font-semibold text-tn-muted mt-1.5 border-t border-tn-line pt-1">
-                    {effectiveDate} · {effectiveSession} · {effectiveVenue}
+                    {showSeat && (
+                      <div className="text-[9px] font-semibold text-tn-muted mt-1.5 border-t border-tn-line pt-1">
+                        {effectiveDate} · {effectiveSession}
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
 
               {showReviewText && (
@@ -900,20 +1002,30 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
       {/* 2. AFİŞ PREVIEW */}
       {template === 'poster' && (
-        <div className="h-full w-full p-4 sm:p-5 flex flex-col justify-between text-white">
+        <div className="h-full w-full p-4 sm:p-5 flex flex-col justify-between text-white relative overflow-hidden">
           {showSeat && (
-            <div className="flex justify-between text-[10px] font-bold pb-2 border-b border-white/20">
-              <span>{effectiveVenue.toUpperCase()}</span>
+            <div className="flex justify-between text-[10px] font-bold pb-2 border-b border-white/20 relative z-10">
+              <span>TİYATRO·NOT</span>
               <span>{effectiveDate}</span>
             </div>
           )}
-          <div className="my-auto">
-            <h2 className="m-0 font-extrabold text-2xl sm:text-3xl leading-tight line-clamp-2">
-              {play.title}
-            </h2>
-            <div className="text-sm italic opacity-90 mt-1">{play.playwright}</div>
+          <div className="my-auto flex gap-3 items-center relative z-10">
+            {showPoster && effectivePoster && (
+              <img 
+                src={effectivePoster} 
+                alt={play.title} 
+                className="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-xl border border-white/30 shrink-0" 
+                crossOrigin="anonymous"
+              />
+            )}
+            <div className="flex-1 min-w-0">
+              <h2 className="m-0 font-extrabold text-2xl sm:text-3xl leading-tight line-clamp-2 !text-white" style={{ color: '#FFFFFF' }}>
+                {play.title}
+              </h2>
+              <div className="text-sm italic opacity-90 mt-1">{play.playwright}</div>
+            </div>
           </div>
-          <div className="pt-2.5 border-t border-white/20">
+          <div className="pt-2.5 border-t border-white/20 relative z-10">
             <div className="font-extrabold text-xs tracking-wider">
               ★★★★★ {getBadgeTitle(effectiveRating)}
             </div>
@@ -939,12 +1051,22 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
               “{effectiveNote}”
             </p>
           )}
-          <div className="pt-2.5 border-t border-tn-line flex items-end justify-between">
-            <div>
-              {showAuthor && <div className="font-extrabold text-xs">— {effectiveAuthor}</div>}
-              {showSeat && <div className="text-[10px] text-tn-muted">{play.title} · ★ {effectiveRating.toFixed(1)}</div>}
+          <div className="pt-2.5 border-t border-tn-line flex items-end justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              {showPoster && effectivePoster && (
+                <img 
+                  src={effectivePoster} 
+                  alt={play.title} 
+                  className="w-8 h-12 object-cover rounded shadow-xs border border-tn-line shrink-0" 
+                  crossOrigin="anonymous"
+                />
+              )}
+              <div className="min-w-0">
+                {showAuthor && <div className="font-extrabold text-xs truncate">— {effectiveAuthor}</div>}
+                {showSeat && <div className="text-[10px] text-tn-muted truncate">{play.title} · ★ {effectiveRating.toFixed(1)}</div>}
+              </div>
             </div>
-            <span className="font-extrabold text-xs tracking-tight">TİYATRO·NOT</span>
+            <span className="font-extrabold text-xs tracking-tight shrink-0">TİYATRO·NOT</span>
           </div>
         </div>
       )}
@@ -959,8 +1081,16 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
             </span>
             <div>
               <h3 className="m-0 font-extrabold text-sm sm:text-base line-clamp-1">{play.title}</h3>
-              <div className="text-[10px] italic text-tn-muted">{play.playwright} · {effectiveVenue}</div>
+              <div className="text-[10px] italic text-tn-muted">{play.playwright}</div>
             </div>
+            {showPoster && effectivePoster && (
+              <img 
+                src={effectivePoster} 
+                alt={play.title} 
+                className="w-12 h-16 sm:w-14 sm:h-20 object-cover rounded-md shadow-md mx-auto my-0.5 border border-black/10 shrink-0" 
+                crossOrigin="anonymous"
+              />
+            )}
             <div>
               <span className="font-extrabold text-lg text-tn-ink">{effectiveRating.toFixed(1)}</span>
               <span className="text-[10px] font-bold text-tn-red block">{getBadgeTitle(effectiveRating)}</span>
@@ -973,18 +1103,40 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
       {/* 5. ALKIŞ PREVIEW */}
       {template === 'applause' && (
-        <div className="h-full w-full p-4 sm:p-5 flex flex-col justify-between text-white">
-          <div>
-            <span className="text-[10px] font-extrabold tracking-wider text-[#E4B33A]">ALKIŞ ÖLÇEĞİ</span>
-            <h3 className="m-0 font-extrabold text-base sm:text-lg line-clamp-1">{play.title}</h3>
-            {showSeat && <span className="text-[10px] italic text-white/60">{effectiveVenue} · {effectiveDate}</span>}
+        <div className="h-full w-full p-4 sm:p-5 flex flex-col justify-between !text-white" style={{ color: '#FFFFFF' }}>
+          <div className="flex gap-2.5 items-start">
+            {showPoster && effectivePoster && (
+              <img 
+                src={effectivePoster} 
+                alt={play.title} 
+                className="w-12 h-16 sm:w-14 sm:h-20 object-cover rounded shadow-md border border-white/20 shrink-0" 
+                crossOrigin="anonymous"
+              />
+            )}
+            <div className="flex-1 min-w-0">
+              <span className="text-[10px] font-extrabold tracking-wider block" style={{ color: '#E4B33A' }}>
+                ALKIŞ ÖLÇEĞİ
+              </span>
+              <h3 className="m-0 font-extrabold text-base sm:text-lg line-clamp-1 !text-white" style={{ color: '#FFFFFF' }}>
+                {play.title}
+              </h3>
+              {showSeat && (
+                <span className="text-[10px] italic block" style={{ color: '#A8A199' }}>
+                  {effectiveDate} · {effectiveSession}
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex items-end justify-between my-auto">
             <div>
-              <span className="text-3xl sm:text-4xl font-extrabold block leading-none">{effectiveRating.toFixed(1)}</span>
-              <span className="text-[11px] italic text-white/80 block mt-0.5">{getBadgeTitle(effectiveRating)}</span>
+              <span className="text-3xl sm:text-4xl font-extrabold block leading-none !text-white" style={{ color: '#FFFFFF' }}>
+                {effectiveRating.toFixed(1)}
+              </span>
+              <span className="text-[11px] italic block mt-0.5" style={{ color: '#E4B33A' }}>
+                {getBadgeTitle(effectiveRating)}
+              </span>
               {showReviewText && (
-                <p className="text-[10px] italic text-white/60 line-clamp-2 max-w-[140px] mt-1.5">
+                <p className="text-[10px] italic line-clamp-2 max-w-[140px] mt-1.5" style={{ color: '#D4CFC9' }}>
                   “{effectiveNote}”
                 </p>
               )}
@@ -999,9 +1151,9 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
               ))}
             </div>
           </div>
-          <div className="flex justify-between text-[9px] text-white/60 pt-1.5 border-t border-white/10">
-            <span>{showAuthor ? effectiveAuthor : ''}</span>
-            <span className="font-bold text-white">TİYATRO·NOT</span>
+          <div className="flex justify-between text-[9px] pt-1.5 border-t border-white/20" style={{ color: '#A8A199' }}>
+            <span style={{ color: '#A8A199' }}>{showAuthor ? effectiveAuthor : ''}</span>
+            <span className="font-bold !text-white" style={{ color: '#FFFFFF' }}>TİYATRO·NOT</span>
           </div>
         </div>
       )}
@@ -1015,6 +1167,14 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
             </div>
           </div>
           <div className="text-center my-0.5">
+            {showPoster && effectivePoster && (
+              <img 
+                src={effectivePoster} 
+                alt={play.title} 
+                className="w-12 h-16 sm:w-14 sm:h-20 object-cover rounded border border-tn-ink/20 shadow-xs mx-auto mb-1" 
+                crossOrigin="anonymous"
+              />
+            )}
             <h3 className="m-0 font-extrabold text-sm sm:text-base line-clamp-1">{play.title}</h3>
             <span className="text-[10px] italic text-tn-muted">yazan {play.playwright}</span>
             <div className="text-tn-red text-xs mt-0.5">★★★★★</div>
@@ -1168,6 +1328,19 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                 Kartta göster
               </span>
               <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPoster(!showPoster)}
+                  className={`h-8 px-3 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 ${
+                    showPoster
+                      ? 'bg-tn-ink text-white shadow-xs'
+                      : 'bg-tn-surface dark:bg-white/10 text-tn-muted dark:text-white/50'
+                  }`}
+                >
+                  <span>{showPoster ? '✓' : '○'}</span>
+                  <span>Afiş</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => setShowAuthor(!showAuthor)}
@@ -1421,11 +1594,24 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
           </div>
 
           {/* Row 3: Toggle Pills */}
-          <div className="flex items-center gap-2 pt-0.5">
+          <div className="flex items-center gap-2 pt-0.5 overflow-x-auto no-scrollbar">
+            <button
+              type="button"
+              onClick={() => setShowPoster(!showPoster)}
+              className={`h-7 px-3.5 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 shrink-0 ${
+                showPoster
+                  ? 'bg-white text-tn-ink shadow-xs'
+                  : 'bg-white/10 text-white/50'
+              }`}
+            >
+              <span>{showPoster ? '✓' : '○'}</span>
+              <span>Afiş</span>
+            </button>
+
             <button
               type="button"
               onClick={() => setShowAuthor(!showAuthor)}
-              className={`h-7 px-3.5 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 ${
+              className={`h-7 px-3.5 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 shrink-0 ${
                 showAuthor
                   ? 'bg-white text-tn-ink shadow-xs'
                   : 'bg-white/10 text-white/50'
