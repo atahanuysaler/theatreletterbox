@@ -5,12 +5,7 @@ import {
   Download, 
   Share2, 
   Check, 
-  Copy, 
-  ChevronRight,
-  Sparkles,
-  Layers,
-  Sliders,
-  ExternalLink
+  Copy,
 } from 'lucide-react';
 import type { ReviewEntry, Play } from '../types';
 
@@ -90,12 +85,6 @@ const RESOLUTIONS: Record<AspectRatio, { width: number; height: number; label: s
   '16:9': { width: 1920, height: 1080, label: '16:9', text: '1920×1080' },
 };
 
-function renderStars(rating: number): string {
-  const full = Math.floor(rating);
-  const half = rating % 1 >= 0.5;
-  return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(Math.max(0, 5 - full - (half ? 1 : 0)));
-}
-
 function getBadgeTitle(rating: number): string {
   if (rating >= 4.5) return 'AYAKTA ALKIŞ';
   if (rating >= 3.5) return 'TAVSİYE EDİLİR';
@@ -157,7 +146,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   const effectiveSession = review?.sessionType ? (review.sessionType === 'matine' ? 'Matine' : 'Suare') : 'Suare';
   const effectiveVenue = review?.venue || play.venue || 'Zorlu PSM';
   const effectiveSeat = review?.seatInfo || 'Parter Orta';
-  const effectiveNote = (review?.reviewText?.trim() || play.synopsis || 'Gözlerimi sahneden alamadım, mutlaka izlenmeli.').trim();
+  const effectiveNote = (review?.reviewText?.trim() || play.synopsis || 'Gözlerimi arda ergulden alamadim maalesef.').trim();
   const serialNo = `IST-TN-${(effectiveDate).slice(0, 4)}-${(review?.id || play.id || '2026').slice(-4).toUpperCase()}`;
   const shareableUrl = `tiyatronot.uyslab.com/bilet/${serialNo}`;
 
@@ -189,7 +178,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
-    // Smooth typography
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
@@ -197,7 +185,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
     // TEMPLATE 1: BİLET KOÇANI
     // ----------------------------------------------------
     if (targetTpl === 'ticket') {
-      // Dark vignette stage background
       ctx.fillStyle = '#141414';
       ctx.fillRect(0, 0, width, height);
 
@@ -208,8 +195,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.fillRect(0, 0, width, height);
 
       if (targetRatio === '16:9') {
-        // 16:9: Ticket torn into two pieces lying side-by-side!
-        // Left Piece (Main Body)
+        // Left Piece
         const leftW = 1000;
         const leftH = 820;
         const leftX = 140;
@@ -225,7 +211,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fill();
         ctx.restore();
 
-        // Right Piece (Torn Stub)
+        // Right Piece
         const rightW = 540;
         const rightH = 820;
         const rightX = 1240;
@@ -241,7 +227,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fill();
         ctx.restore();
 
-        // Left Piece Content
+        // Left Content
         ctx.fillStyle = '#6E6862';
         ctx.font = "600 24px 'Newsreader', Georgia, serif";
         ctx.fillText(`TİYATRO·NOT · ${serialNo}`, leftX + 60, leftY + 70);
@@ -277,7 +263,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
           ctx.fillText(`${effectiveAuthor} · Seyirci Günlüğü`, leftX + 60, leftY + leftH - 60);
         }
 
-        // Right Piece Content (Stub)
+        // Right Content (Stub)
         ctx.save();
         ctx.translate(rightX + 270, rightY + 200);
         ctx.rotate(-0.06);
@@ -299,11 +285,9 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.font = "bold 32px 'Newsreader', Georgia, serif";
         ctx.fillText(getBadgeTitle(effectiveRating), rightX + 270, rightY + 510);
 
-        // Barcode
         ctx.fillStyle = '#1C1A1B';
         ctx.fillRect(rightX + 110, rightY + 600, 320, 70);
       } else {
-        // 9:16 or 1:1 format
         const tW = targetRatio === '9:16' ? 920 : 880;
         const tH = targetRatio === '9:16' ? 1580 : 920;
         const tX = (width - tW) / 2;
@@ -319,7 +303,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fill();
         ctx.restore();
 
-        // Torn top teeth (koçan yırtık)
+        // Torn top teeth
         ctx.fillStyle = '#141414';
         const teethCount = 18;
         const toothW = tW / teethCount;
@@ -329,7 +313,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
           ctx.fill();
         }
 
-        // Header
         ctx.fillStyle = '#6E6862';
         ctx.font = "600 24px 'Newsreader', Georgia, serif";
         ctx.textAlign = 'left';
@@ -337,7 +320,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.textAlign = 'right';
         ctx.fillText(serialNo, tX + tW - 70, tY + 80);
 
-        // Title
         ctx.textAlign = 'left';
         ctx.fillStyle = '#1C1A1B';
         ctx.font = targetRatio === '9:16' ? "800 76px 'Newsreader', Georgia, serif" : "800 64px 'Newsreader', Georgia, serif";
@@ -378,9 +360,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
           ctx.fillText(`${effectiveAuthor} · Seyirci Günlüğü`, tX + 70, curY);
         }
 
-        // Bottom Section
         const botY = tY + tH - 120;
-        // Stamp
         ctx.save();
         ctx.translate(tX + tW - 190, botY - 70);
         ctx.rotate(-0.06);
@@ -393,7 +373,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fillText('GİRİŞ ONAYLI', 0, 9);
         ctx.restore();
 
-        // Rating
         ctx.textAlign = 'left';
         ctx.fillStyle = '#1C1A1B';
         ctx.font = "800 84px 'Newsreader', Georgia, serif";
@@ -402,7 +381,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.font = "bold 26px 'Newsreader', Georgia, serif";
         ctx.fillText(getBadgeTitle(effectiveRating), tX + 220, botY - 20);
 
-        // Barcode
         ctx.fillStyle = '#1C1A1B';
         ctx.fillRect(tX + tW - 320, botY - 30, 250, 50);
       }
@@ -415,7 +393,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.fillStyle = '#BA1B23';
       ctx.fillRect(0, 0, width, height);
 
-      // Top info
       if (showSeat) {
         ctx.fillStyle = '#FFFFFF';
         ctx.font = "800 24px 'Newsreader', Georgia, serif";
@@ -432,7 +409,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.stroke();
       }
 
-      // Main Giant Title
       ctx.fillStyle = '#FFFFFF';
       ctx.textAlign = 'left';
       const titleFont = targetRatio === '9:16' 
@@ -452,7 +428,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.font = "italic 52px 'Newsreader', Georgia, serif";
       ctx.fillText(play.playwright || 'Arthur Miller', 80, titleY + 20);
 
-      // Bottom section
       const bY = height - 320;
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
       ctx.lineWidth = 2;
@@ -490,13 +465,11 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.fillStyle = '#FAF8F5';
       ctx.fillRect(0, 0, width, height);
 
-      // Giant red quotation mark
       ctx.fillStyle = '#BA1B23';
       ctx.font = "800 160px 'Newsreader', Georgia, serif";
       ctx.textAlign = 'left';
       ctx.fillText('“', 100, 220);
 
-      // Quote text
       if (showReviewText && effectiveNote) {
         ctx.fillStyle = '#1C1A1B';
         const qFont = targetRatio === '9:16' 
@@ -511,7 +484,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         }
       }
 
-      // Bottom Divider
       const botY = height - 200;
       ctx.strokeStyle = '#E2DCD4';
       ctx.lineWidth = 2;
@@ -542,21 +514,17 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
     // TEMPLATE 4: PERDE
     // ----------------------------------------------------
     else if (targetTpl === 'curtain') {
-      // Crimson curtain with vertical drapes
       ctx.fillStyle = '#8A171D';
       ctx.fillRect(0, 0, width, height);
 
-      // Vertical pleats
       for (let x = 0; x < width; x += 36) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.14)';
         ctx.fillRect(x, 0, 18, height);
       }
 
-      // Top golden rod
       ctx.fillStyle = '#E4B33A';
       ctx.fillRect(40, 40, width - 80, 14);
 
-      // Arched white window portal
       const aW = targetRatio === '16:9' ? 1200 : width - 200;
       const aH = targetRatio === '16:9' ? 700 : height - 380;
       const aX = (width - aW) / 2;
@@ -567,13 +535,11 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
       ctx.shadowBlur = 40;
       ctx.beginPath();
-      // Arch top, straight bottom
       const r = Math.min(aW / 2, 140);
       ctx.roundRect(aX, aY, aW, aH, [r, r, 16, 16]);
       ctx.fill();
       ctx.restore();
 
-      // Inside arch
       ctx.fillStyle = '#BA1B23';
       ctx.font = "800 24px 'Newsreader', Georgia, serif";
       ctx.textAlign = 'center';
@@ -597,7 +563,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fillText(`${effectiveSeat} · Günlük Kaydı`, width / 2, aY + 410);
       }
 
-      // Branding at bottom curtain
       ctx.fillStyle = '#FFFFFF';
       ctx.font = "800 36px 'Newsreader', Georgia, serif";
       ctx.textAlign = 'center';
@@ -611,7 +576,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.fillStyle = '#141414';
       ctx.fillRect(0, 0, width, height);
 
-      // Top info
       ctx.fillStyle = '#E4B33A';
       ctx.font = "800 26px 'Newsreader', Georgia, serif";
       ctx.textAlign = 'left';
@@ -627,7 +591,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fillText(`${effectiveVenue} · ${effectiveDate}`, 80, 230);
       }
 
-      // Giant Numeric Rating
       ctx.fillStyle = '#FFFFFF';
       ctx.font = "800 170px 'Newsreader', Georgia, serif";
       ctx.fillText(effectiveRating.toFixed(1), 80, 440);
@@ -646,7 +609,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         }
       }
 
-      // Ascending Red Pillars (Equalizer/Applause bars)
       const barCount = 5;
       const barW = targetRatio === '16:9' ? 90 : 80;
       const barGap = 24;
@@ -662,7 +624,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fill();
       }
 
-      // Footer
       if (showAuthor) {
         ctx.fillStyle = '#A8A199';
         ctx.font = "italic 24px 'Newsreader', Georgia, serif";
@@ -681,7 +642,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.fillStyle = '#F5EEDB';
       ctx.fillRect(0, 0, width, height);
 
-      // Header double borders
       ctx.strokeStyle = '#1C1A1B';
       ctx.lineWidth = 3;
       ctx.strokeRect(70, 70, width - 140, 150);
@@ -698,7 +658,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fillText(`2025–2026 Sezonu · ${effectiveVenue}`, width / 2, 186);
       }
 
-      // Center title
       ctx.font = "800 74px 'Newsreader', Georgia, serif";
       ctx.fillText(play.title, width / 2, 330);
 
@@ -709,7 +668,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.font = "800 36px 'Newsreader', Georgia, serif";
       ctx.fillText('★★★★★', width / 2, 450);
 
-      // Dotted leader table (künye satırları noktalı çizgilerle)
       const tableY = 540;
       const rows = [
         { label: 'Seyirci', value: effectiveAuthor, show: showAuthor },
@@ -726,7 +684,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.fillStyle = '#6E6862';
         ctx.fillText(r.label, 120, rowY);
 
-        // Dotted leader line
         ctx.strokeStyle = '#D8D2CA';
         ctx.lineWidth = 2;
         ctx.setLineDash([4, 6]);
@@ -743,7 +700,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         rowY += 56;
       }
 
-      // Review box
       if (showReviewText && effectiveNote) {
         rowY += 40;
         ctx.save();
@@ -771,7 +727,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         }
       }
 
-      // Branding
       ctx.textAlign = 'center';
       ctx.fillStyle = '#1C1A1B';
       ctx.font = "800 28px 'Newsreader', Georgia, serif";
@@ -829,22 +784,29 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm overflow-hidden select-none font-serif text-white">
-      {/* Main Modal Card */}
-      <div className="relative w-full max-w-6xl max-h-[96vh] rounded-3xl bg-[#1C1A1B] border border-white/10 shadow-2xl flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-0 sm:p-4 bg-black/85 backdrop-blur-sm overflow-hidden select-none font-serif text-white">
+      {/* Main Modal Shell (Fullscreen on mobile, rounded modal on desktop) */}
+      <div className="relative w-full sm:max-w-6xl h-full sm:h-auto sm:max-h-[96vh] rounded-none sm:rounded-3xl bg-[#1C1A1B] border-none sm:border border-white/10 shadow-2xl flex flex-col overflow-hidden">
         
-        {/* Top Header Bar */}
-        <div className="flex items-center justify-between px-5 sm:px-8 py-3.5 sm:py-4 border-b border-white/10 shrink-0">
-          <div className="flex items-center gap-4">
-            <span className="font-extrabold text-base sm:text-xl tracking-tight text-white flex items-center gap-2">
+        {/* Top Header Bar matching screens 01 to 07 */}
+        <div className="flex items-center justify-between px-4 sm:px-8 py-3 sm:py-4 border-b border-white/10 shrink-0">
+          {/* Left: Close Button (✕) */}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Kapat"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer border-none"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Center (Desktop only title & tab switch) */}
+          <div className="hidden sm:flex items-center gap-3">
+            <span className="font-extrabold text-base tracking-tight text-white flex items-center gap-2">
               <span className="text-tn-red">★</span> Bileti Paylaş
-              <span className="hidden md:inline text-xs font-normal text-white/50 pl-1">
-                — imza deneyim: 6 şablon × 3 format
-              </span>
             </span>
 
-            {/* View Switcher: Canlı Stüdyo vs 18 Sahne Galerisi */}
-            <div className="hidden sm:flex items-center p-1 rounded-full bg-white/5 border border-white/10 text-xs">
+            <div className="flex items-center p-1 rounded-full bg-white/5 border border-white/10 text-xs">
               <button
                 type="button"
                 onClick={() => setActiveTab('studio')}
@@ -866,52 +828,40 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Format Switcher Pills (when in Studio mode) */}
-            {activeTab === 'studio' && (
-              <div className="flex items-center gap-1.5 p-1 rounded-full bg-white/5 border border-white/10">
-                {(['9:16', '1:1', '16:9'] as AspectRatio[]).map((fmt) => (
-                  <button
-                    key={fmt}
-                    type="button"
-                    onClick={() => setAspectRatio(fmt)}
-                    className={`h-7 px-3 rounded-full text-xs font-sans font-semibold transition-all cursor-pointer ${
-                      aspectRatio === fmt
-                        ? 'bg-white text-tn-ink shadow-xs'
-                        : 'text-white/70 hover:text-white'
-                    }`}
-                  >
-                    {fmt}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Close Button */}
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer border-none"
-            >
-              <X className="w-5 h-5" />
-            </button>
+          {/* Right: Format Switcher Capsule [ 9:16 ] [ 1:1 ] [ 16:9 ] */}
+          <div className="flex items-center p-1 rounded-full bg-white/10 border border-white/10">
+            {(['9:16', '1:1', '16:9'] as AspectRatio[]).map((fmt) => (
+              <button
+                key={fmt}
+                type="button"
+                onClick={() => setAspectRatio(fmt)}
+                className={`h-7 px-3 sm:px-3.5 rounded-full text-xs font-sans font-semibold transition-all cursor-pointer border-none ${
+                  aspectRatio === fmt
+                    ? 'bg-white text-tn-ink shadow-xs'
+                    : 'bg-transparent text-white/70 hover:text-white'
+                }`}
+              >
+                {fmt}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Modal Body: Either "Canlı Stüdyo" or "18 Sahne Galerisi" */}
         {activeTab === 'studio' ? (
           /* ==========================================================
-             VIEW 1: CANLI STÜDYO (Interactive Studio)
+             VIEW 1: CANLI STÜDYO (Mobile & Desktop Live Studio)
+             Matching screens 01 to 07
              ========================================================== */
-          <div className="flex-1 flex flex-col justify-between overflow-y-auto min-h-0 p-4 sm:p-6 gap-4">
+          <div className="flex-1 flex flex-col justify-between overflow-y-auto min-h-0 p-3 sm:p-6 gap-2.5 sm:gap-4 pb-safe">
             
             {/* Stage Backdrop & Live Visual Preview */}
-            <div className="flex-1 flex items-center justify-center min-h-[340px] sm:min-h-[440px] rounded-2xl bg-[#141414] border border-white/5 relative overflow-hidden p-4">
+            <div className="flex-1 flex items-center justify-center min-h-[300px] sm:min-h-[420px] rounded-2xl bg-[#141414] border border-white/5 relative overflow-hidden p-3 sm:p-4">
               {/* Subtle spotlight glow */}
               <div 
-                className="absolute inset-0 pointer-events-none opacity-40"
+                className="absolute inset-0 pointer-events-none opacity-45"
                 style={{
-                  backgroundImage: 'radial-gradient(circle at 50% 45%, rgba(255,255,255,0.12) 0%, transparent 65%)'
+                  backgroundImage: 'radial-gradient(circle at 50% 45%, rgba(255,255,255,0.14) 0%, transparent 68%)'
                 }}
               />
 
@@ -919,8 +869,8 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
               <div 
                 className="relative transition-all duration-300 shadow-2xl overflow-hidden rounded-xl border border-white/10 flex flex-col justify-between text-left"
                 style={{
-                  width: aspectRatio === '9:16' ? '280px' : aspectRatio === '1:1' ? '360px' : '520px',
-                  height: aspectRatio === '9:16' ? '490px' : aspectRatio === '1:1' ? '360px' : '290px',
+                  width: aspectRatio === '9:16' ? '240px' : aspectRatio === '1:1' ? '290px' : '360px',
+                  height: aspectRatio === '9:16' ? '420px' : aspectRatio === '1:1' ? '290px' : '200px',
                   maxWidth: '100%',
                   backgroundColor: 
                     template === 'poster' ? '#BA1B23' :
@@ -932,86 +882,86 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
               >
                 {/* 1. BİLET KOÇANI PREVIEW */}
                 {template === 'ticket' && (
-                  <div className="h-full w-full p-3.5 flex items-center justify-center">
+                  <div className="h-full w-full p-2.5 sm:p-3 flex items-center justify-center">
                     {aspectRatio === '16:9' ? (
                       /* 16:9 Split Ticket Preview */
-                      <div className="flex gap-2 w-full h-full">
-                        <div className="flex-1 bg-[#FFFCF7] text-tn-ink rounded-lg p-3 flex flex-col justify-between shadow-md">
+                      <div className="flex gap-1.5 w-full h-full">
+                        <div className="flex-1 bg-[#FFFCF7] text-tn-ink rounded-lg p-2.5 flex flex-col justify-between shadow-md">
                           <div>
-                            <span className="text-[9px] font-sans font-bold text-tn-muted">{serialNo}</span>
-                            <h3 className="m-0 text-base font-extrabold line-clamp-1">{play.title}</h3>
-                            <span className="text-[10px] italic text-tn-muted">{play.playwright}</span>
+                            <span className="text-[8px] font-sans font-bold text-tn-muted">{serialNo}</span>
+                            <h3 className="m-0 text-sm font-extrabold line-clamp-1">{play.title}</h3>
+                            <span className="text-[9px] italic text-tn-muted">{play.playwright}</span>
                           </div>
                           {showReviewText && (
-                            <p className="text-[10px] italic text-tn-ink/90 line-clamp-2 my-1">
+                            <p className="text-[9px] italic text-tn-ink/90 line-clamp-2 my-0.5">
                               “{effectiveNote}”
                             </p>
                           )}
                           {showAuthor && (
-                            <span className="text-[9px] italic text-tn-muted">{effectiveAuthor} · Seyirci Günlüğü</span>
+                            <span className="text-[8px] italic text-tn-muted">{effectiveAuthor} · Seyirci Günlüğü</span>
                           )}
                         </div>
-                        <div className="w-[110px] bg-[#FFFCF7] text-tn-ink rounded-lg p-2.5 flex flex-col items-center justify-between text-center shadow-md">
-                          <span className="text-[8px] font-extrabold text-tn-red border border-tn-red px-1 rounded -rotate-2">
+                        <div className="w-[85px] bg-[#FFFCF7] text-tn-ink rounded-lg p-2 flex flex-col items-center justify-between text-center shadow-md">
+                          <span className="text-[7px] font-extrabold text-tn-red border border-tn-red px-1 rounded -rotate-2">
                             GİRİŞ ONAYLI
                           </span>
                           <div>
-                            <span className="text-2xl font-extrabold text-tn-ink">{effectiveRating.toFixed(1)}</span>
-                            <span className="block text-[8px] font-bold text-tn-red">{getBadgeTitle(effectiveRating)}</span>
+                            <span className="text-xl font-extrabold text-tn-ink">{effectiveRating.toFixed(1)}</span>
+                            <span className="block text-[7px] font-bold text-tn-red">{getBadgeTitle(effectiveRating)}</span>
                           </div>
-                          <div className="w-16 h-3 bg-tn-ink/80 rounded-2xs" />
+                          <div className="w-12 h-2.5 bg-tn-ink/80 rounded-2xs" />
                         </div>
                       </div>
                     ) : (
                       /* 9:16 or 1:1 Ticket Preview */
-                      <div className="w-full h-full bg-[#FFFCF7] text-tn-ink rounded-xl p-4 flex flex-col justify-between shadow-xl relative overflow-hidden">
+                      <div className="w-full h-full bg-[#FFFCF7] text-tn-ink rounded-xl p-3 flex flex-col justify-between shadow-xl relative overflow-hidden">
                         {/* Torn teeth */}
                         <div className="absolute top-0 left-0 right-0 flex justify-between px-1">
-                          {Array.from({ length: 14 }).map((_, i) => (
+                          {Array.from({ length: 12 }).map((_, i) => (
                             <div key={i} className="w-2.5 h-1.5 bg-[#141414] rounded-b-full" />
                           ))}
                         </div>
 
                         <div>
-                          <div className="flex justify-between items-center text-[9px] font-sans font-bold text-tn-muted pt-1">
+                          <div className="flex justify-between items-center text-[8px] font-sans font-bold text-tn-muted pt-1">
                             <span>TİYATRO·NOT</span>
                             <span>{serialNo}</span>
                           </div>
-                          <h3 className="m-0 mt-2 font-extrabold text-lg sm:text-xl leading-tight line-clamp-2 text-tn-ink">
+                          <h3 className="m-0 mt-1.5 font-extrabold text-base sm:text-lg leading-tight line-clamp-2 text-tn-ink">
                             {play.title}
                           </h3>
-                          <div className="text-[11px] italic text-tn-muted mt-0.5">{play.playwright}</div>
+                          <div className="text-[10px] italic text-tn-muted mt-0.5">{play.playwright}</div>
 
                           {showSeat && (
-                            <div className="text-[9px] font-semibold text-tn-muted mt-2 border-t border-tn-line pt-1.5">
+                            <div className="text-[8px] font-semibold text-tn-muted mt-1.5 border-t border-tn-line pt-1">
                               {effectiveDate} · {effectiveSession} · {effectiveVenue}
                             </div>
                           )}
                         </div>
 
                         {showReviewText && (
-                          <div className="my-auto py-2">
-                            <p className="text-[11px] italic text-tn-ink/90 leading-snug line-clamp-3">
+                          <div className="my-auto py-1">
+                            <p className="text-[10px] italic text-tn-ink/90 leading-snug line-clamp-3">
                               “{effectiveNote}”
                             </p>
                           </div>
                         )}
 
-                        <div className="pt-2 border-t border-tn-line flex items-end justify-between">
+                        <div className="pt-1.5 border-t border-tn-line flex items-end justify-between">
                           <div>
                             <div className="flex items-baseline gap-1">
-                              <span className="font-extrabold text-2xl text-tn-ink">{effectiveRating.toFixed(1)}</span>
-                              <span className="text-[9px] font-bold text-tn-red">{getBadgeTitle(effectiveRating)}</span>
+                              <span className="font-extrabold text-xl text-tn-ink">{effectiveRating.toFixed(1)}</span>
+                              <span className="text-[8px] font-bold text-tn-red">{getBadgeTitle(effectiveRating)}</span>
                             </div>
                             {showAuthor && (
-                              <span className="text-[9px] italic text-tn-muted block">{effectiveAuthor}</span>
+                              <span className="text-[8px] italic text-tn-muted block">{effectiveAuthor}</span>
                             )}
                           </div>
-                          <div className="flex flex-col items-end gap-1.5">
-                            <span className="text-[8px] font-extrabold text-tn-red border border-tn-red px-1.5 py-0.5 rounded -rotate-3">
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-[7px] font-extrabold text-tn-red border border-tn-red px-1 py-0.5 rounded -rotate-3">
                               GİRİŞ ONAYLI
                             </span>
-                            <div className="w-16 h-3 bg-tn-ink/80 rounded-2xs" />
+                            <div className="w-14 h-2.5 bg-tn-ink/80 rounded-2xs" />
                           </div>
                         </div>
                       </div>
@@ -1021,9 +971,9 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
                 {/* 2. AFİŞ PREVIEW */}
                 {template === 'poster' && (
-                  <div className="h-full w-full p-5 flex flex-col justify-between text-white">
+                  <div className="h-full w-full p-4 flex flex-col justify-between text-white">
                     {showSeat && (
-                      <div className="flex justify-between text-[10px] font-bold pb-2 border-b border-white/20">
+                      <div className="flex justify-between text-[9px] font-bold pb-1.5 border-b border-white/20">
                         <span>{effectiveVenue.toUpperCase()}</span>
                         <span>{effectiveDate}</span>
                       </div>
@@ -1032,18 +982,18 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                       <h2 className="m-0 font-extrabold text-2xl sm:text-3xl leading-tight line-clamp-2">
                         {play.title}
                       </h2>
-                      <div className="text-sm italic opacity-90 mt-1">{play.playwright}</div>
+                      <div className="text-xs italic opacity-90 mt-1">{play.playwright}</div>
                     </div>
-                    <div className="pt-3 border-t border-white/20">
-                      <div className="font-extrabold text-xs tracking-wider">
+                    <div className="pt-2 border-t border-white/20">
+                      <div className="font-extrabold text-[10px] tracking-wider">
                         ★★★★★ {getBadgeTitle(effectiveRating)}
                       </div>
                       {showReviewText && (
-                        <p className="text-[11px] italic opacity-90 line-clamp-2 mt-1">
+                        <p className="text-[10px] italic opacity-90 line-clamp-2 mt-0.5">
                           “{effectiveNote}”
                         </p>
                       )}
-                      <div className="flex justify-between text-[9px] opacity-75 mt-2">
+                      <div className="flex justify-between text-[8px] opacity-75 mt-1.5">
                         <span>{showAuthor ? `Seyirci: ${effectiveAuthor}` : ''}</span>
                         <span className="font-bold">TİYATRO·NOT</span>
                       </div>
@@ -1053,75 +1003,75 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
                 {/* 3. ALINTI PREVIEW */}
                 {template === 'quote' && (
-                  <div className="h-full w-full p-5 flex flex-col justify-between text-tn-ink">
-                    <span className="text-4xl font-extrabold text-tn-red leading-none">“</span>
+                  <div className="h-full w-full p-4 flex flex-col justify-between text-tn-ink">
+                    <span className="text-3xl sm:text-4xl font-extrabold text-tn-red leading-none">“</span>
                     {showReviewText && (
-                      <p className="text-sm sm:text-base italic leading-relaxed line-clamp-4 my-auto">
+                      <p className="text-xs sm:text-sm italic leading-relaxed line-clamp-4 my-auto">
                         “{effectiveNote}”
                       </p>
                     )}
-                    <div className="pt-3 border-t border-tn-line flex items-end justify-between">
+                    <div className="pt-2 border-t border-tn-line flex items-end justify-between">
                       <div>
-                        {showAuthor && <div className="font-extrabold text-xs">— {effectiveAuthor}</div>}
-                        {showSeat && <div className="text-[10px] text-tn-muted">{play.title} · ★ {effectiveRating.toFixed(1)}</div>}
+                        {showAuthor && <div className="font-extrabold text-[10px]">— {effectiveAuthor}</div>}
+                        {showSeat && <div className="text-[9px] text-tn-muted">{play.title} · ★ {effectiveRating.toFixed(1)}</div>}
                       </div>
-                      <span className="font-extrabold text-xs tracking-tight">TİYATRO·NOT</span>
+                      <span className="font-extrabold text-[10px] tracking-tight">TİYATRO·NOT</span>
                     </div>
                   </div>
                 )}
 
                 {/* 4. PERDE PREVIEW */}
                 {template === 'curtain' && (
-                  <div className="h-full w-full p-4 flex flex-col justify-between items-center text-white relative">
-                    <div className="w-full h-1 bg-[#E4B33A] rounded-full mb-2" />
-                    <div className="w-full flex-1 bg-white text-tn-ink rounded-t-full p-4 flex flex-col justify-between text-center shadow-lg">
-                      <span className="text-[10px] font-extrabold text-tn-red tracking-wider uppercase pt-2">
+                  <div className="h-full w-full p-3 flex flex-col justify-between items-center text-white relative">
+                    <div className="w-full h-1 bg-[#E4B33A] rounded-full mb-1.5" />
+                    <div className="w-full flex-1 bg-white text-tn-ink rounded-t-full p-3 flex flex-col justify-between text-center shadow-lg">
+                      <span className="text-[8px] font-extrabold text-tn-red tracking-wider uppercase pt-1">
                         PERDE AÇILDI
                       </span>
                       <div>
-                        <h3 className="m-0 font-extrabold text-lg line-clamp-1">{play.title}</h3>
-                        <div className="text-[11px] italic text-tn-muted">{play.playwright} · {effectiveVenue}</div>
+                        <h3 className="m-0 font-extrabold text-sm sm:text-base line-clamp-1">{play.title}</h3>
+                        <div className="text-[9px] italic text-tn-muted">{play.playwright} · {effectiveVenue}</div>
                       </div>
                       <div>
-                        <span className="font-extrabold text-lg text-tn-ink">{effectiveRating.toFixed(1)}</span>
-                        <span className="text-xs font-bold text-tn-red block">{getBadgeTitle(effectiveRating)}</span>
+                        <span className="font-extrabold text-base text-tn-ink">{effectiveRating.toFixed(1)}</span>
+                        <span className="text-[9px] font-bold text-tn-red block">{getBadgeTitle(effectiveRating)}</span>
                       </div>
-                      {showSeat && <span className="text-[9px] text-tn-muted">{effectiveSeat} · Günlük Kaydı</span>}
+                      {showSeat && <span className="text-[8px] text-tn-muted">{effectiveSeat} · Günlük Kaydı</span>}
                     </div>
-                    <span className="font-extrabold text-xs tracking-wider pt-2 text-white/90">TİYATRO·NOT</span>
+                    <span className="font-extrabold text-[10px] tracking-wider pt-1.5 text-white/90">TİYATRO·NOT</span>
                   </div>
                 )}
 
                 {/* 5. ALKIŞ PREVIEW */}
                 {template === 'applause' && (
-                  <div className="h-full w-full p-5 flex flex-col justify-between text-white">
+                  <div className="h-full w-full p-4 flex flex-col justify-between text-white">
                     <div>
-                      <span className="text-[10px] font-extrabold tracking-wider text-[#E4B33A]">ALKIŞ ÖLÇEĞİ</span>
-                      <h3 className="m-0 font-extrabold text-lg line-clamp-1">{play.title}</h3>
-                      {showSeat && <span className="text-[10px] italic text-white/60">{effectiveVenue} · {effectiveDate}</span>}
+                      <span className="text-[9px] font-extrabold tracking-wider text-[#E4B33A]">ALKIŞ ÖLÇEĞİ</span>
+                      <h3 className="m-0 font-extrabold text-base line-clamp-1">{play.title}</h3>
+                      {showSeat && <span className="text-[9px] italic text-white/60">{effectiveVenue} · {effectiveDate}</span>}
                     </div>
                     <div className="flex items-end justify-between my-auto">
                       <div>
-                        <span className="text-4xl font-extrabold block leading-none">{effectiveRating.toFixed(1)}</span>
-                        <span className="text-xs italic text-white/80 block mt-1">{getBadgeTitle(effectiveRating)}</span>
+                        <span className="text-3xl font-extrabold block leading-none">{effectiveRating.toFixed(1)}</span>
+                        <span className="text-[10px] italic text-white/80 block mt-0.5">{getBadgeTitle(effectiveRating)}</span>
                         {showReviewText && (
-                          <p className="text-[10px] italic text-white/60 line-clamp-2 max-w-[150px] mt-2">
+                          <p className="text-[9px] italic text-white/60 line-clamp-2 max-w-[130px] mt-1.5">
                             “{effectiveNote}”
                           </p>
                         )}
                       </div>
                       {/* Bars */}
-                      <div className="flex items-end gap-1.5 h-24">
+                      <div className="flex items-end gap-1 h-20">
                         {[20, 38, 56, 78, 100].map((h, i) => (
                           <div 
                             key={i} 
                             style={{ height: `${h}%` }} 
-                            className="w-3.5 bg-tn-red rounded-t-sm" 
+                            className="w-3 bg-tn-red rounded-t-sm" 
                           />
                         ))}
                       </div>
                     </div>
-                    <div className="flex justify-between text-[9px] text-white/60 pt-2 border-t border-white/10">
+                    <div className="flex justify-between text-[8px] text-white/60 pt-1.5 border-t border-white/10">
                       <span>{showAuthor ? effectiveAuthor : ''}</span>
                       <span className="font-bold text-white">TİYATRO·NOT</span>
                     </div>
@@ -1130,18 +1080,18 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
                 {/* 6. PROGRAM PREVIEW */}
                 {template === 'program' && (
-                  <div className="h-full w-full p-4 flex flex-col justify-between text-tn-ink">
-                    <div className="border-2 border-tn-ink p-1.5 text-center">
-                      <div className="border border-tn-ink p-1 text-[10px] font-extrabold tracking-widest">
+                  <div className="h-full w-full p-3 flex flex-col justify-between text-tn-ink">
+                    <div className="border border-tn-ink p-1 text-center">
+                      <div className="border border-tn-ink p-0.5 text-[8px] font-extrabold tracking-widest">
                         P R O G R A M
                       </div>
                     </div>
-                    <div className="text-center my-1">
-                      <h3 className="m-0 font-extrabold text-base line-clamp-1">{play.title}</h3>
-                      <span className="text-[10px] italic text-tn-muted">yazan {play.playwright}</span>
-                      <div className="text-tn-red text-xs mt-0.5">★★★★★</div>
+                    <div className="text-center my-0.5">
+                      <h3 className="m-0 font-extrabold text-sm line-clamp-1">{play.title}</h3>
+                      <span className="text-[9px] italic text-tn-muted">yazan {play.playwright}</span>
+                      <div className="text-tn-red text-[10px] mt-0.5">★★★★★</div>
                     </div>
-                    <div className="text-[10px] space-y-1 border-t border-tn-line pt-2">
+                    <div className="text-[9px] space-y-0.5 border-t border-tn-line pt-1">
                       <div className="flex justify-between border-b border-dotted border-tn-line pb-0.5">
                         <span className="italic text-tn-muted">Seyirci</span>
                         <span className="font-bold">{effectiveAuthor}</span>
@@ -1155,7 +1105,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                         <span className="font-bold text-tn-red">{getBadgeTitle(effectiveRating)}</span>
                       </div>
                     </div>
-                    <div className="text-center text-[9px] font-extrabold pt-2 border-t border-tn-line">
+                    <div className="text-center text-[8px] font-extrabold pt-1 border-t border-tn-line">
                       TİYATRO·NOT
                     </div>
                   </div>
@@ -1163,21 +1113,21 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
               </div>
             </div>
 
-            {/* Bottom Controls Area: Info, Template Strip, Toggles, and Buttons */}
-            <div className="flex flex-col gap-3 shrink-0">
+            {/* Bottom Controls Area matching screens 01 to 07 */}
+            <div className="flex flex-col gap-2.5 shrink-0">
               
-              {/* Template Label and Resolution indicator */}
+              {/* Row 1: Template Name on Left, Resolution on Right */}
               <div className="flex justify-between items-center px-1 text-xs">
-                <span className="font-extrabold text-white">
+                <span className="font-extrabold text-white text-sm">
                   {TEMPLATES.find(t => t.id === template)?.label}
                 </span>
-                <span className="font-mono text-white/50 text-[11px]">
+                <span className="font-mono text-white/50 text-xs">
                   {RESOLUTIONS[aspectRatio].text}
                 </span>
               </div>
 
-              {/* Template Thumbnail Strip Carousel */}
-              <div className="flex gap-2.5 overflow-x-auto no-scrollbar py-1">
+              {/* Row 2: Template Thumbnails Strip Carousel */}
+              <div className="flex gap-2.5 overflow-x-auto no-scrollbar py-0.5 px-0.5">
                 {TEMPLATES.map((tpl) => {
                   const isSelected = template === tpl.id;
                   return (
@@ -1185,22 +1135,36 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                       key={tpl.id}
                       type="button"
                       onClick={() => setTemplate(tpl.id)}
-                      className={`flex flex-col items-center gap-1.5 p-2 rounded-2xl border transition-all cursor-pointer shrink-0 ${
-                        isSelected 
-                          ? 'border-tn-red bg-white/10 ring-2 ring-tn-red/40 shadow-md' 
-                          : 'border-white/10 bg-white/5 hover:bg-white/10'
-                      }`}
+                      className="flex flex-col items-center gap-1.5 cursor-pointer border-none bg-transparent shrink-0 group"
                     >
-                      {/* Mini Thumbnail Card */}
                       <div 
-                        className="w-14 h-18 rounded-lg flex items-center justify-center font-serif text-lg font-bold shadow-inner relative overflow-hidden"
+                        className={`w-[52px] h-[72px] sm:w-[58px] sm:h-[80px] rounded-xl flex items-center justify-center font-serif text-lg font-bold shadow-md relative overflow-hidden transition-all ${
+                          isSelected 
+                            ? 'ring-2 ring-white border-2 border-white scale-105' 
+                            : 'border border-white/20 opacity-80 hover:opacity-100'
+                        }`}
                         style={{ backgroundColor: tpl.bgPreview }}
                       >
-                        <span style={{ color: tpl.id === 'quote' || tpl.id === 'program' ? '#1C1A1B' : '#FFFFFF' }}>
-                          {tpl.iconText}
-                        </span>
+                        {tpl.id === 'curtain' ? (
+                          <div className="flex flex-col items-center">
+                            <div className="w-5 h-0.5 bg-[#E4B33A] mb-1 rounded-full" />
+                            <div className="w-6 h-7 bg-white rounded-t-full flex items-center justify-center text-[9px] text-tn-ink font-bold">
+                              ∩
+                            </div>
+                          </div>
+                        ) : tpl.id === 'applause' ? (
+                          <div className="flex items-end gap-0.5 h-6">
+                            {[6, 12, 18, 24].map((h, i) => (
+                              <div key={i} style={{ height: `${h}px` }} className="w-1.5 bg-tn-red rounded-t-2xs" />
+                            ))}
+                          </div>
+                        ) : (
+                          <span style={{ color: tpl.id === 'quote' || tpl.id === 'program' ? '#1C1A1B' : '#FFFFFF' }}>
+                            {tpl.iconText}
+                          </span>
+                        )}
                       </div>
-                      <span className={`text-[11px] font-sans font-medium whitespace-nowrap ${isSelected ? 'text-white font-bold' : 'text-white/70'}`}>
+                      <span className={`text-[10px] sm:text-[11px] font-sans ${isSelected ? 'text-white font-bold' : 'text-white/60'}`}>
                         {tpl.label}
                       </span>
                     </button>
@@ -1208,80 +1172,74 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                 })}
               </div>
 
-              {/* Toggles Row: [✓ Adın] [✓ Not metni] [✓ Koltuk] */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-white/10">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowAuthor(!showAuthor)}
-                    className={`h-8 px-3 rounded-full text-xs font-sans font-medium cursor-pointer transition-colors border flex items-center gap-1.5 ${
-                      showAuthor
-                        ? 'bg-white/15 text-white border-white/30'
-                        : 'bg-transparent text-white/40 border-white/10'
-                    }`}
-                  >
-                    <span>{showAuthor ? '✓' : '○'}</span>
-                    <span>Adın</span>
-                  </button>
+              {/* Row 3: Toggle Pills [ ✓ Adın ] [ ✓ Not metni ] [ ✓ Koltuk ] */}
+              <div className="flex items-center gap-2 pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => setShowAuthor(!showAuthor)}
+                  className={`h-7 sm:h-8 px-3.5 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 ${
+                    showAuthor
+                      ? 'bg-white text-tn-ink shadow-xs'
+                      : 'bg-white/10 text-white/50'
+                  }`}
+                >
+                  <span>{showAuthor ? '✓' : '○'}</span>
+                  <span>Adın</span>
+                </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setShowReviewText(!showReviewText)}
-                    className={`h-8 px-3 rounded-full text-xs font-sans font-medium cursor-pointer transition-colors border flex items-center gap-1.5 ${
-                      showReviewText
-                        ? 'bg-white/15 text-white border-white/30'
-                        : 'bg-transparent text-white/40 border-white/10'
-                    }`}
-                  >
-                    <span>{showReviewText ? '✓' : '○'}</span>
-                    <span>Not metni</span>
-                  </button>
+                <button
+                  type="button"
+                  onClick={() => setShowReviewText(!showReviewText)}
+                  className={`h-7 sm:h-8 px-3.5 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 ${
+                    showReviewText
+                      ? 'bg-white text-tn-ink shadow-xs'
+                      : 'bg-white/10 text-white/50'
+                  }`}
+                >
+                  <span>{showReviewText ? '✓' : '○'}</span>
+                  <span>Not metni</span>
+                </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setShowSeat(!showSeat)}
-                    className={`h-8 px-3 rounded-full text-xs font-sans font-medium cursor-pointer transition-colors border flex items-center gap-1.5 ${
-                      showSeat
-                        ? 'bg-white/15 text-white border-white/30'
-                        : 'bg-transparent text-white/40 border-white/10'
-                    }`}
-                  >
-                    <span>{showSeat ? '✓' : '○'}</span>
-                    <span>Koltuk</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSeat(!showSeat)}
+                  className={`h-7 sm:h-8 px-3.5 rounded-full text-xs font-sans font-semibold cursor-pointer transition-colors border-none flex items-center gap-1.5 ${
+                    showSeat
+                      ? 'bg-white text-tn-ink shadow-xs'
+                      : 'bg-white/10 text-white/50'
+                  }`}
+                >
+                  <span>{showSeat ? '✓' : '○'}</span>
+                  <span>Koltuk</span>
+                </button>
+              </div>
 
-                {/* Action Buttons: İndir & Paylaş */}
-                <div className="flex items-center gap-2.5">
-                  <button
-                    type="button"
-                    disabled={downloading}
-                    onClick={() => handleDownload()}
-                    className="h-10 px-5 rounded-full bg-white/10 hover:bg-white/20 text-white font-sans text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer border border-white/15"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>{downloading ? 'İndiriliyor...' : 'İndir'}</span>
-                  </button>
+              {/* Row 4: Action Buttons [ İndir ] and [ Paylaş ] */}
+              <div className="flex items-center gap-2.5 pt-1">
+                <button
+                  type="button"
+                  disabled={downloading}
+                  onClick={() => handleDownload()}
+                  className="h-11 px-6 rounded-xl bg-white/10 hover:bg-white/20 text-white font-sans text-xs sm:text-sm font-semibold flex items-center justify-center transition-colors cursor-pointer border-none"
+                >
+                  {downloading ? 'İndiriliyor...' : 'İndir'}
+                </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setIsDestinationOpen(true)}
-                    className="h-10 px-7 rounded-full bg-tn-red hover:bg-tn-red/90 text-white font-sans text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer border-none shadow-md"
-                  >
-                    <Share2 className="w-4 h-4" />
-                    <span>Paylaş</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsDestinationOpen(true)}
+                  className="h-11 flex-1 rounded-xl bg-tn-red hover:bg-tn-red/90 text-white font-sans text-xs sm:text-sm font-semibold flex items-center justify-center transition-colors cursor-pointer border-none shadow-md"
+                >
+                  Paylaş
+                </button>
               </div>
             </div>
           </div>
         ) : (
           /* ==========================================================
-             VIEW 2: 18 SAHNE GALERİSİ (All 6 Templates × 3 Formats)
-             Matching media_1790773452507.png, 1790773471128, 1790773477293
+             VIEW 2: 18 SAHNE GALERİSİ (Desktop Gallery View)
              ========================================================== */
           <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-10">
-            {/* Gallery Eyebrow & Headline */}
             <div>
               <span className="text-xs font-extrabold tracking-widest text-tn-red uppercase">
                 PAYLAŞIM ŞABLONLARI · 6 ŞABLON × 3 FORMAT
@@ -1291,7 +1249,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
               </h2>
             </div>
 
-            {/* 6 Template Rows */}
             {TEMPLATES.map((tpl) => (
               <section key={tpl.id} className="space-y-3 border-t border-white/10 pt-6">
                 <div>
@@ -1300,7 +1257,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                   <p className="m-0 text-xs italic text-white/60 pt-0.5">{tpl.desc}</p>
                 </div>
 
-                {/* 3 Formats Side-by-Side: 9:16, 1:1, 16:9 */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                   {(['9:16', '1:1', '16:9'] as AspectRatio[]).map((fmt) => (
                     <div 
@@ -1312,7 +1268,6 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                       }}
                       className="group cursor-pointer rounded-2xl bg-white/5 border border-white/10 hover:border-tn-red p-4 flex flex-col items-center justify-between gap-3 transition-all hover:bg-white/10 shadow-lg"
                     >
-                      {/* Scaled Preview Box */}
                       <div 
                         className="rounded-lg shadow-md flex items-center justify-center text-center p-3 transition-transform group-hover:scale-[1.02]"
                         style={{
@@ -1351,13 +1306,16 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         )}
 
         {/* ==========================================================
-            SCREEN 08: "NEREYE GÖNDERELİM?" (Share Destination Sheet)
-            Matching media_1790773381368.png screen 08
+            SCREEN 08: "NEREYE GÖNDERELİM?" (Mobile & Desktop Bottom Sheet)
+            Matching media_1790774060528.png screen 08
             ========================================================== */}
         {isDestinationOpen && (
-          <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 sm:p-6 animate-fadeIn">
-            <div className="w-full max-w-md rounded-3xl bg-[#FFFCF7] text-tn-ink p-6 shadow-2xl border border-tn-line space-y-4">
+          <div className="fixed inset-0 z-[1100] bg-black/60 backdrop-blur-xs flex items-end justify-center animate-fadeIn">
+            <div className="w-full max-w-lg rounded-t-[28px] bg-[#FFFFFF] text-tn-ink p-5 pb-8 shadow-2xl border-t border-tn-line space-y-4 animate-slideUp">
               
+              {/* Drag handle bar at top center */}
+              <div className="w-10 h-1 bg-black/20 rounded-full mx-auto" />
+
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="m-0 font-extrabold text-xl text-tn-ink">
@@ -1377,7 +1335,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
               </div>
 
               {/* App Targets Row: IG, WA, X, Mesajlar, Kaydet */}
-              <div className="grid grid-cols-5 gap-2 pt-2 text-center">
+              <div className="grid grid-cols-5 gap-2 pt-1 text-center">
                 {/* 1. Instagram */}
                 <button
                   type="button"
@@ -1463,7 +1421,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
               {/* Shareable Link Box */}
               <div className="p-2.5 rounded-2xl bg-[#F1EDE7] border border-tn-line flex items-center justify-between gap-2 shadow-2xs">
                 <span className="text-xs font-mono text-tn-muted truncate max-w-[260px]">
-                  https://{shareableUrl}
+                  {shareableUrl}
                 </span>
 
                 <button
