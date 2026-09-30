@@ -27,8 +27,9 @@ import type { Play, ReviewEntry, Badge, UserProfile, LeaderboardUser } from '../
 import SocialShareModal from '../components/SocialShareModal';
 import SeasonWrappedModal from '../components/SeasonWrappedModal';
 import LogModal from '../components/LogModal';
+import CatalogCard from '../components/redesign/CatalogCard';
 
-export type ProfileTabType = 'pasaport' | 'notlar' | 'izlemek-istediklerim';
+export type ProfileTabType = 'pasaport' | 'izlediklerim' | 'notlar' | 'izlemek-istediklerim';
 
 interface ProfilePageProps {
   onOpenDailyQuote?: () => void;
@@ -636,13 +637,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
       </div>
 
       {/* ============================================================== */}
-      {/* 3. TABS (Pasaport, Biletlerim, İzleyeceklerim)                   */}
       {/* ============================================================== */}
-      <div className="flex items-center gap-6 border-b border-[#E2DCD4] dark:border-[#332F31] pb-2 text-sm pt-2">
+      {/* 3. TABS (Pasaport, İzlediklerim, Biletlerim, İzleyeceklerim)     */}
+      {/* ============================================================== */}
+      <div className="flex items-center gap-4 sm:gap-6 border-b border-[#E2DCD4] dark:border-[#332F31] pb-2 text-sm pt-2 overflow-x-auto no-scrollbar">
         <button
           type="button"
           onClick={() => setActiveTab('pasaport')}
-          className={`pb-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`pb-2 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
             activeTab === 'pasaport'
               ? 'font-bold text-[#1C1A1B] dark:text-[#F3EFEA] border-b-2 border-[#1C1A1B] dark:border-[#F3EFEA] -mb-[10px]'
               : 'text-[#6E6862] dark:text-[#A8A199] hover:text-[#1C1A1B] dark:hover:text-[#F3EFEA]'
@@ -654,8 +656,21 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
 
         <button
           type="button"
+          onClick={() => setActiveTab('izlediklerim')}
+          className={`pb-2 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+            activeTab === 'izlediklerim'
+              ? 'font-bold text-[#1C1A1B] dark:text-[#F3EFEA] border-b-2 border-[#1C1A1B] dark:border-[#F3EFEA] -mb-[10px]'
+              : 'text-[#6E6862] dark:text-[#A8A199] hover:text-[#1C1A1B] dark:hover:text-[#F3EFEA]'
+          }`}
+        >
+          <span>İzlediklerim</span>
+          <span className="text-xs opacity-75">{seenPlays.length}</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab('notlar')}
-          className={`pb-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`pb-2 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
             activeTab === 'notlar'
               ? 'font-bold text-[#1C1A1B] dark:text-[#F3EFEA] border-b-2 border-[#1C1A1B] dark:border-[#F3EFEA] -mb-[10px]'
               : 'text-[#6E6862] dark:text-[#A8A199] hover:text-[#1C1A1B] dark:hover:text-[#F3EFEA]'
@@ -668,7 +683,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
         <button
           type="button"
           onClick={() => setActiveTab('izlemek-istediklerim')}
-          className={`pb-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`pb-2 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
             activeTab === 'izlemek-istediklerim'
               ? 'font-bold text-[#1C1A1B] dark:text-[#F3EFEA] border-b-2 border-[#1C1A1B] dark:border-[#F3EFEA] -mb-[10px]'
               : 'text-[#6E6862] dark:text-[#A8A199] hover:text-[#1C1A1B] dark:hover:text-[#F3EFEA]'
@@ -682,6 +697,41 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
       {/* ============================================================== */}
       {/* 4. TAB CONTENTS                                                */}
       {/* ============================================================== */}
+
+      {/* -------------------------------------------------------------- */}
+      {/* TAB: İZLEDİKLERİM                                              */}
+      {/* -------------------------------------------------------------- */}
+      {activeTab === 'izlediklerim' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between pb-1">
+            <span className="text-sm italic text-[#6E6862] dark:text-[#A8A199]">
+              Toplam {seenPlays.length} oyun izlendi
+            </span>
+          </div>
+
+          {seenPlays.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+              {seenPlays.map((play) => (
+                <CatalogCard key={play.id} play={play} />
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center border border-dashed border-[#E2DCD4] dark:border-[#332F31] rounded-2xl bg-white/40 dark:bg-black/20">
+              <span className="text-3xl mb-2 block">🎭</span>
+              <p className="font-extrabold text-base mb-1 text-[#1C1A1B] dark:text-[#F3EFEA]">Henüz izlenen oyun bulunmuyor</p>
+              <p className="text-xs italic text-[#6E6862] dark:text-[#A8A199] mb-4">
+                İzlediğin oyunları işaretleyerek profilinde toplayabilirsin.
+              </p>
+              <Link
+                to="/katalog"
+                className="inline-flex h-9 px-4 rounded-full bg-[#1C1A1B] dark:bg-white text-white dark:text-[#1C1A1B] text-xs font-semibold items-center justify-center no-underline hover:opacity-90 transition-opacity"
+              >
+                Oyun Kataloğunu İncele
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* -------------------------------------------------------------- */}
       {/* TAB 1: PASAPORT (4 Mühür Kartı)                                 */}

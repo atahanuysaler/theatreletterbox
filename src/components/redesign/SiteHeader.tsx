@@ -87,7 +87,12 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
               className="flex h-8 sm:h-10 px-3 sm:px-3.5 rounded-full bg-[#F6F4FA] dark:bg-tn-surface/90 hover:bg-[#EDE8F5] dark:hover:bg-tn-surface border border-[#E3DCF0] dark:border-tn-line/50 text-tn-text font-sans text-[12px] sm:text-[13px] font-medium items-center gap-1.5 transition-all no-underline whitespace-nowrap shadow-2xs"
             >
               {user.photoURL ? (
-                <img src={user.photoURL} alt={user.displayName || 'Profil'} className="w-4.5 h-4.5 rounded-full object-cover flex-shrink-0" />
+                <img 
+                  src={user.photoURL} 
+                  alt={user.displayName || 'Profil'} 
+                  className="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover flex-shrink-0 border border-tn-line/40" 
+                  style={{ width: '22px', height: '22px' }}
+                />
               ) : (
                 <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-tn-muted flex-shrink-0" />
               )}
