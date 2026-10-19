@@ -50,19 +50,19 @@ export const ContactPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full flex flex-col gap-5 sm:gap-6 py-2 sm:py-4 font-serif text-tn-text">
+    <div className="w-full flex flex-col gap-5 sm:gap-6 py-2 sm:py-4 font-sans text-tn-text">
       {/* 1. Header with Eyebrow, Title and Description */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-tn-line pb-4">
         <div>
-          <span className="text-xs font-extrabold tracking-wider text-tn-red uppercase">
+          <span className="text-[11px] font-bold tracking-[0.07em] text-tn-red uppercase">
             İLETİŞİM & GERİ BİLDİRİM
           </span>
-          <h1 className="m-0 mt-1 font-extrabold text-3xl sm:text-5xl leading-tight tracking-tight">
-            Bizimle <span className="italic font-extrabold">İletişime Geçin</span>
+          <h1 className="m-0 mt-1 font-display font-extrabold text-3xl sm:text-5xl leading-[0.95] tracking-[-0.035em]">
+            Bizimle <span className="font-accent italic font-normal">iletişime geçin.</span>
           </h1>
         </div>
 
-        <p className="m-0 text-sm sm:text-base italic text-tn-muted max-w-sm self-start sm:self-end leading-relaxed">
+        <p className="m-0 text-sm sm:text-base text-tn-muted max-w-sm self-start sm:self-end leading-relaxed">
           Tiyatronot ile ilgili önerileriniz, sahne veya oyun ekleme taleplerin ya da iş birliği mesajların için bize ulaşabilirsin.
         </p>
       </div>
@@ -73,7 +73,7 @@ export const ContactPage: React.FC = () => {
         <div className="md:col-span-4 flex flex-col gap-3">
           {/* Card 1: E-POSTA */}
           <div className="rounded-2xl bg-tn-ticket border border-tn-line p-5 sm:p-6 flex flex-col gap-2.5 shadow-2xs">
-            <span className="text-xs font-extrabold tracking-wider text-tn-muted uppercase">
+            <span className="text-[11px] font-bold tracking-[0.07em] text-tn-muted uppercase">
               E-POSTA
             </span>
             <p className="m-0 text-xs sm:text-[13px] italic text-tn-muted leading-relaxed">
@@ -88,7 +88,7 @@ export const ContactPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleCopyEmail}
-                className="h-7 px-3 rounded-full border border-tn-line bg-tn-surface text-tn-text hover:bg-tn-line font-serif text-xs font-semibold cursor-pointer transition-colors shrink-0 flex items-center gap-1"
+                className="h-7 px-3 rounded-full border border-tn-line bg-tn-surface text-tn-text hover:bg-tn-line font-sans text-xs font-semibold cursor-pointer transition-colors shrink-0 flex items-center gap-1"
               >
                 {copied ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3 text-tn-muted" />}
                 <span>{copied ? 'Kopyalandı' : 'Kopyala'}</span>
@@ -98,10 +98,10 @@ export const ContactPage: React.FC = () => {
 
           {/* Card 2: KONUM */}
           <div className="rounded-2xl bg-[#E5ECE4] border border-tn-line/40 p-5 sm:p-6 flex flex-col gap-1 shadow-2xs text-[#1C1A1B]">
-            <span className="text-xs font-extrabold tracking-wider uppercase opacity-75">
+            <span className="text-[11px] font-bold tracking-[0.07em] uppercase opacity-75">
               KONUM
             </span>
-            <h3 className="m-0 font-extrabold text-xl sm:text-2xl tracking-tight text-[#1C1A1B]">
+            <h3 className="m-0 font-display font-extrabold text-xl sm:text-2xl tracking-[-0.02em] text-[#1C1A1B]">
               İstanbul, Türkiye
             </h3>
             <span className="text-xs sm:text-[13px] italic text-[#1C1A1B]/70 pt-0.5">
@@ -118,11 +118,11 @@ export const ContactPage: React.FC = () => {
                 <div className="w-12 h-12 rounded-full bg-[#E6F4EA] text-[#137333] flex items-center justify-center">
                   <Check className="w-6 h-6 stroke-[2.5]" />
                 </div>
-                <h3 className="m-0 font-extrabold text-2xl text-tn-text">
+                <h3 className="m-0 font-display font-extrabold text-2xl text-tn-text tracking-[-0.02em]">
                   Mesajınız Alındı!
                 </h3>
-                <p className="m-0 italic text-sm sm:text-base text-tn-muted max-w-md leading-relaxed">
-                  Geri bildiriminiz başarıyla iletildi. En kısa sürede <strong className="text-tn-text not-italic font-semibold">{email}</strong> adresinize dönüş yapacağız.
+                <p className="m-0 text-sm sm:text-base text-tn-muted max-w-md leading-relaxed">
+                  Geri bildiriminiz başarıyla iletildi. En kısa sürede <strong className="text-tn-text font-semibold">{email}</strong> adresinize dönüş yapacağız.
                 </p>
                 <button
                   type="button"
@@ -130,7 +130,7 @@ export const ContactPage: React.FC = () => {
                     setSubmitted(false);
                     setMessage('');
                   }}
-                  className="mt-3 h-10 px-6 rounded-full border border-tn-line bg-white dark:bg-tn-container text-tn-text hover:bg-tn-line/40 font-serif text-sm font-semibold cursor-pointer transition-colors shadow-2xs"
+                  className="mt-3 h-10 px-6 rounded-full border border-tn-line bg-white dark:bg-tn-container text-tn-text hover:bg-tn-line/40 font-sans text-sm font-semibold cursor-pointer transition-colors shadow-2xs"
                 >
                   Yeni mesaj gönder
                 </button>
@@ -146,7 +146,7 @@ export const ContactPage: React.FC = () => {
                         key={topic}
                         type="button"
                         onClick={() => setSelectedTopic(topic)}
-                        className={`h-8 px-4 rounded-full font-serif text-xs font-semibold cursor-pointer transition-colors border ${
+                        className={`h-8 px-4 rounded-full font-sans text-xs font-semibold cursor-pointer transition-colors border ${
                           isSelected
                             ? 'bg-tn-ink text-white border-tn-ink'
                             : 'bg-white dark:bg-tn-container text-tn-text border-tn-line hover:bg-tn-line/40'
@@ -159,7 +159,7 @@ export const ContactPage: React.FC = () => {
                 </div>
 
                 {error && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-400 text-xs rounded-xl">
+                  <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-400 text-xs rounded-xl font-sans">
                     {error}
                   </div>
                 )}
@@ -175,7 +175,7 @@ export const ContactPage: React.FC = () => {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Adın ve soyadın"
-                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
+                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-sans text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
                     />
                   </div>
 
@@ -189,7 +189,7 @@ export const ContactPage: React.FC = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="ornek@eposta.com"
-                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
+                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-sans text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
                     />
                   </div>
                 </div>
@@ -205,7 +205,7 @@ export const ContactPage: React.FC = () => {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Mesajını veya geri bildirimini buraya yaz..."
-                    className="w-full p-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors resize-none leading-relaxed"
+                    className="w-full p-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-sans text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors resize-none leading-relaxed"
                   />
                 </div>
 
@@ -213,7 +213,7 @@ export const ContactPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full h-11 rounded-xl bg-tn-red text-white hover:bg-tn-red/90 disabled:opacity-50 font-serif font-semibold text-sm sm:text-base border-none cursor-pointer transition-colors shadow-2xs mt-1"
+                  className="w-full h-11 rounded-xl bg-tn-red text-white hover:bg-tn-red/90 disabled:opacity-50 font-sans font-semibold text-sm sm:text-base border-none cursor-pointer transition-colors shadow-2xs mt-1"
                 >
                   {submitting ? 'Gönderiliyor...' : 'Mesajı Gönder'}
                 </button>

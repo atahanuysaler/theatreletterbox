@@ -45,7 +45,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   const pages = getPageNumbers(currentPage, totalPages);
 
   return (
-    <div className={`w-full flex flex-col items-center gap-2 font-serif ${className}`}>
+    <div className={`w-full flex flex-col items-center gap-2 font-sans ${className}`}>
       {/* Mobile Load More if continuous slice active */}
       {hasMore && onLoadMore && (
         <div className="sm:hidden w-full">
@@ -56,7 +56,7 @@ export const Pagination: React.FC<PaginationProps> = ({
       {/* Simple Pagination: Just Numbers and Arrows */}
       <nav
         aria-label="Sayfalama"
-        className="flex justify-center items-center gap-1 sm:gap-1.5 pt-3 font-serif select-none"
+        className="flex justify-center items-center gap-1 sm:gap-1.5 pt-3 font-sans select-none"
       >
         {/* Previous Arrow */}
         <button

@@ -96,20 +96,20 @@ export const TriviaModal: React.FC<TriviaModalProps> = ({ isOpen, onClose }) => 
       />
 
       {/* Modal Card matching Frame 08 */}
-      <div className="relative z-10 w-full max-w-[460px] bg-white dark:bg-[#1E1B1D] text-[#1C1A1B] dark:text-[#F3EFEA] rounded-[20px] shadow-2xl p-6 border border-black/5 dark:border-white/10 overflow-hidden font-serif my-auto animate-fade-in flex flex-col gap-4">
+      <div className="relative z-10 w-full max-w-[460px] bg-white dark:bg-[#1E1B1D] text-[#1C1A1B] dark:text-[#F3EFEA] rounded-[20px] shadow-2xl p-6 border border-black/5 dark:border-white/10 overflow-hidden font-sans my-auto animate-fade-in flex flex-col gap-4">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="h-5 px-2.5 flex items-center rounded-full border border-[#1C1A1B]/35 dark:border-white/35 text-[10px] font-bold tracking-wider uppercase text-[#1C1A1B] dark:text-white">
+              <span className="h-5 px-2.5 flex items-center rounded-full border border-[#1C1A1B]/35 dark:border-white/35 text-[10px] font-sans font-bold tracking-wider uppercase text-[#1C1A1B] dark:text-white">
                 BİLGİ YARIŞI · 25 XP
               </span>
               <span className="text-xs italic text-tn-muted dark:text-[#A8A199]">{formattedDate}</span>
             </div>
-            <h3 className="font-serif font-extrabold text-[26px] text-[#1C1A1B] dark:text-white mt-1.5 leading-tight">
+            <h3 className="font-display font-extrabold text-[26px] text-[#1C1A1B] dark:text-white mt-1.5 leading-tight tracking-[-0.03em]">
               Sahne Trivia
             </h3>
-            <p className="font-serif italic text-xs text-tn-muted dark:text-[#A8A199] mt-0.5">
+            <p className="font-sans text-xs text-tn-muted dark:text-[#A8A199] mt-0.5">
               Günlük tiyatro bilgi testi
             </p>
           </div>
@@ -132,7 +132,7 @@ export const TriviaModal: React.FC<TriviaModalProps> = ({ isOpen, onClose }) => 
             <div className="w-14 h-14 rounded-full bg-[#E4B33A]/15 text-[#E4B33A] mx-auto flex items-center justify-center">
               <Trophy className="w-7 h-7" />
             </div>
-            <h4 className="font-serif font-extrabold text-2xl text-tn-ink dark:text-white m-0">
+            <h4 className="font-display font-extrabold text-2xl text-tn-ink dark:text-white m-0">
               Test Tamamlandı!
             </h4>
             <p className="text-sm text-tn-muted m-0">
@@ -169,7 +169,7 @@ export const TriviaModal: React.FC<TriviaModalProps> = ({ isOpen, onClose }) => 
             </div>
 
             {/* Question Headline */}
-            <h4 className="font-serif font-extrabold text-[17px] sm:text-[18px] text-[#1C1A1B] dark:text-white leading-snug my-1">
+            <h4 className="font-display font-extrabold text-[17px] sm:text-[18px] text-[#1C1A1B] dark:text-white leading-snug my-1">
               “{currentQ.question}”
             </h4>
 
@@ -199,7 +199,7 @@ export const TriviaModal: React.FC<TriviaModalProps> = ({ isOpen, onClose }) => 
                     type="button"
                     onClick={() => handleSelectOption(opt)}
                     disabled={isAnswerSubmitted}
-                    className={`p-3 rounded-[10px] border text-left text-xs font-serif transition-all cursor-pointer flex items-center justify-between ${optClass}`}
+                    className={`p-3 rounded-[10px] border text-left text-xs font-sans transition-all cursor-pointer flex items-center justify-between ${optClass}`}
                   >
                     <span className="truncate">{opt}</span>
                     {isAnswerSubmitted && isCorrect && (
@@ -214,7 +214,7 @@ export const TriviaModal: React.FC<TriviaModalProps> = ({ isOpen, onClose }) => 
 
             {/* Did you know block (Biliyor muydun?) */}
             {isAnswerSubmitted && currentQ.explanation && (
-              <p className="font-serif italic text-xs text-neutral-600 dark:text-neutral-300 my-1 m-0 animate-fade-in leading-relaxed">
+              <p className="font-sans italic text-xs text-neutral-600 dark:text-neutral-300 my-1 m-0 animate-fade-in leading-relaxed">
                 Biliyor muydun? {currentQ.explanation}
               </p>
             )}
@@ -224,7 +224,7 @@ export const TriviaModal: React.FC<TriviaModalProps> = ({ isOpen, onClose }) => 
               type="button"
               disabled={!selectedOption && !isAnswerSubmitted}
               onClick={isAnswerSubmitted ? handleNextQuestion : handleConfirmAnswer}
-              className="w-full mt-2 bg-[#BA1B23] hover:bg-[#A0161D] disabled:opacity-50 text-white font-serif font-bold text-xs py-2.5 rounded-[10px] transition-colors cursor-pointer shadow-xs"
+              className="w-full mt-2 bg-[#BA1B23] hover:bg-[#A0161D] disabled:opacity-50 text-white font-sans font-bold text-xs py-2.5 rounded-[10px] transition-colors cursor-pointer shadow-xs"
             >
               {isAnswerSubmitted ? (currentIdx + 1 < questions.length ? 'Sonraki Soru' : 'Sonucu Gör') : 'Cevabı Onayla'}
             </button>

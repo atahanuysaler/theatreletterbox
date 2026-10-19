@@ -15,7 +15,8 @@
     "posters:sync": "node scripts/scrape-plays.mjs --sync-posters",
     "posters:missing": "node scripts/scrape-plays.mjs --missing-posters",
     "okf:sync": "node scripts/sync-okf.mjs",
-    "okf:watch": "node scripts/sync-okf.mjs --watch"
+    "okf:watch": "node scripts/sync-okf.mjs --watch",
+    "feed:refresh": "node scripts/refresh-stage-feed.mjs"
   },
   "dependencies": {
     "@heroui/react": "2.7.2",

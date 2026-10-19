@@ -56,19 +56,16 @@ export const LeaderboardPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full flex flex-col gap-5 sm:gap-6 py-2 sm:py-4 font-serif text-tn-text">
+    <div className="w-full flex flex-col gap-5 sm:gap-6 py-2 sm:py-4 font-sans text-tn-text">
       {/* 1. Header with Eyebrow, Title and Description */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-tn-line pb-4">
         <div>
-          <span className="text-xs font-extrabold tracking-wider text-tn-red uppercase">
-            SAHNE LİDERLERİ
-          </span>
-          <h1 className="m-0 mt-1 font-extrabold text-3xl sm:text-5xl leading-tight tracking-tight">
-            Tiyatronot Sıralaması
+          <h1 className="m-0 font-display font-extrabold text-3xl sm:text-5xl leading-[0.95] tracking-[-0.035em]">
+            Sahne <span className="font-accent italic font-normal">liderleri</span>
           </h1>
         </div>
 
-        <p className="m-0 text-sm sm:text-base italic text-tn-muted max-w-md self-start sm:self-end leading-relaxed">
+        <p className="m-0 text-sm sm:text-base text-tn-muted max-w-md self-start sm:self-end leading-relaxed">
           En çok oyun izleyen, en kapsamlı notları tutan ve tiyatro pasaportunu dolduran sahne müdavimleri.
         </p>
       </div>
@@ -78,7 +75,7 @@ export const LeaderboardPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('allTime')}
-          className={`h-9 px-4 rounded-full border-none font-serif text-sm cursor-pointer transition-all ${
+          className={`h-9 px-4 rounded-full border-none font-sans text-sm cursor-pointer transition-all ${
             activeTab === 'allTime'
               ? 'bg-white dark:bg-tn-container font-semibold text-tn-text shadow-2xs'
               : 'bg-transparent text-tn-muted hover:text-tn-text'
@@ -89,7 +86,7 @@ export const LeaderboardPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('season')}
-          className={`h-9 px-4 rounded-full border-none font-serif text-sm cursor-pointer transition-all ${
+          className={`h-9 px-4 rounded-full border-none font-sans text-sm cursor-pointer transition-all ${
             activeTab === 'season'
               ? 'bg-white dark:bg-tn-container font-semibold text-tn-text shadow-2xs'
               : 'bg-transparent text-tn-muted hover:text-tn-text'
@@ -100,8 +97,8 @@ export const LeaderboardPage: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="w-full min-h-[360px] flex items-center justify-center font-serif text-tn-muted">
-          <span className="italic text-lg animate-pulse">Sıralama yükleniyor…</span>
+        <div className="w-full min-h-[360px] flex items-center justify-center font-sans text-tn-muted">
+          <span className="font-accent italic text-lg animate-pulse">Sıralama yükleniyor…</span>
         </div>
       ) : entries.length > 0 ? (
         <>
@@ -116,7 +113,7 @@ export const LeaderboardPage: React.FC = () => {
                     user?.uid === top2.uid ? 'ring-2 ring-white/60' : ''
                   }`}
                 >
-                  <span className="font-extrabold text-2xl sm:text-4xl tracking-tight text-white/95">
+                  <span className="font-display font-extrabold text-2xl sm:text-4xl tracking-tight text-white/95">
                     #2
                   </span>
                   <div className="flex flex-col gap-1 sm:gap-1.5">
@@ -128,26 +125,26 @@ export const LeaderboardPage: React.FC = () => {
                           className="w-7 h-7 sm:w-9 sm:h-9 rounded-full object-cover border border-white/20 shrink-0"
                         />
                       ) : (
-                        <span className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/20 text-white flex items-center justify-center font-extrabold text-[10px] sm:text-xs shrink-0">
+                        <span className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/20 text-white flex items-center justify-center font-display font-extrabold text-[10px] sm:text-xs shrink-0">
                           {renderInitials(top2.displayName)}
                         </span>
                       )}
                       <div className="min-w-0">
-                        <div className="font-extrabold text-xs sm:text-xl truncate text-white leading-tight">
+                        <div className="font-display font-bold text-xs sm:text-xl truncate text-white leading-tight">
                           {top2.displayName || 'Tiyatrosever'} {user?.uid === top2.uid && <span className="text-[10px] sm:text-xs font-normal text-white/80">(Sen)</span>}
                         </div>
-                        <div className="text-[10px] sm:text-xs italic text-tn-on-dark-muted truncate">
+                        <div className="text-[10px] sm:text-xs font-accent italic font-normal text-tn-on-dark-muted truncate">
                           {top2.level || 'Dramaturg Gözü'}
                         </div>
                       </div>
                     </div>
-                    <div className="font-extrabold text-[11px] sm:text-base text-white/90 pt-0.5 truncate">
+                    <div className="font-display font-bold text-[11px] sm:text-base text-white/90 pt-0.5 truncate">
                       {top2.xp} XP · {top2.playsSeenCount ?? 0} oyun
                     </div>
                   </div>
                 </Link>
               ) : (
-                <div className="rounded-2xl bg-tn-ink text-white p-3 sm:p-6 h-[175px] sm:h-[200px] flex items-center justify-center italic text-xs sm:text-sm text-white/60">
+                <div className="rounded-2xl bg-tn-ink text-white p-3 sm:p-6 h-[175px] sm:h-[200px] flex items-center justify-center italic text-xs sm:text-sm text-white/60 font-display font-extrabold">
                   #2
                 </div>
               )}
@@ -162,7 +159,7 @@ export const LeaderboardPage: React.FC = () => {
                     user?.uid === top1.uid ? 'ring-2 ring-white/80' : ''
                   }`}
                 >
-                  <span className="font-extrabold text-3xl sm:text-5xl tracking-tight text-white">
+                  <span className="font-display font-extrabold text-3xl sm:text-5xl tracking-tight text-white">
                     #1
                   </span>
                   <div className="flex flex-col gap-1 sm:gap-1.5">
@@ -174,26 +171,26 @@ export const LeaderboardPage: React.FC = () => {
                           className="w-8 h-8 sm:w-11 sm:h-11 rounded-full object-cover border-2 border-white/30 shrink-0"
                         />
                       ) : (
-                        <span className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white text-tn-red flex items-center justify-center font-extrabold text-xs sm:text-sm shadow-xs shrink-0">
+                        <span className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white text-tn-red flex items-center justify-center font-display font-extrabold text-xs sm:text-sm shadow-xs shrink-0">
                           {renderInitials(top1.displayName)}
                         </span>
                       )}
                       <div className="min-w-0">
-                        <div className="font-extrabold text-xs sm:text-2xl truncate text-white leading-tight">
+                        <div className="font-display font-bold text-xs sm:text-2xl truncate text-white leading-tight">
                           {top1.displayName || 'Tiyatrosever'} {user?.uid === top1.uid && <span className="text-[10px] sm:text-sm font-normal text-white/80">(Sen)</span>}
                         </div>
-                        <div className="text-[10px] sm:text-xs italic text-white/80 truncate">
+                        <div className="text-[10px] sm:text-xs font-accent italic font-normal text-white/80 truncate">
                           {top1.level || 'Dramaturg Gözü'}
                         </div>
                       </div>
                     </div>
-                    <div className="font-extrabold text-xs sm:text-base text-white pt-0.5 truncate">
+                    <div className="font-display font-bold text-xs sm:text-base text-white pt-0.5 truncate">
                       {top1.xp} XP · {top1.playsSeenCount ?? 0} oyun
                     </div>
                   </div>
                 </Link>
               ) : (
-                <div className="rounded-2xl bg-tn-red text-white p-3 sm:p-6 h-[205px] sm:h-[235px] flex items-center justify-center italic text-xs sm:text-sm text-white/60">
+                <div className="rounded-2xl bg-tn-red text-white p-3 sm:p-6 h-[205px] sm:h-[235px] flex items-center justify-center italic text-xs sm:text-sm text-white/60 font-display font-extrabold">
                   #1
                 </div>
               )}
@@ -208,7 +205,7 @@ export const LeaderboardPage: React.FC = () => {
                     user?.uid === top3.uid ? 'ring-2 ring-tn-red/60' : ''
                   }`}
                 >
-                  <span className="font-extrabold text-2xl sm:text-4xl tracking-tight text-tn-text">
+                  <span className="font-display font-extrabold text-2xl sm:text-4xl tracking-tight text-tn-text">
                     #3
                   </span>
                   <div className="flex flex-col gap-1 sm:gap-1.5">
@@ -220,26 +217,26 @@ export const LeaderboardPage: React.FC = () => {
                           className="w-7 h-7 sm:w-9 sm:h-9 rounded-full object-cover border border-tn-line shrink-0"
                         />
                       ) : (
-                        <span className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-tn-lilac text-tn-text flex items-center justify-center font-extrabold text-[10px] sm:text-xs border border-tn-line/40 shrink-0">
+                        <span className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-tn-lilac text-tn-text flex items-center justify-center font-display font-extrabold text-[10px] sm:text-xs border border-tn-line/40 shrink-0">
                           {renderInitials(top3.displayName)}
                         </span>
                       )}
                       <div className="min-w-0">
-                        <div className="font-extrabold text-xs sm:text-xl truncate text-tn-text leading-tight">
+                        <div className="font-display font-bold text-xs sm:text-xl truncate text-tn-text leading-tight">
                           {top3.displayName || 'Tiyatrosever'} {user?.uid === top3.uid && <span className="text-[10px] sm:text-xs font-normal text-tn-red">(Sen)</span>}
                         </div>
-                        <div className="text-[10px] sm:text-xs italic text-tn-muted truncate">
+                        <div className="text-[10px] sm:text-xs font-accent italic font-normal text-tn-muted truncate">
                           {top3.level || 'KADEME'}
                         </div>
                       </div>
                     </div>
-                    <div className="font-extrabold text-[11px] sm:text-base text-tn-text pt-0.5 truncate">
+                    <div className="font-display font-bold text-[11px] sm:text-base text-tn-text pt-0.5 truncate">
                       {top3.xp} XP · {top3.playsSeenCount ?? 0} oyun
                     </div>
                   </div>
                 </Link>
               ) : (
-                <div className="rounded-2xl bg-tn-ticket border border-tn-line text-tn-text p-3 sm:p-6 h-[160px] sm:h-[180px] flex items-center justify-center italic text-xs sm:text-sm text-tn-muted">
+                <div className="rounded-2xl bg-tn-ticket border border-tn-line text-tn-text p-3 sm:p-6 h-[160px] sm:h-[180px] flex items-center justify-center italic text-xs sm:text-sm text-tn-muted font-display font-extrabold">
                   #3
                 </div>
               )}
@@ -248,7 +245,7 @@ export const LeaderboardPage: React.FC = () => {
 
           {/* 4. Table Header & Rows */}
           <div className="rounded-2xl bg-tn-surface border border-tn-line overflow-hidden shadow-2xs mt-2">
-            <div className="grid grid-cols-[36px_minmax(0,1fr)_65px] sm:grid-cols-[60px_minmax(0,1fr)_160px_110px_90px] p-3 sm:p-3.5 px-4 sm:px-6 border-b border-tn-line text-[11px] sm:text-xs font-extrabold uppercase text-tn-muted tracking-wider">
+            <div className="grid grid-cols-[36px_minmax(0,1fr)_65px] sm:grid-cols-[60px_minmax(0,1fr)_160px_110px_90px] p-3 sm:p-3.5 px-4 sm:px-6 border-b border-tn-line text-[11px] sm:text-xs font-bold uppercase text-tn-muted tracking-[0.07em]">
               <span>SIRA</span>
               <span>TİYATROSEVER</span>
               <span className="hidden sm:inline">KADEME</span>
@@ -269,7 +266,7 @@ export const LeaderboardPage: React.FC = () => {
                       isCurrentUser ? 'bg-tn-red/10 font-bold border-l-4 border-l-tn-red' : ''
                     }`}
                   >
-                    <span className="font-extrabold text-sm sm:text-base text-tn-red">
+                    <span className="font-display font-extrabold text-sm sm:text-base text-tn-red">
                       #{rank}
                     </span>
 
@@ -281,22 +278,22 @@ export const LeaderboardPage: React.FC = () => {
                           className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border border-tn-line shrink-0"
                         />
                       ) : (
-                        <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-tn-sand text-tn-text flex items-center justify-center font-extrabold text-[10px] sm:text-xs shrink-0 border border-tn-line/40">
+                        <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-tn-sand text-tn-text flex items-center justify-center font-display font-extrabold text-[10px] sm:text-xs shrink-0 border border-tn-line/40">
                           {renderInitials(entry.displayName)}
                         </span>
                       )}
                       <div className="flex flex-col min-w-0">
-                        <span className="font-extrabold text-sm sm:text-base truncate">
+                        <span className="font-display font-bold text-sm sm:text-base truncate">
                           {entry.displayName || 'Tiyatrosever'} {isCurrentUser && '(Sen)'}
                         </span>
                         {/* Mobile combined subtitle: Kademe · X oyun */}
-                        <span className="sm:hidden text-[11px] italic text-tn-muted truncate">
+                        <span className="sm:hidden text-[11px] font-accent italic font-normal text-tn-muted truncate">
                           {entry.level || 'Ön Sıra Müdavimi'} · {entry.playsSeenCount ?? 0} oyun
                         </span>
                       </div>
                     </div>
 
-                    <span className="hidden sm:inline text-sm italic text-tn-muted truncate">
+                    <span className="hidden sm:inline text-sm font-accent italic font-normal text-tn-muted truncate">
                       {entry.level || 'Ön Sıra Müdavimi'}
                     </span>
 
@@ -304,7 +301,7 @@ export const LeaderboardPage: React.FC = () => {
                       {entry.playsSeenCount ?? 0} oyun
                     </span>
 
-                    <span className="text-right font-extrabold text-sm sm:text-base text-tn-red">
+                    <span className="text-right font-display font-extrabold text-sm sm:text-base text-tn-red">
                       {entry.xp} XP
                     </span>
                   </Link>
@@ -316,16 +313,16 @@ export const LeaderboardPage: React.FC = () => {
             {showPinnedBottomRow && (
               <div className="p-2.5 sm:p-3 bg-tn-surface/40 border-t border-tn-line">
                 <div className="grid grid-cols-[36px_minmax(0,1fr)_65px] sm:grid-cols-[60px_minmax(0,1fr)_160px_110px_90px] p-2.5 sm:p-3.5 px-3 sm:px-5 items-center rounded-xl border-2 border-tn-red bg-white dark:bg-tn-container text-tn-text shadow-xs">
-                  <span className="font-extrabold text-sm sm:text-base text-tn-red">
+                  <span className="font-display font-extrabold text-sm sm:text-base text-tn-red">
                     #{currentUserRank}
                   </span>
 
                   <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 pr-2">
-                    <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-tn-sage text-tn-text flex items-center justify-center font-extrabold text-[10px] sm:text-[11px] shrink-0 border border-tn-line/40">
+                    <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-tn-sage text-tn-text flex items-center justify-center font-bold text-[10px] sm:text-[11px] shrink-0 border border-tn-line/40">
                       SEN
                     </span>
                     <div className="flex flex-col min-w-0">
-                      <span className="font-extrabold text-sm sm:text-base truncate">
+                      <span className="font-display font-bold text-sm sm:text-base truncate">
                         Sen
                       </span>
                       <span className="text-[10px] sm:text-[11px] italic text-tn-muted truncate">
@@ -334,7 +331,7 @@ export const LeaderboardPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <span className="hidden sm:inline text-sm italic text-tn-muted truncate">
+                  <span className="hidden sm:inline text-sm font-accent italic font-normal text-tn-muted truncate">
                     ({currentUserEntry?.level || 'Fuaye Meraklısı'})
                   </span>
 
@@ -342,7 +339,7 @@ export const LeaderboardPage: React.FC = () => {
                     {currentUserEntry?.playsSeenCount ?? 0} oyun
                   </span>
 
-                  <span className="text-right font-extrabold text-sm sm:text-base text-tn-red">
+                  <span className="text-right font-display font-extrabold text-sm sm:text-base text-tn-red">
                     {currentUserEntry?.xp ?? 0} XP
                   </span>
                 </div>
@@ -352,8 +349,8 @@ export const LeaderboardPage: React.FC = () => {
         </>
       ) : (
         <div className="rounded-2xl border-2 border-dashed border-tn-line p-12 text-center flex flex-col items-center gap-2">
-          <span className="font-extrabold text-2xl">Henüz sıralamada kimse yok.</span>
-          <span className="italic text-base text-tn-muted">
+          <span className="font-display font-extrabold text-2xl">Henüz sıralamada kimse yok.</span>
+          <span className="font-sans text-base text-tn-muted">
             Oyun izleyip bilet notları bırakarak ilk sırayı kapabilirsin!
           </span>
         </div>

@@ -379,12 +379,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
   // Not Logged in View
   if (isOwnProfile && !user) {
     return (
-      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-6 font-serif">
+      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-6 font-sans">
         <div className="w-16 h-16 rounded-full bg-[#BA1B23]/10 text-[#BA1B23] flex items-center justify-center mx-auto">
           <Theater className="w-8 h-8" />
         </div>
         <div className="space-y-2">
-          <h1 className="font-extrabold text-2xl sm:text-3xl text-[#1C1A1B] dark:text-[#F3EFEA]">
+          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-[#1C1A1B] dark:text-[#F3EFEA] tracking-[-0.02em]">
             Tiyatro Pasaportuna Giriş Yap
           </h1>
           <p className="text-sm text-[#6E6862] dark:text-[#A8A199] leading-relaxed italic">
@@ -394,7 +394,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
         <button
           type="button"
           onClick={() => loginWithGoogle()}
-          className="w-full inline-flex items-center justify-center gap-2 bg-[#BA1B23] hover:bg-[#9E1B22] text-white py-3.5 text-sm font-bold rounded-full shadow-sm transition-all cursor-pointer"
+          className="w-full inline-flex items-center justify-center gap-2 bg-[#BA1B23] hover:bg-[#9E1B22] text-white py-3.5 text-sm font-bold rounded-full shadow-sm transition-all cursor-pointer font-sans"
         >
           <LogIn className="w-4 h-4" />
           <span>Google ile Giriş Yap</span>
@@ -406,7 +406,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
   // Loading state
   if (!isOwnProfile && targetUserLoading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4 font-serif">
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4 font-sans">
         <div className="w-16 h-16 bg-[#F1EDE7] dark:bg-[#2A2729] rounded-full mx-auto animate-pulse" />
         <div className="h-6 bg-[#F1EDE7] dark:bg-[#2A2729] rounded-full w-48 mx-auto animate-pulse" />
         <p className="text-xs italic text-[#6E6862] dark:text-[#A8A199]">Tiyatrosever profili yükleniyor...</p>
@@ -417,9 +417,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
   // Not found state
   if (!isOwnProfile && !targetUserLoading && !activeProfile) {
     return (
-      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4 font-serif">
+      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4 font-sans">
         <Theater className="w-12 h-12 text-[#6E6862] dark:text-[#A8A199] mx-auto opacity-60" />
-        <h2 className="font-extrabold text-2xl text-[#1C1A1B] dark:text-[#F3EFEA]">
+        <h2 className="font-display font-extrabold text-2xl text-[#1C1A1B] dark:text-[#F3EFEA] tracking-[-0.02em]">
           Kullanıcı Bulunamadı
         </h2>
         <p className="text-sm text-[#6E6862] dark:text-[#A8A199] italic">
@@ -429,7 +429,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
           <button
             type="button"
             onClick={() => window.history.back()}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#F1EDE7] dark:bg-[#2A2729] hover:bg-[#E2DCD4] dark:hover:bg-[#332F31] border border-[#E2DCD4] dark:border-[#332F31] text-[#1C1A1B] dark:text-[#F3EFEA] text-xs font-semibold rounded-full transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#F1EDE7] dark:bg-[#2A2729] hover:bg-[#E2DCD4] dark:hover:bg-[#332F31] border border-[#E2DCD4] dark:border-[#332F31] text-[#1C1A1B] dark:text-[#F3EFEA] text-xs font-semibold rounded-full transition-colors cursor-pointer font-sans"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Geri Dön</span>
@@ -446,7 +446,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
     : 'TN';
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 font-serif">
+    <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 font-sans">
       
       {/* ============================================================== */}
       {/* 1. TOP BENTO GRID (User Identity Card + 4 Stat Bento Blocks)     */}
@@ -511,14 +511,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
 
           {/* User Name & Level */}
           <div className="my-3">
-            <h1 className="font-extrabold text-2xl sm:text-3xl tracking-tight leading-tight">
+            <h1 className="font-display font-extrabold text-2xl sm:text-3xl tracking-[-0.03em] leading-tight">
               {activeProfile.displayName}
             </h1>
             <div className="flex items-center gap-2 mt-1 flex-wrap text-xs">
-              <span className="px-2.5 py-0.5 rounded-full border text-[11px] font-semibold border-[#1C1A1B]/20 dark:border-white/20 text-[#1C1A1B]/80 dark:text-white/80 bg-white/30 dark:bg-white/5">
+              <span className="px-2.5 py-0.5 rounded-full border text-[11px] font-semibold border-[#1C1A1B]/20 dark:border-white/20 text-[#1C1A1B]/80 dark:text-white/80 bg-white/30 dark:bg-white/5 font-sans">
                 {level}
               </span>
-              <span className="italic opacity-70">
+              <span className="italic opacity-70 font-sans">
                 Katılım: {new Date(activeProfile.createdAt || Date.now()).toLocaleDateString('tr-TR')}
               </span>
             </div>
@@ -529,22 +529,22 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
             <button
               type="button"
               onClick={() => setIsWrappedOpen(true)}
-              className="px-5 py-2.5 rounded-full bg-[#1C1A1B] dark:bg-[#F3EFEA] text-white dark:text-[#1C1A1B] hover:bg-black dark:hover:bg-white transition-all text-xs sm:text-sm font-bold inline-flex items-center gap-2 cursor-pointer shadow-md select-none w-fit"
+              className="px-5 py-2.5 rounded-full bg-[#1C1A1B] dark:bg-[#F3EFEA] text-white dark:text-[#1C1A1B] hover:bg-black dark:hover:bg-white transition-all text-xs sm:text-sm font-bold inline-flex items-center gap-2 cursor-pointer shadow-md select-none w-fit font-sans"
             >
               <span>Sezon Özeti</span>
-              <span className="italic font-normal opacity-90">- Wrapped</span>
+              <span className="font-accent italic font-normal opacity-90">- Wrapped</span>
             </button>
           </div>
         </div>
 
         {/* Right: 4 Bento Stat Cards (lg:col-span-7, 2x2 Grid) */}
-        <div className="lg:col-span-7 grid grid-cols-2 gap-3 sm:gap-4">
+        <div className="lg:col-span-7 grid grid-cols-2 gap-3 sm:gap-4 font-sans">
           
           {/* Card 1: Toplam Deneyim (Sand/Yellow) */}
           <div className="bg-[#F7EEDB] dark:bg-[#262118] text-[#1C1A1B] dark:text-[#F3EFEA] rounded-[22px] p-4 sm:p-5 flex flex-col justify-between min-h-[105px]">
             <span className="italic text-xs text-[#6E6862] dark:text-[#A8A199]">Toplam deneyim</span>
             <div className="flex items-baseline mt-2">
-              <span className="font-extrabold text-3xl sm:text-4xl">{xp}</span>
+              <span className="font-display font-extrabold text-3xl sm:text-4xl">{xp}</span>
               <span className="italic text-xs ml-1.5 text-[#6E6862] dark:text-[#A8A199]">XP</span>
             </div>
           </div>
@@ -555,7 +555,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
               {isOwnProfile ? 'Tiyatro İndeksi' : 'İzlenen'}
             </span>
             <div className="flex items-baseline mt-2">
-              <span className="font-extrabold text-3xl sm:text-4xl">{seenPlays.length}</span>
+              <span className="font-display font-extrabold text-3xl sm:text-4xl">{seenPlays.length}</span>
               <span className="italic text-xs sm:text-sm ml-1.5 text-[#6E6862] dark:text-[#A8A199]">
                 / {plays.length || 1854}
               </span>
@@ -566,7 +566,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
           <div className="bg-[#E7EFE7] dark:bg-[#1A251C] text-[#1C1A1B] dark:text-[#F3EFEA] rounded-[22px] p-4 sm:p-5 flex flex-col justify-between min-h-[105px]">
             <span className="italic text-xs text-[#6E6862] dark:text-[#A8A199]">Pasaport</span>
             <div className="flex items-baseline mt-2">
-              <span className="font-extrabold text-3xl sm:text-4xl">{unlockedBadgeIds.size}</span>
+              <span className="font-display font-extrabold text-3xl sm:text-4xl">{unlockedBadgeIds.size}</span>
               <span className="italic text-xs sm:text-sm ml-1.5 text-[#6E6862] dark:text-[#A8A199]">
                 / 4 mühür
               </span>
@@ -731,7 +731,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
                   value={seenSearchQuery}
                   onChange={(e) => setSeenSearchQuery(e.target.value)}
                   placeholder="İzlediklerinde ara…"
-                  className="w-full h-9 pl-9 pr-8 rounded-full bg-white dark:bg-[#1E1C1D] border border-[#E2DCD4] dark:border-[#332F31] focus:border-[#BA1B23] focus:outline-none text-xs font-serif text-[#1C1A1B] dark:text-[#F3EFEA] placeholder:text-[#6E6862]/70 shadow-2xs transition-colors"
+                  className="w-full h-9 pl-9 pr-8 rounded-full bg-white dark:bg-[#1E1C1D] border border-[#E2DCD4] dark:border-[#332F31] focus:border-[#BA1B23] focus:outline-none text-xs font-sans text-[#1C1A1B] dark:text-[#F3EFEA] placeholder:text-[#6E6862]/70 shadow-2xs transition-colors"
                 />
                 {seenSearchQuery && (
                   <button
@@ -1167,7 +1167,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
             className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setSelectedBadge(null)}
           />
-          <div className="relative z-10 w-full max-w-md bg-white dark:bg-[#1A1819] border border-[#E2DCD4] dark:border-[#332F31] rounded-[24px] p-6 sm:p-7 shadow-2xl animate-fade-in font-serif text-center space-y-4">
+          <div className="relative z-10 w-full max-w-md bg-white dark:bg-[#1A1819] border border-[#E2DCD4] dark:border-[#332F31] rounded-[24px] p-6 sm:p-7 shadow-2xl animate-fade-in font-sans text-center space-y-4">
             <button
               type="button"
               onClick={() => setSelectedBadge(null)}
@@ -1179,21 +1179,21 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
             {/* Seal Graphic */}
             <div className="pt-2 flex justify-center">
               {unlockedBadgeIds.has(selectedBadge.id) ? (
-                <div className="w-24 h-24 rounded-full border-3 border-[#BA1B23] text-[#BA1B23] flex items-center justify-center -rotate-6 font-extrabold text-sm shadow-sm">
+                <div className="w-24 h-24 rounded-full border-3 border-[#BA1B23] text-[#BA1B23] flex items-center justify-center -rotate-6 font-display font-extrabold text-sm shadow-sm">
                   {badgeStats[selectedBadge.id as keyof typeof badgeStats]?.sealCode || 'MÜHÜR'}
                 </div>
               ) : (
-                <div className="w-24 h-24 rounded-full border-2 border-dashed border-[#A8A199] text-[#6E6862] dark:text-[#A8A199] flex items-center justify-center font-bold text-xs opacity-75">
+                <div className="w-24 h-24 rounded-full border-2 border-dashed border-[#A8A199] text-[#6E6862] dark:text-[#A8A199] flex items-center justify-center font-bold text-xs opacity-75 font-sans">
                   {badgeStats[selectedBadge.id as keyof typeof badgeStats]?.sealCode || 'MÜHÜR'}
                 </div>
               )}
             </div>
 
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#BA1B23]">
+              <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#BA1B23]">
                 {unlockedBadgeIds.has(selectedBadge.id) ? 'TİYATRO PASAPORTU · MÜHÜRLENDİ' : 'TİYATRO PASAPORTU · KİLİTLİ'}
               </span>
-              <h3 className="font-extrabold text-2xl text-[#1C1A1B] dark:text-[#F3EFEA] mt-1">
+              <h3 className="font-display font-extrabold text-2xl text-[#1C1A1B] dark:text-[#F3EFEA] mt-1 tracking-[-0.02em]">
                 {selectedBadge.name}
               </h3>
               <p className="text-xs sm:text-sm text-[#6E6862] dark:text-[#A8A199] italic mt-1 leading-relaxed">
@@ -1237,7 +1237,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
                 setSelectedBadge(null);
                 navigate('/');
               }}
-              className="w-full py-3 rounded-full bg-[#1C1A1B] text-white hover:bg-black transition-colors font-bold text-xs shadow-sm cursor-pointer"
+              className="w-full py-3 rounded-full bg-[#1C1A1B] text-white hover:bg-black transition-colors font-bold text-xs shadow-sm cursor-pointer font-sans"
             >
               Kataloğa git
             </button>
@@ -1252,12 +1252,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
             className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setIsAccountMenuOpen(false)}
           />
-          <div className="relative z-10 w-full sm:max-w-md bg-white dark:bg-[#1A1819] border border-[#E2DCD4] dark:border-[#332F31] rounded-t-[28px] sm:rounded-[24px] p-6 shadow-2xl animate-fade-in font-serif space-y-4">
+          <div className="relative z-10 w-full sm:max-w-md bg-white dark:bg-[#1A1819] border border-[#E2DCD4] dark:border-[#332F31] rounded-t-[28px] sm:rounded-[24px] p-6 shadow-2xl animate-fade-in font-sans space-y-4">
             
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-[#E2DCD4] dark:border-[#332F31]">
               <div>
-                <h3 className="font-extrabold text-xl text-[#1C1A1B] dark:text-[#F3EFEA]">
+                <h3 className="font-display font-extrabold text-xl text-[#1C1A1B] dark:text-[#F3EFEA] tracking-[-0.02em]">
                   Hesabın
                 </h3>
                 <p className="text-xs italic text-[#6E6862] dark:text-[#A8A199]">
@@ -1324,7 +1324,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onOpenDailyQuote, init
                     type="text"
                     value={newDisplayName}
                     onChange={(e) => setNewDisplayName(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs font-serif rounded-lg border border-[#E2DCD4] dark:border-[#332F31] bg-white dark:bg-[#1A1819] text-[#1C1A1B] dark:text-[#F3EFEA]"
+                    className="w-full px-3 py-1.5 text-xs font-sans rounded-lg border border-[#E2DCD4] dark:border-[#332F31] bg-white dark:bg-[#1A1819] text-[#1C1A1B] dark:text-[#F3EFEA]"
                   />
                   <div className="flex gap-2 justify-end">
                     <button

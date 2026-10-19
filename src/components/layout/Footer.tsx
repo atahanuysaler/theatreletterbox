@@ -10,12 +10,12 @@ export const Footer: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center sm:items-baseline gap-2 sm:gap-3 text-center sm:text-left">
             <Link
               to="/"
-              className="font-serif font-bold text-base text-text-primary tracking-tight hover:text-theatre-curtain transition-colors"
+              className="font-display font-extrabold text-base text-text-primary tracking-[-0.035em] hover:text-theatre-curtain transition-colors"
             >
               TIYATRO<span className="text-theatre-curtain font-black">·</span>NOT
             </Link>
             <span className="hidden sm:inline text-border-subtle">·</span>
-            <span className="text-text-tertiary text-xs font-serif italic">
+            <span className="text-text-tertiary text-xs font-accent italic font-normal">
               Dijital Tiyatro Günlüğü
             </span>
           </div>

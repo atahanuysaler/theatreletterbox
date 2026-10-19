@@ -168,20 +168,20 @@ export const OyuncuDedektifiModal: React.FC<OyuncuDedektifiModalProps> = ({ isOp
       />
 
       {/* Modal Card matching Frame 07 */}
-      <div className="relative z-10 w-full max-w-[460px] bg-white dark:bg-[#1E1B1D] text-[#1C1A1B] dark:text-[#F3EFEA] rounded-[20px] shadow-2xl p-6 border border-black/5 dark:border-white/10 overflow-hidden font-serif my-auto animate-fade-in flex flex-col gap-4">
+      <div className="relative z-10 w-full max-w-[460px] bg-white dark:bg-[#1E1B1D] text-[#1C1A1B] dark:text-[#F3EFEA] rounded-[20px] shadow-2xl p-6 border border-black/5 dark:border-white/10 overflow-hidden font-sans my-auto animate-fade-in flex flex-col gap-4">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="h-5 px-2.5 flex items-center rounded-full border border-[#1C1A1B]/35 dark:border-white/35 text-[10px] font-bold tracking-wider uppercase text-[#1C1A1B] dark:text-white">
+              <span className="h-5 px-2.5 flex items-center rounded-full border border-[#1C1A1B]/35 dark:border-white/35 text-[10px] font-sans font-bold tracking-wider uppercase text-[#1C1A1B] dark:text-white">
                 YENİ · 30 XP
               </span>
               <span className="text-xs italic text-tn-muted dark:text-[#A8A199]">{formattedDate}</span>
             </div>
-            <h3 className="font-serif font-extrabold text-[26px] text-[#1C1A1B] dark:text-white mt-1.5 leading-tight">
+            <h3 className="font-display font-extrabold text-[26px] text-[#1C1A1B] dark:text-white mt-1.5 leading-tight tracking-[-0.03em]">
               Oyuncu Dedektifi
             </h3>
-            <p className="font-serif italic text-xs text-tn-muted dark:text-[#A8A199] mt-0.5">
+            <p className="font-sans text-xs text-tn-muted dark:text-[#A8A199] mt-0.5">
               Usta tiyatrocuyu ipuçlarından bul
             </p>
           </div>
@@ -204,17 +204,17 @@ export const OyuncuDedektifiModal: React.FC<OyuncuDedektifiModalProps> = ({ isOp
             Henüz kayıtlı oyuncu bulmacası bulunmuyor.
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 font-sans">
             {/* Mystery Top Card */}
             <div className="bg-[#1C1A1B] text-white rounded-[14px] p-3.5 px-4 flex items-center gap-3 shadow-xs">
               <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-bold text-base text-amber-300 shrink-0">
                 ?
               </div>
               <div className="flex flex-col">
-                <div className="font-serif font-bold text-sm text-white leading-tight">
+                <div className="font-display font-extrabold text-sm text-white leading-tight">
                   Bu oyuncu kim?
                 </div>
-                <div className="font-serif italic text-[11px] text-white/70 mt-0.5">
+                <div className="font-sans text-[11px] text-white/70 mt-0.5">
                   Her yanlış tahmin yeni bir ipucu açar · {Math.min(attempts.length + 1, 4)} / 4
                 </div>
               </div>
@@ -222,54 +222,54 @@ export const OyuncuDedektifiModal: React.FC<OyuncuDedektifiModalProps> = ({ isOp
 
             {/* Card 1: Karakter & Rol Portresi */}
             <div className="bg-[#FDF2EE] dark:bg-[#2D1F21] rounded-[12px] p-3 px-3.5 border border-[#F5DDD5] dark:border-[#422B2E]">
-              <span className="text-[10px] font-extrabold tracking-wider uppercase text-[#C14436] dark:text-[#E87366] block mb-1">
+              <span className="text-[10px] font-sans font-extrabold tracking-wider uppercase text-[#C14436] dark:text-[#E87366] block mb-1">
                 KARAKTER & ROL PORTRESİ
               </span>
-              <p className="font-serif text-xs sm:text-[13px] text-[#1C1A1B] dark:text-neutral-200 leading-snug m-0">
+              <p className="font-sans text-xs sm:text-[13px] text-[#1C1A1B] dark:text-neutral-200 leading-snug m-0">
                 {activeActor.title}
               </p>
             </div>
 
             {/* Card 2: Rol Aldığı Öne Çıkan Sahne Eserleri */}
             <div className="bg-[#EDF5EE] dark:bg-[#1E2920] rounded-[12px] p-3 px-3.5 border border-[#D8EADB] dark:border-[#2C3E30]">
-              <span className="text-[10px] font-extrabold tracking-wider uppercase text-[#2E7D32] dark:text-[#66BB6A] block mb-1">
+              <span className="text-[10px] font-sans font-extrabold tracking-wider uppercase text-[#2E7D32] dark:text-[#66BB6A] block mb-1">
                 ROL ALDIĞI ÖNE ÇIKAN SAHNE ESERLERİ
               </span>
-              <p className="font-serif font-bold text-xs sm:text-[13px] text-[#1C1A1B] dark:text-white leading-snug m-0">
+              <p className="font-display font-extrabold text-xs sm:text-[13px] text-[#1C1A1B] dark:text-white leading-snug m-0">
                 {activeActor.famousPlays[0]}
               </p>
             </div>
 
             {/* Next Locked Clue or Revealed Clues */}
             {attempts.length === 0 && !completed && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-[10px] bg-neutral-100/70 dark:bg-white/5 border border-dashed border-neutral-300 dark:border-white/10 text-xs italic text-neutral-400 dark:text-neutral-500">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-[10px] bg-neutral-100/70 dark:bg-white/5 border border-dashed border-neutral-300 dark:border-white/10 text-xs italic text-neutral-400 dark:text-neutral-500 font-sans">
                 <span>🔒 Kariyer ipucu — yanlış tahminde açılır</span>
               </div>
             )}
 
             {attempts.length >= 1 && (
-              <div className="bg-[#EFEFF8] dark:bg-[#222132] rounded-[12px] p-3 px-3.5 border border-[#DDDCEF] dark:border-[#383652] text-xs animate-fade-in">
-                <span className="text-[10px] font-extrabold tracking-wider uppercase text-[#574FA5] dark:text-[#A49DEC] block mb-1">
+              <div className="bg-[#EFEFF8] dark:bg-[#222132] rounded-[12px] p-3 px-3.5 border border-[#DDDCEF] dark:border-[#383652] text-xs animate-fade-in font-sans">
+                <span className="text-[10px] font-sans font-extrabold tracking-wider uppercase text-[#574FA5] dark:text-[#A49DEC] block mb-1">
                   KARİYER İPUCU
                 </span>
-                <p className="font-serif text-[#1C1A1B] dark:text-white m-0 leading-snug">
+                <p className="font-sans text-[#1C1A1B] dark:text-white m-0 leading-snug">
                   {activeActor.clues[1] || activeActor.famousPlays.slice(1).join(', ')}
                 </p>
               </div>
             )}
 
             {attempts.length === 1 && !completed && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-[10px] bg-neutral-100/70 dark:bg-white/5 border border-dashed border-neutral-300 dark:border-white/10 text-xs italic text-neutral-400 dark:text-neutral-500">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-[10px] bg-neutral-100/70 dark:bg-white/5 border border-dashed border-neutral-300 dark:border-white/10 text-xs italic text-neutral-400 dark:text-neutral-500 font-sans">
                 <span>🔒 Flaş ipucu — sonraki yanlış tahminde açılır</span>
               </div>
             )}
 
             {attempts.length >= 2 && activeActor.hint && (
-              <div className="bg-amber-500/10 dark:bg-amber-500/15 rounded-[12px] p-3 px-3.5 border border-amber-500/30 text-xs animate-fade-in">
-                <span className="text-[10px] font-extrabold tracking-wider uppercase text-amber-700 dark:text-amber-300 block mb-1">
+              <div className="bg-amber-500/10 dark:bg-amber-500/15 rounded-[12px] p-3 px-3.5 border border-amber-500/30 text-xs animate-fade-in font-sans">
+                <span className="text-[10px] font-sans font-extrabold tracking-wider uppercase text-amber-700 dark:text-amber-300 block mb-1">
                   FLAŞ İPUCU
                 </span>
-                <p className="font-serif text-[#1C1A1B] dark:text-white m-0 leading-snug">
+                <p className="font-sans text-[#1C1A1B] dark:text-white m-0 leading-snug">
                   {activeActor.hint}
                 </p>
               </div>
@@ -277,19 +277,19 @@ export const OyuncuDedektifiModal: React.FC<OyuncuDedektifiModalProps> = ({ isOp
 
             {/* Result Screen or Guess Form */}
             {completed ? (
-              <div className={`p-4 rounded-[14px] border text-center space-y-3 animate-fade-in ${
+              <div className={`p-4 rounded-[14px] border text-center space-y-3 animate-fade-in font-sans ${
                 won
                   ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-200'
                   : 'bg-red-500/10 border-red-500/30 text-red-800 dark:text-red-200'
               }`}>
                 <div className="flex items-center justify-center gap-2">
                   {won ? <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> : <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />}
-                  <h4 className="font-serif font-extrabold text-lg m-0">
+                  <h4 className="font-display font-extrabold text-lg m-0">
                     {won ? 'Tebrikler, bildiniz!' : 'Deneme hakkınız bitti!'}
                   </h4>
                 </div>
                 <p className="text-sm font-semibold m-0">
-                  Doğru Cevap: <span className="underline decoration-[#BA1B23] text-base">{activeActor.actorName}</span>
+                  Doğru Cevap: <span className="font-display font-extrabold underline decoration-[#BA1B23] text-base">{activeActor.actorName}</span>
                 </p>
                 {won && (
                   <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold m-0 flex items-center justify-center gap-1">

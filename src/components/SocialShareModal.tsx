@@ -177,7 +177,7 @@ function drawPosterCard(
 
   // Caption pill: Afiş · {title}
   const pillText = `Afiş · ${playTitle}`;
-  ctx.font = "italic 20px 'Newsreader', Georgia, serif";
+  ctx.font = "italic 20px 'Instrument Serif', Georgia, serif";
   const textW = ctx.measureText(pillText).width;
   const pillW = Math.min(textW + 36, w - 40);
   const pillH = 38;
@@ -326,13 +326,13 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         }
 
         ctx.fillStyle = '#6E6862';
-        ctx.font = "600 24px 'Newsreader', Georgia, serif";
+        ctx.font = "600 24px 'Instrument Sans', system-ui, sans-serif";
         ctx.fillText(`TİYATRO·NOT · ${serialNo}`, leftX + 60, leftY + 70);
 
         ctx.fillStyle = '#1C1A1B';
-        ctx.font = "800 68px 'Newsreader', Georgia, serif";
+        ctx.font = "800 68px 'Bricolage Grotesque', system-ui, sans-serif";
         const maxTitleW = (showPoster && posterImg) ? leftW - 390 : leftW - 120;
-        const tLines = wrapText(ctx, play.title, maxTitleW, "800 68px 'Newsreader', Georgia, serif");
+        const tLines = wrapText(ctx, play.title, maxTitleW, "800 68px 'Bricolage Grotesque', system-ui, sans-serif");
         let tY = leftY + 160;
         for (const line of tLines.slice(0, 2)) {
           ctx.fillText(line, leftX + 60, tY);
@@ -340,19 +340,19 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         }
 
         ctx.fillStyle = '#6E6862';
-        ctx.font = "italic 32px 'Newsreader', Georgia, serif";
+        ctx.font = "italic 32px 'Instrument Serif', Georgia, serif";
         ctx.fillText(play.playwright || 'Arthur Miller', leftX + 60, tY + 10);
 
         if (showSeat) {
-          ctx.font = "600 22px 'Newsreader', Georgia, serif";
+          ctx.font = "600 22px 'Instrument Sans', system-ui, sans-serif";
           ctx.fillStyle = '#4A4541';
           ctx.fillText(`TARİH: ${effectiveDate}    SEANS: ${effectiveSession.toUpperCase()}`, leftX + 60, tY + 80);
         }
 
         if (showReviewText && effectiveNote) {
           ctx.fillStyle = '#1C1A1B';
-          ctx.font = "italic 36px 'Newsreader', Georgia, serif";
-          const quoteLines = wrapText(ctx, `“${effectiveNote}”`, (showPoster && posterImg) ? leftW - 390 : leftW - 120, "italic 36px 'Newsreader', Georgia, serif");
+          ctx.font = "italic 36px 'Instrument Serif', Georgia, serif";
+          const quoteLines = wrapText(ctx, `“${effectiveNote}”`, (showPoster && posterImg) ? leftW - 390 : leftW - 120, "italic 36px 'Instrument Serif', Georgia, serif");
           let qY = leftY + 410;
           for (const line of quoteLines.slice(0, 3)) {
             ctx.fillText(line, leftX + 60, qY);
@@ -362,7 +362,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
         if (showAuthor) {
           ctx.fillStyle = '#6E6862';
-          ctx.font = "italic 26px 'Newsreader', Georgia, serif";
+          ctx.font = "italic 26px 'Instrument Serif', Georgia, serif";
           ctx.fillText(`${effectiveAuthor} · Seyirci Günlüğü`, leftX + 60, leftY + leftH - 60);
         }
 
@@ -374,18 +374,18 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.lineWidth = 4;
         ctx.strokeRect(-160, -45, 320, 90);
         ctx.fillStyle = '#BA1B23';
-        ctx.font = "800 36px 'Newsreader', Georgia, serif";
+        ctx.font = "800 36px 'Bricolage Grotesque', system-ui, sans-serif";
         ctx.textAlign = 'center';
         ctx.fillText('GİRİŞ ONAYLI', 0, 12);
         ctx.restore();
 
         ctx.fillStyle = '#1C1A1B';
-        ctx.font = "800 100px 'Newsreader', Georgia, serif";
+        ctx.font = "800 100px 'Bricolage Grotesque', system-ui, sans-serif";
         ctx.textAlign = 'center';
         ctx.fillText(effectiveRating.toFixed(1), rightX + 270, rightY + 450);
 
         ctx.fillStyle = '#BA1B23';
-        ctx.font = "bold 32px 'Newsreader', Georgia, serif";
+        ctx.font = "bold 32px 'Bricolage Grotesque', system-ui, sans-serif";
         ctx.fillText(getBadgeTitle(effectiveRating), rightX + 270, rightY + 510);
 
         ctx.fillStyle = '#1C1A1B';
@@ -417,7 +417,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         }
 
         ctx.fillStyle = '#6E6862';
-        ctx.font = "600 24px 'Newsreader', Georgia, serif";
+        ctx.font = "600 24px 'Instrument Sans', system-ui, sans-serif";
         ctx.textAlign = 'left';
         ctx.fillText(`TİYATRO·NOT`, tX + 70, tY + 80);
         ctx.textAlign = 'right';
@@ -434,7 +434,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
         ctx.textAlign = 'left';
         ctx.fillStyle = '#1C1A1B';
-        const titleFontSize = (showPoster && posterImg && targetRatio === '1:1') ? "800 52px 'Newsreader', Georgia, serif" : targetRatio === '9:16' ? "800 72px 'Newsreader', Georgia, serif" : "800 62px 'Newsreader', Georgia, serif";
+        const titleFontSize = (showPoster && posterImg && targetRatio === '1:1') ? "800 52px 'Bricolage Grotesque', system-ui, sans-serif" : targetRatio === '9:16' ? "800 72px 'Bricolage Grotesque', system-ui, sans-serif" : "800 62px 'Bricolage Grotesque', system-ui, sans-serif";
         ctx.font = titleFontSize;
         const titleLines = wrapText(ctx, play.title, tW - 140, ctx.font);
         for (const line of titleLines.slice(0, 2)) {
@@ -443,12 +443,12 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         }
 
         ctx.fillStyle = '#6E6862';
-        ctx.font = "italic 34px 'Newsreader', Georgia, serif";
+        ctx.font = "italic 34px 'Instrument Serif', Georgia, serif";
         ctx.fillText(play.playwright || 'Arthur Miller', tX + 70, curY + 6);
         curY += 50;
 
         if (showSeat) {
-          ctx.font = "600 22px 'Newsreader', Georgia, serif";
+          ctx.font = "600 22px 'Instrument Sans', system-ui, sans-serif";
           ctx.fillStyle = '#4A4541';
           ctx.fillText(`TARİH: ${effectiveDate}    SEANS: ${effectiveSession.toUpperCase()}`, tX + 70, curY + 16);
           curY += 46;
@@ -457,7 +457,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         if (showReviewText && effectiveNote) {
           curY += 20;
           ctx.fillStyle = '#1C1A1B';
-          ctx.font = targetRatio === '9:16' ? "italic 38px 'Newsreader', Georgia, serif" : "italic 30px 'Newsreader', Georgia, serif";
+          ctx.font = targetRatio === '9:16' ? "italic 38px 'Instrument Serif', Georgia, serif" : "italic 30px 'Instrument Serif', Georgia, serif";
           const quoteLines = wrapText(ctx, `“${effectiveNote}”`, tW - 140, ctx.font);
           for (const line of quoteLines.slice(0, targetRatio === '9:16' ? 3 : 2)) {
             ctx.fillText(line, tX + 70, curY);
@@ -468,7 +468,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         if (showAuthor) {
           curY += 20;
           ctx.fillStyle = '#6E6862';
-          ctx.font = "italic 26px 'Newsreader', Georgia, serif";
+          ctx.font = "italic 26px 'Instrument Serif', Georgia, serif";
           ctx.fillText(`${effectiveAuthor} · Seyirci Günlüğü`, tX + 70, curY);
         }
 
@@ -480,17 +480,17 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         ctx.lineWidth = 3.5;
         ctx.strokeRect(-110, -32, 220, 64);
         ctx.fillStyle = '#BA1B23';
-        ctx.font = "800 26px 'Newsreader', Georgia, serif";
+        ctx.font = "800 26px 'Bricolage Grotesque', system-ui, sans-serif";
         ctx.textAlign = 'center';
         ctx.fillText('GİRİŞ ONAYLI', 0, 9);
         ctx.restore();
 
         ctx.textAlign = 'left';
         ctx.fillStyle = '#1C1A1B';
-        ctx.font = "800 84px 'Newsreader', Georgia, serif";
+        ctx.font = "800 84px 'Bricolage Grotesque', system-ui, sans-serif";
         ctx.fillText(effectiveRating.toFixed(1), tX + 70, botY);
         ctx.fillStyle = '#BA1B23';
-        ctx.font = "bold 26px 'Newsreader', Georgia, serif";
+        ctx.font = "bold 26px 'Bricolage Grotesque', system-ui, sans-serif";
         ctx.fillText(getBadgeTitle(effectiveRating), tX + 220, botY - 20);
 
         ctx.fillStyle = '#1C1A1B';
@@ -507,7 +507,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
       if (showSeat) {
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = "800 24px 'Newsreader', Georgia, serif";
+        ctx.font = "800 24px 'Bricolage Grotesque', system-ui, sans-serif";
         ctx.textAlign = 'left';
         ctx.fillText('TİYATRO·NOT', 80, 90);
         ctx.textAlign = 'right';
@@ -538,10 +538,10 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.fillStyle = '#FFFFFF';
       ctx.textAlign = 'left';
       const titleFont = targetRatio === '9:16' 
-        ? "800 110px 'Newsreader', Georgia, serif" 
+        ? "800 110px 'Bricolage Grotesque', system-ui, sans-serif" 
         : targetRatio === '1:1' 
-        ? "800 88px 'Newsreader', Georgia, serif" 
-        : "800 90px 'Newsreader', Georgia, serif";
+        ? "800 88px 'Bricolage Grotesque', system-ui, sans-serif" 
+        : "800 90px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.font = titleFont;
 
       const maxTitleW = (showPoster && posterImg && targetRatio === '16:9') 
@@ -553,7 +553,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
         titleY += targetRatio === '9:16' ? 116 : 94;
       }
 
-      ctx.font = "italic 46px 'Newsreader', Georgia, serif";
+      ctx.font = "italic 46px 'Instrument Serif', Georgia, serif";
       ctx.fillText(play.playwright || 'Arthur Miller', 80, titleY + 16);
 
       const bY = height - 300;
@@ -565,11 +565,11 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.stroke();
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = "800 34px 'Newsreader', Georgia, serif";
+      ctx.font = "800 34px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.fillText(`★★★★★   ${getBadgeTitle(effectiveRating)}`, 80, bY + 54);
 
       if (showReviewText && effectiveNote) {
-        ctx.font = "italic 34px 'Newsreader', Georgia, serif";
+        ctx.font = "italic 34px 'Instrument Serif', Georgia, serif";
         const qLines = wrapText(ctx, `“${effectiveNote}”`, width - 160, ctx.font);
         let qY = bY + 120;
         for (const l of qLines.slice(0, 2)) {
@@ -579,7 +579,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       }
 
       if (showAuthor) {
-        ctx.font = "600 24px 'Newsreader', Georgia, serif";
+        ctx.font = "600 24px 'Instrument Sans', system-ui, sans-serif";
         ctx.fillText(`Seyirci: ${effectiveAuthor}`, 80, height - 70);
       }
       ctx.textAlign = 'right';
@@ -598,15 +598,15 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       }
 
       ctx.fillStyle = '#BA1B23';
-      ctx.font = "800 160px 'Newsreader', Georgia, serif";
+      ctx.font = "800 160px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.textAlign = 'left';
       ctx.fillText('“', 100, 220);
 
       if (showReviewText && effectiveNote) {
         ctx.fillStyle = '#1C1A1B';
         const qFont = targetRatio === '9:16' 
-          ? "italic 62px 'Newsreader', Georgia, serif" 
-          : "italic 52px 'Newsreader', Georgia, serif";
+          ? "italic 62px 'Instrument Serif', Georgia, serif" 
+          : "italic 52px 'Instrument Serif', Georgia, serif";
         ctx.font = qFont;
         const qLines = wrapText(ctx, `“${effectiveNote}”`, (showPoster && posterImg) ? width - 420 : width - 200, qFont);
         let qY = 340;
@@ -626,18 +626,18 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
       if (showAuthor) {
         ctx.fillStyle = '#1C1A1B';
-        ctx.font = "800 32px 'Newsreader', Georgia, serif";
+        ctx.font = "800 32px 'Bricolage Grotesque', system-ui, sans-serif";
         ctx.fillText(`— ${effectiveAuthor}`, 100, botY + 50);
       }
 
       if (showSeat) {
         ctx.fillStyle = '#6E6862';
-        ctx.font = "600 24px 'Newsreader', Georgia, serif";
+        ctx.font = "600 24px 'Instrument Sans', system-ui, sans-serif";
         ctx.fillText(`${play.title} · ★ ${effectiveRating.toFixed(1)}`, 100, botY + 95);
       }
 
       ctx.fillStyle = '#1C1A1B';
-      ctx.font = "800 28px 'Newsreader', Georgia, serif";
+      ctx.font = "800 28px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.textAlign = 'right';
       ctx.fillText('TİYATRO·NOT', width - 100, botY + 70);
     }
@@ -673,16 +673,16 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.restore();
 
       ctx.fillStyle = '#BA1B23';
-      ctx.font = "800 24px 'Newsreader', Georgia, serif";
+      ctx.font = "800 24px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.textAlign = 'center';
       ctx.fillText('PERDE AÇILDI', width / 2, aY + 110);
 
       ctx.fillStyle = '#1C1A1B';
-      ctx.font = targetRatio === '9:16' ? "800 64px 'Newsreader', Georgia, serif" : "800 52px 'Newsreader', Georgia, serif";
+      ctx.font = targetRatio === '9:16' ? "800 64px 'Bricolage Grotesque', system-ui, sans-serif" : "800 52px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.fillText(play.title, width / 2, aY + 190);
 
       ctx.fillStyle = '#6E6862';
-      ctx.font = "italic 30px 'Newsreader', Georgia, serif";
+      ctx.font = "italic 30px 'Instrument Serif', Georgia, serif";
       ctx.fillText(play.playwright || 'Arthur Miller', width / 2, aY + 246);
 
       if (showPoster && posterImg) {
@@ -691,17 +691,17 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
       const ratingY = (showPoster && posterImg) ? aY + 660 : aY + 360;
       ctx.fillStyle = '#1C1A1B';
-      ctx.font = "800 56px 'Newsreader', Georgia, serif";
+      ctx.font = "800 56px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.fillText(`${effectiveRating.toFixed(1)} ${getBadgeTitle(effectiveRating)}`, width / 2, ratingY);
 
       if (showSeat) {
         ctx.fillStyle = '#6E6862';
-        ctx.font = "600 24px 'Newsreader', Georgia, serif";
+        ctx.font = "600 24px 'Instrument Sans', system-ui, sans-serif";
         ctx.fillText(`${effectiveSeat} · Günlük Kaydı`, width / 2, ratingY + 50);
       }
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = "800 36px 'Newsreader', Georgia, serif";
+      ctx.font = "800 36px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.textAlign = 'center';
       ctx.fillText('TİYATRO·NOT', width / 2, height - 70);
     }
@@ -714,17 +714,17 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.fillRect(0, 0, width, height);
 
       ctx.fillStyle = '#E4B33A';
-      ctx.font = "800 26px 'Newsreader', Georgia, serif";
+      ctx.font = "800 26px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.textAlign = 'left';
       ctx.fillText('ALKIŞ ÖLÇEĞİ', 80, 110);
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = "800 48px 'Newsreader', Georgia, serif";
+      ctx.font = "800 48px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.fillText(play.title, 80, 180);
 
       if (showSeat) {
         ctx.fillStyle = '#A8A199';
-        ctx.font = "italic 26px 'Newsreader', Georgia, serif";
+        ctx.font = "italic 26px 'Instrument Serif', Georgia, serif";
         ctx.fillText(`${effectiveDate} · ${effectiveSession}`, 80, 230);
       }
 
@@ -737,16 +737,16 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
       const ratingStartX = (showPoster && posterImg && targetRatio === '16:9') ? 640 : 80;
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = "800 170px 'Newsreader', Georgia, serif";
+      ctx.font = "800 170px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.fillText(effectiveRating.toFixed(1), ratingStartX, ratingY);
 
       ctx.fillStyle = '#E4B33A';
-      ctx.font = "italic 44px 'Newsreader', Georgia, serif";
+      ctx.font = "italic 44px 'Instrument Serif', Georgia, serif";
       ctx.fillText(getBadgeTitle(effectiveRating), ratingStartX, ratingY + 70);
 
       if (showReviewText && effectiveNote) {
         ctx.fillStyle = '#A8A199';
-        ctx.font = "italic 32px 'Newsreader', Georgia, serif";
+        ctx.font = "italic 32px 'Instrument Serif', Georgia, serif";
         const qLines = wrapText(ctx, `“${effectiveNote}”`, 560, ctx.font);
         let qY = ratingY + 160;
         for (const l of qLines.slice(0, 2)) {
@@ -772,12 +772,12 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
       if (showAuthor) {
         ctx.fillStyle = '#A8A199';
-        ctx.font = "italic 24px 'Newsreader', Georgia, serif";
+        ctx.font = "italic 24px 'Instrument Serif', Georgia, serif";
         ctx.fillText(effectiveAuthor, 80, height - 70);
       }
       ctx.textAlign = 'right';
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = "800 28px 'Newsreader', Georgia, serif";
+      ctx.font = "800 28px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.fillText('TİYATRO·NOT', width - 80, height - 70);
     }
 
@@ -795,12 +795,12 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ctx.strokeRect(76, 76, width - 152, 138);
 
       ctx.fillStyle = '#1C1A1B';
-      ctx.font = "800 54px 'Newsreader', Georgia, serif";
+      ctx.font = "800 54px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.textAlign = 'center';
       ctx.fillText('P R O G R A M', width / 2, 146);
 
       if (showSeat) {
-        ctx.font = "600 22px 'Newsreader', Georgia, serif";
+        ctx.font = "600 22px 'Instrument Sans', system-ui, sans-serif";
         ctx.fillText('2025–2026 Sezonu', width / 2, 186);
       }
 
@@ -809,14 +809,14 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       }
 
       const progTitleY = (showPoster && posterImg) ? 590 : 330;
-      ctx.font = "800 74px 'Newsreader', Georgia, serif";
+      ctx.font = "800 74px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.fillText(play.title, width / 2, progTitleY);
 
-      ctx.font = "italic 36px 'Newsreader', Georgia, serif";
+      ctx.font = "italic 36px 'Instrument Serif', Georgia, serif";
       ctx.fillText(`yazan ${play.playwright || 'Arthur Miller'}`, width / 2, progTitleY + 60);
 
       ctx.fillStyle = '#BA1B23';
-      ctx.font = "800 36px 'Newsreader', Georgia, serif";
+      ctx.font = "800 36px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.fillText('★★★★★', width / 2, progTitleY + 120);
 
       const tableY = (showPoster && posterImg) ? 780 : 540;
@@ -829,7 +829,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
       ].filter(r => r.show);
 
       let rowY = tableY;
-      ctx.font = "italic 26px 'Newsreader', Georgia, serif";
+      ctx.font = "italic 26px 'Instrument Serif', Georgia, serif";
       for (const r of rows) {
         ctx.textAlign = 'left';
         ctx.fillStyle = '#6E6862';
@@ -846,7 +846,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
         ctx.textAlign = 'right';
         ctx.fillStyle = '#1C1A1B';
-        ctx.font = "800 26px 'Newsreader', Georgia, serif";
+        ctx.font = "800 26px 'Bricolage Grotesque', system-ui, sans-serif";
         ctx.fillText(r.value, width - 120, rowY);
         rowY += 56;
       }
@@ -865,11 +865,11 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
         ctx.textAlign = 'left';
         ctx.fillStyle = '#8A827A';
-        ctx.font = "800 18px 'Newsreader', Georgia, serif";
+        ctx.font = "800 18px 'Bricolage Grotesque', system-ui, sans-serif";
         ctx.fillText('SEYİRCİNİN NOTU', 130, rowY + 44);
 
         ctx.fillStyle = '#1C1A1B';
-        ctx.font = "italic 28px 'Newsreader', Georgia, serif";
+        ctx.font = "italic 28px 'Instrument Serif', Georgia, serif";
         const nLines = wrapText(ctx, effectiveNote, width - 260, ctx.font);
         let nY = rowY + 90;
         for (const l of nLines.slice(0, 2)) {
@@ -880,7 +880,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
 
       ctx.textAlign = 'center';
       ctx.fillStyle = '#1C1A1B';
-      ctx.font = "800 28px 'Newsreader', Georgia, serif";
+      ctx.font = "800 28px 'Bricolage Grotesque', system-ui, sans-serif";
     }
 
     return canvas;
@@ -970,7 +970,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                     style={{ backgroundImage: `url(${effectivePoster})` }}
                   >
                     <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
-                    <span className="absolute bottom-1.5 left-1.5 text-[8px] italic text-white/95 font-serif bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-full border border-white/20 truncate max-w-[85%]">
+                    <span className="absolute bottom-1.5 left-1.5 text-[8px] font-accent italic font-normal text-white/95 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-full border border-white/20 truncate max-w-[85%]">
                       Afiş · {play.title}
                     </span>
                   </div>
@@ -1022,7 +1022,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                     style={{ backgroundImage: `url(${effectivePoster})` }}
                   >
                     <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
-                    <span className="absolute bottom-2 left-2 text-[8px] sm:text-[9px] italic text-white/95 font-serif bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20 truncate max-w-[85%]">
+                    <span className="absolute bottom-2 left-2 text-[8px] sm:text-[9px] font-accent italic font-normal text-white/95 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20 truncate max-w-[85%]">
                       Afiş · {play.title}
                     </span>
                   </div>
@@ -1086,7 +1086,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
               style={{ backgroundImage: `url(${effectivePoster})` }}
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-              <span className="absolute bottom-2 left-2 text-[9px] sm:text-[10px] italic text-white/95 font-serif bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/20 truncate max-w-[85%]">
+              <span className="absolute bottom-2 left-2 text-[9px] sm:text-[10px] font-accent italic font-normal text-white/95 bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/20 truncate max-w-[85%]">
                 Afiş · {play.title}
               </span>
             </div>
@@ -1126,7 +1126,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
               style={{ backgroundImage: `url(${effectivePoster})` }}
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
-              <span className="absolute bottom-1.5 left-2 text-[8px] italic text-white/95 font-serif bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20 truncate max-w-[85%]">
+              <span className="absolute bottom-1.5 left-2 text-[8px] font-accent italic font-normal text-white/95 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20 truncate max-w-[85%]">
                 Afiş · {play.title}
               </span>
             </div>
@@ -1166,7 +1166,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                 style={{ backgroundImage: `url(${effectivePoster})` }}
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
-                <span className="absolute bottom-1.5 left-2 text-[8px] italic text-white/95 font-serif bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20 truncate max-w-[85%]">
+                <span className="absolute bottom-1.5 left-2 text-[8px] font-accent italic font-normal text-white/95 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20 truncate max-w-[85%]">
                   Afiş · {play.title}
                 </span>
               </div>
@@ -1205,7 +1205,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
               style={{ backgroundImage: `url(${effectivePoster})` }}
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent pointer-events-none" />
-              <span className="absolute bottom-1.5 left-2 text-[8px] sm:text-[9px] italic text-white/95 font-serif bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20 truncate max-w-[85%]">
+              <span className="absolute bottom-1.5 left-2 text-[8px] sm:text-[9px] font-accent italic font-normal text-white/95 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20 truncate max-w-[85%]">
                 Afiş · {play.title}
               </span>
             </div>
@@ -1257,7 +1257,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
               style={{ backgroundImage: `url(${effectivePoster})` }}
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
-              <span className="absolute bottom-1.5 left-2 text-[8px] italic text-white/95 font-serif bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20 truncate max-w-[85%]">
+              <span className="absolute bottom-1.5 left-2 text-[8px] font-accent italic font-normal text-white/95 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20 truncate max-w-[85%]">
                 Afiş · {play.title}
               </span>
             </div>
@@ -1291,7 +1291,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
   );
 
   return createPortal(
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-0 sm:p-4 bg-black/85 backdrop-blur-sm overflow-hidden select-none font-serif text-white">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-0 sm:p-4 bg-black/85 backdrop-blur-sm overflow-hidden select-none font-sans text-white">
       
       {/* ==========================================================
           DESKTOP 3-COLUMN STUDIO LAYOUT
@@ -1648,7 +1648,7 @@ export const SocialShareModal: React.FC<SocialShareModalProps> = ({
                   className="flex flex-col items-center gap-1.5 cursor-pointer border-none bg-transparent shrink-0 group"
                 >
                   <div 
-                    className={`w-[52px] h-[72px] rounded-xl flex items-center justify-center font-serif text-lg font-bold shadow-md relative overflow-hidden transition-all ${
+                    className={`w-[52px] h-[72px] rounded-xl flex items-center justify-center font-display text-lg font-extrabold shadow-md relative overflow-hidden transition-all ${
                       isSelected 
                         ? 'ring-2 ring-white border-2 border-white scale-105' 
                         : 'border border-white/20 opacity-80 hover:opacity-100'

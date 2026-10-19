@@ -260,14 +260,14 @@ export const CatalogPage: React.FC<CatalogPageProps> = () => {
   const currentSortLabel = SORT_OPTIONS.find((s) => s.key === sortBy)?.label || 'En Yüksek Puan';
 
   return (
-    <div className="w-full flex flex-col gap-2.5 sm:gap-3.5 font-serif text-tn-text">
+    <div className="w-full flex flex-col gap-2.5 sm:gap-3.5 font-sans text-tn-text">
       {/* 1. Dedicated Header */}
       <section className="flex justify-between items-end gap-5 py-1.5 sm:py-3 px-1 sm:px-1.5">
         <div>
-          <h1 className="m-0 font-extrabold text-4xl sm:text-5xl lg:text-[56px] leading-[0.96] tracking-tight">
+          <h1 className="m-0 font-display font-extrabold text-4xl sm:text-5xl lg:text-[56px] leading-[0.96] tracking-[-0.035em]">
             Katalog
           </h1>
-          <p className="m-0 text-tn-muted italic text-base sm:text-lg mt-1">
+          <p className="m-0 text-tn-muted font-sans text-base sm:text-lg mt-1">
             Türk tiyatrosundaki tüm oyunlar, topluluklar ve yapımlar.
           </p>
         </div>
@@ -389,11 +389,11 @@ export const CatalogPage: React.FC<CatalogPageProps> = () => {
             )}
           </>
         ) : (
-          <div className="rounded-2xl border-2 border-dashed border-tn-line p-10 flex flex-col items-center justify-center text-center gap-2 font-serif min-h-[220px]">
-            <span className="font-extrabold text-2xl text-tn-text">
+          <div className="rounded-2xl border-2 border-dashed border-tn-line p-10 flex flex-col items-center justify-center text-center gap-2 font-sans min-h-[220px]">
+            <span className="font-display font-extrabold text-2xl text-tn-text">
               Aradığınız kriterlere uygun oyun bulunamadı.
             </span>
-            <span className="italic text-base text-tn-muted max-w-md">
+            <span className="font-sans text-base text-tn-muted max-w-md">
               {searchQuery.trim()
                 ? `"${searchQuery}" terimiyle eşleşen sonuç bulunamadı. Farklı bir terim deneyebilir veya filtreleri temizleyebilirsiniz.`
                 : 'Farklı filtre kriterleri deneyebilir veya filtreleri temizleyebilirsiniz.'}

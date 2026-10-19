@@ -54,10 +54,10 @@ export const FilterRow: React.FC<FilterRowProps> = ({
     if (!hasActiveFilters) return null;
 
     return (
-      <div className="w-full flex flex-wrap items-center gap-1.5 px-1 py-1 font-serif text-xs text-tn-text">
+      <div className="w-full flex flex-wrap items-center gap-1.5 px-1 py-1 font-sans text-xs text-tn-text">
         <span className="text-tn-muted italic mr-1">Aktif filtreler:</span>
         {selectedGenre && (
-          <span className="inline-flex items-center gap-1.5 bg-tn-surface border border-tn-line px-3 py-1 rounded-full text-tn-text font-serif">
+          <span className="inline-flex items-center gap-1.5 bg-tn-surface border border-tn-line px-3 py-1 rounded-full text-tn-text font-sans">
             <span>Tür: <strong>{selectedGenre}</strong></span>
             <button
               type="button"
@@ -70,7 +70,7 @@ export const FilterRow: React.FC<FilterRowProps> = ({
           </span>
         )}
         {selectedCompany && (
-          <span className="inline-flex items-center gap-1.5 bg-tn-surface border border-tn-line px-3 py-1 rounded-full text-tn-text font-serif">
+          <span className="inline-flex items-center gap-1.5 bg-tn-surface border border-tn-line px-3 py-1 rounded-full text-tn-text font-sans">
             <span>Yapım / Topluluk: <strong>{selectedCompany}</strong></span>
             <button
               type="button"
@@ -83,7 +83,7 @@ export const FilterRow: React.FC<FilterRowProps> = ({
           </span>
         )}
         {selectedActor && (
-          <span className="inline-flex items-center gap-1.5 bg-tn-surface border border-tn-line px-3 py-1 rounded-full text-tn-text font-serif">
+          <span className="inline-flex items-center gap-1.5 bg-tn-surface border border-tn-line px-3 py-1 rounded-full text-tn-text font-sans">
             <span>Oyuncu: <strong>{selectedActor}</strong></span>
             <button
               type="button"
@@ -112,7 +112,7 @@ export const FilterRow: React.FC<FilterRowProps> = ({
   return (
     <div
       id="filtre-satiri"
-      className="w-full flex flex-col gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-tn-surface border border-tn-line/40 font-serif text-tn-text animate-in fade-in duration-200 shadow-2xs"
+      className="w-full flex flex-col gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-tn-surface border border-tn-line/40 font-sans text-tn-text animate-in fade-in duration-200 shadow-2xs"
     >
       {/* Drawer Header */}
       <div className="flex justify-between items-center px-1">
@@ -150,7 +150,7 @@ export const FilterRow: React.FC<FilterRowProps> = ({
               onChange={(e) => onActorChange?.(e.target.value)}
               placeholder="Oyuncu kadrosunda ara..."
               autoComplete="off"
-              className="w-full h-10 pl-3.5 pr-8 rounded-xl bg-white dark:bg-tn-card text-tn-text border border-tn-line text-sm font-serif placeholder:text-tn-muted/60 placeholder:italic focus:outline-none focus:border-tn-red focus:ring-1 focus:ring-tn-red/20 transition-all"
+              className="w-full h-10 pl-3.5 pr-8 rounded-xl bg-white dark:bg-tn-card text-tn-text border border-tn-line text-sm font-sans placeholder:text-tn-muted/60 placeholder:italic focus:outline-none focus:border-tn-red focus:ring-1 focus:ring-tn-red/20 transition-all"
             />
             {selectedActor ? (
               <button
@@ -182,7 +182,7 @@ export const FilterRow: React.FC<FilterRowProps> = ({
               onChange={(e) => onCompanyChange?.(e.target.value)}
               placeholder="Topluluk, yönetmen veya yazar ara..."
               autoComplete="off"
-              className="w-full h-10 pl-3.5 pr-8 rounded-xl bg-white dark:bg-tn-card text-tn-text border border-tn-line text-sm font-serif placeholder:text-tn-muted/60 placeholder:italic focus:outline-none focus:border-tn-red focus:ring-1 focus:ring-tn-red/20 transition-all"
+              className="w-full h-10 pl-3.5 pr-8 rounded-xl bg-white dark:bg-tn-card text-tn-text border border-tn-line text-sm font-sans placeholder:text-tn-muted/60 placeholder:italic focus:outline-none focus:border-tn-red focus:ring-1 focus:ring-tn-red/20 transition-all"
             />
             {selectedCompany ? (
               <button
@@ -207,7 +207,7 @@ export const FilterRow: React.FC<FilterRowProps> = ({
           <button
             type="button"
             onClick={() => onGenreChange('')}
-            className={`h-[34px] px-4 rounded-full text-sm font-serif cursor-pointer transition-colors border ${
+            className={`h-[34px] px-4 rounded-full text-sm font-sans cursor-pointer transition-colors border ${
               !selectedGenre
                 ? 'bg-tn-ink text-white font-bold border-transparent shadow-xs'
                 : 'bg-white dark:bg-tn-card text-tn-text border-tn-line hover:bg-tn-line'

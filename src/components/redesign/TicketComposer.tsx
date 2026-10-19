@@ -50,18 +50,18 @@ export const TicketComposer: React.FC<TicketComposerProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl bg-tn-ticket border-2 border-tn-lilac-strong p-5 box-border flex flex-col gap-3.5 font-serif text-tn-text shadow-sm h-full"
+      className="rounded-2xl bg-tn-ticket border-2 border-tn-lilac-strong p-5 box-border flex flex-col gap-3.5 font-sans text-tn-text shadow-sm h-full"
     >
       {/* Header */}
       <div className="flex justify-between items-center">
-        <span className="text-xs font-semibold tracking-wider text-tn-muted truncate max-w-[70%]">
+        <span className="text-xs font-sans font-bold tracking-[0.07em] uppercase text-tn-muted truncate max-w-[70%]">
           YENİ BİLET · {playTitle.toUpperCase()}
         </span>
         <button
           type="button"
           data-action="stopCompose"
           onClick={onCancel}
-          className="h-8 px-3 rounded-full border border-tn-line bg-tn-surface text-tn-text font-serif text-sm cursor-pointer hover:bg-tn-line transition-colors"
+          className="h-8 px-3 rounded-full border border-tn-line bg-tn-surface text-tn-text font-sans font-medium text-sm cursor-pointer hover:bg-tn-line transition-colors"
         >
           Vazgeç
         </button>
@@ -69,23 +69,23 @@ export const TicketComposer: React.FC<TicketComposerProps> = ({
 
       {/* Date & Venue */}
       <div className="grid grid-cols-2 gap-2">
-        <label className="flex flex-col gap-1 text-xs sm:text-sm italic text-tn-muted">
+        <label className="flex flex-col gap-1 text-xs sm:text-sm text-tn-muted">
           Temsil tarihi
           <input
             type="date"
             value={performanceDate}
             onChange={(e) => setPerformanceDate(e.target.value)}
-            className="h-10 border border-tn-line rounded-xl bg-tn-surface font-serif text-sm text-tn-text px-3 focus:outline-none focus:ring-1 focus:ring-tn-red"
+            className="h-10 border border-tn-line rounded-xl bg-tn-surface font-sans text-sm text-tn-text px-3 focus:outline-none focus:ring-1 focus:ring-tn-red"
           />
         </label>
-        <label className="flex flex-col gap-1 text-xs sm:text-sm italic text-tn-muted">
+        <label className="flex flex-col gap-1 text-xs sm:text-sm text-tn-muted">
           Sahne
           <input
             type="text"
             value={venue}
             onChange={(e) => setVenue(e.target.value)}
             placeholder="Sahne adı"
-            className="h-10 border border-tn-line rounded-xl bg-tn-surface font-serif text-sm text-tn-text px-3 focus:outline-none focus:ring-1 focus:ring-tn-red"
+            className="h-10 border border-tn-line rounded-xl bg-tn-surface font-sans text-sm text-tn-text px-3 focus:outline-none focus:ring-1 focus:ring-tn-red"
           />
         </label>
       </div>
@@ -106,12 +106,12 @@ export const TicketComposer: React.FC<TicketComposerProps> = ({
             ★
           </button>
         ))}
-        <span className="font-extrabold text-2xl ml-2 text-tn-text">{rating}.0</span>
+        <span className="font-display font-extrabold text-2xl ml-2 text-tn-text">{rating}.0</span>
       </div>
 
       {/* Koltuk Görüşü: SegmentedControl */}
       <div className="flex flex-col gap-1">
-        <span className="text-xs italic text-tn-muted">Koltuk Görüşü</span>
+        <span className="text-xs text-tn-muted font-medium">Koltuk Görüşü</span>
         <SegmentedControl
           ariaLabel="Koltuk görüşü"
           options={['Kusursuz', 'İyi', 'Kısıtlı'] as const}
@@ -131,7 +131,7 @@ export const TicketComposer: React.FC<TicketComposerProps> = ({
         onChange={(e) => setReviewText(e.target.value)}
         placeholder="Sahne deneyimin, koltuk görüşün, izlenimlerin…"
         required
-        className="flex-grow min-h-[90px] border border-tn-line rounded-xl bg-tn-surface font-serif italic text-base p-3 resize-none text-tn-text focus:outline-none focus:ring-1 focus:ring-tn-red placeholder:text-tn-muted"
+        className="flex-grow min-h-[90px] border border-tn-line rounded-xl bg-tn-surface font-sans text-base p-3 resize-none text-tn-text focus:outline-none focus:ring-1 focus:ring-tn-red placeholder:text-tn-muted"
       />
 
       {/* Footer: Spoiler switch + submit */}
@@ -145,7 +145,7 @@ export const TicketComposer: React.FC<TicketComposerProps> = ({
         <button
           type="submit"
           disabled={isSubmitting || !reviewText.trim()}
-          className="min-h-[44px] h-11 px-5 rounded-xl bg-tn-red text-white border-none font-serif text-base font-semibold cursor-pointer hover:bg-tn-red/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-xs"
+          className="min-h-[44px] h-11 px-5 rounded-xl bg-tn-red text-white border-none font-sans text-base font-semibold cursor-pointer hover:bg-tn-red/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-xs"
         >
           {isSubmitting ? 'Kaydediliyor…' : 'Bileti Kaydet'}
         </button>

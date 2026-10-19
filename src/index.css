@@ -28,8 +28,10 @@
   --color-border-strong: 216 210 202;
 
   /* Font Stacks */
-  --font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
-  --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-accent: 'Instrument Serif', Georgia, serif;
+  --font-sans: 'Instrument Sans', Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
@@ -93,12 +95,12 @@ html.dark [class*="dark:bg-white"] *:not([class*="text-white"]):not([class*="dar
   html {
     background-color: var(--tn-page, #E9E4DC);
     color: var(--tn-text, #1C1A1B);
-    font-family: var(--tn-font, 'Newsreader', Georgia, serif);
+    font-family: var(--tn-font, 'Instrument Sans', system-ui, sans-serif);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
-    overflow-x: hidden;
+    overflow-x: clip;
     max-width: 100vw;
   }
 
@@ -107,9 +109,9 @@ html.dark [class*="dark:bg-white"] *:not([class*="text-white"]):not([class*="dar
     min-height: 100vh;
     background-color: var(--tn-page, #E9E4DC);
     color: var(--tn-text, #1C1A1B);
-    font-family: var(--tn-font, 'Newsreader', Georgia, serif);
+    font-family: var(--tn-font, 'Instrument Sans', system-ui, sans-serif);
     line-height: 1.4;
-    overflow-x: hidden;
+    overflow-x: clip;
     max-width: 100vw;
   }
 
@@ -136,9 +138,9 @@ html.dark [class*="dark:bg-white"] *:not([class*="text-white"]):not([class*="dar
     }
   }
 
-  /* Editorial Headings: Classical Play Scripts & Theatre Playbills (DESIGN.md §4) */
+  /* Editorial Headings: Display font (Bricolage Grotesque) */
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--tn-font, 'Newsreader', Georgia, serif);
+    font-family: var(--tn-font-display, 'Bricolage Grotesque', system-ui, sans-serif);
     color: var(--tn-text, #1C1A1B);
     font-weight: 800;
     margin: 0;
@@ -187,9 +189,9 @@ html.dark [class*="dark:bg-white"] *:not([class*="text-white"]):not([class*="dar
     font-size: 1.25rem; /* 20px */
   }
 
-  /* Single font family: Newsreader across all UI elements */
+  /* Monospace Elements */
   code, pre, kbd, samp {
-    font-family: var(--tn-font, 'Newsreader', Georgia, serif);
+    font-family: var(--font-mono, 'IBM Plex Mono', monospace);
   }
 
   /* Links */
@@ -314,6 +316,16 @@ html.dark [class*="dark:bg-white"] *:not([class*="text-white"]):not([class*="dar
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Full screen vertical scroll-snap feed */
+  .snap-feed-container {
+    scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .snap-feed-card {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 }
 

@@ -475,7 +475,7 @@ export function PuzzlesManagementSection() {
         <div>
           <div className="flex items-center gap-2">
             <Puzzle className="w-5 h-5 text-theatre-curtain" />
-            <h2 className="font-serif font-bold text-lg text-text-primary">
+            <h2 className="font-display font-extrabold text-lg text-text-primary">
               Bulmaca & Oyun Yönetimi
             </h2>
           </div>
@@ -559,7 +559,7 @@ export function PuzzlesManagementSection() {
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-layer-01 border border-border-subtle p-4 rounded-sm">
             <div>
-              <h3 className="font-serif font-bold text-sm text-text-primary">
+              <h3 className="font-display font-extrabold text-sm text-text-primary">
                 Aktif Bulmaca ve Öne Çıkarma Seçimi
               </h3>
               <p className="text-xs text-text-tertiary mt-0.5">
@@ -604,7 +604,7 @@ export function PuzzlesManagementSection() {
                           </span>
                           <div>
                             <div className="flex items-center gap-2">
-                              <h4 className="font-serif font-bold text-sm text-text-primary">
+                              <h4 className="font-display font-extrabold text-sm text-text-primary">
                                 {game.title}
                               </h4>
                               {isFeatured && (
@@ -716,7 +716,7 @@ export function PuzzlesManagementSection() {
                   <span className="font-mono font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider text-[11px] mr-2">
                     Bugünün Aktif Oyuncusu:
                   </span>
-                  <strong className="text-text-primary text-sm font-serif">{todayActor.actorName}</strong>
+                  <strong className="text-text-primary text-sm font-display font-extrabold">{todayActor.actorName}</strong>
                   {todayActor.title && <span className="text-text-tertiary text-xs ml-2">({todayActor.title})</span>}
                 </div>
               </div>
@@ -730,7 +730,7 @@ export function PuzzlesManagementSection() {
             <div>
               <div className="flex items-center gap-2">
                 <Theater className="w-4 h-4 text-theatre-curtain" />
-                <h3 className="font-serif font-bold text-sm text-text-primary">
+                <h3 className="font-display font-extrabold text-sm text-text-primary">
                   Oyuncu Dedektifi (Usta Tiyatro & Sinema Oyuncuları)
                 </h3>
               </div>
@@ -891,7 +891,7 @@ export function PuzzlesManagementSection() {
                         <span className="w-6 h-6 rounded-full bg-theatre-curtain/10 text-theatre-curtain text-xs font-mono font-bold flex items-center justify-center">
                           {idx + 1}
                         </span>
-                        <h4 className="font-serif font-bold text-base text-text-primary">
+                        <h4 className="font-display font-extrabold text-base text-text-primary">
                           {actor.actorName}
                         </h4>
                         {isTodayActive && (
@@ -977,7 +977,7 @@ export function PuzzlesManagementSection() {
                   <span className="font-mono font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider text-[11px] mr-2">
                     Bugünün Aktif Repliği:
                   </span>
-                  <strong className="text-text-primary text-sm font-serif">{todayQuote.playTitle}</strong>
+                  <strong className="text-text-primary text-sm font-display font-extrabold">{todayQuote.playTitle}</strong>
                   <span className="text-text-tertiary text-xs ml-2">({todayQuote.playwright}{todayQuote.character ? ` · ${todayQuote.character}` : ''})</span>
                 </div>
               </div>
@@ -991,7 +991,7 @@ export function PuzzlesManagementSection() {
             <div>
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-theatre-curtain" />
-                <h3 className="font-serif font-bold text-sm text-text-primary">
+                <h3 className="font-display font-extrabold text-sm text-text-primary">
                   Günün Repliği Soru Havuzu
                 </h3>
               </div>
@@ -1119,7 +1119,7 @@ export function PuzzlesManagementSection() {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs font-serif italic text-text-primary">
+                      <p className="text-xs font-accent italic font-normal text-text-primary">
                         "{q.quote}"
                       </p>
                       <div className="text-[10px] font-mono text-text-tertiary mt-1">
@@ -1185,7 +1185,7 @@ export function PuzzlesManagementSection() {
             <div>
               <div className="flex items-center gap-2">
                 <HelpCircle className="w-4 h-4 text-theatre-curtain" />
-                <h3 className="font-serif font-bold text-sm text-text-primary">
+                <h3 className="font-display font-extrabold text-sm text-text-primary">
                   Sahne Trivia Soru Havuzu
                 </h3>
               </div>
@@ -1427,7 +1427,7 @@ export function PuzzlesManagementSection() {
             <div>
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-theatre-curtain" />
-                <h3 className="font-serif font-bold text-sm text-text-primary">
+                <h3 className="font-display font-extrabold text-sm text-text-primary">
                   Tiyatro Sözlüğü (Perde Arkası: Kelime)
                 </h3>
               </div>
@@ -1600,7 +1600,7 @@ export function PuzzlesManagementSection() {
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
           <div className="bg-canvas border border-border-subtle rounded-sm max-w-lg w-full p-5 space-y-4 shadow-xl">
             <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
-              <h3 className="font-serif font-bold text-base text-text-primary">
+              <h3 className="font-display font-extrabold text-base text-text-primary">
                 {editingGame ? 'Bulmaca Modülünü Düzenle' : 'Yeni Bulmaca Modülü Ekle'}
               </h3>
               <button

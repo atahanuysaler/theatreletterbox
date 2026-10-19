@@ -10,7 +10,7 @@ export const CatalogCard: React.FC<CatalogCardProps> = ({ play }) => {
   return (
     <Link
       to={`/oyun/${play.id}`}
-      className="flex flex-col gap-2 p-1.5 pb-3 rounded-2xl bg-tn-card hover:bg-tn-surface border border-tn-line/50 transition-colors text-tn-text no-underline font-serif group"
+      className="flex flex-col gap-2 p-1.5 pb-3 rounded-2xl bg-tn-card hover:bg-tn-surface border border-tn-line/50 transition-colors text-tn-text no-underline font-sans group"
     >
       {/* Poster area (12px rounded, 170px desktop, 200px mobile, object-fit: cover) */}
       <div className="h-[200px] sm:h-[170px] rounded-xl bg-tn-surface flex flex-col justify-between items-end p-2 box-border overflow-hidden relative">
@@ -22,23 +22,23 @@ export const CatalogCard: React.FC<CatalogCardProps> = ({ play }) => {
             className="absolute inset-0 w-full h-full object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-tn-surface text-xs italic text-tn-muted">
+          <div className="absolute inset-0 flex items-center justify-center bg-tn-surface text-xs font-accent italic font-normal text-tn-muted">
             afiş
           </div>
         )}
 
         {/* White Rating Pill on top-right */}
-        <span className="relative z-10 h-6 px-2.5 flex items-center rounded-full bg-white dark:bg-tn-card text-xs sm:text-[13px] font-semibold text-tn-text shadow-xs">
+        <span className="relative z-10 h-6 px-2.5 flex items-center rounded-full bg-white dark:bg-tn-card text-xs sm:text-[13px] font-sans font-bold text-tn-text shadow-xs">
           ★ {play.rating ? play.rating.toFixed(1) : '5.0'}
         </span>
       </div>
 
       {/* Content info */}
       <div className="px-1.5 flex flex-col gap-0.5">
-        <h4 className="m-0 font-extrabold text-base sm:text-[19px] leading-tight group-hover:text-tn-red transition-colors line-clamp-1 text-tn-text">
+        <h4 className="m-0 font-display font-extrabold text-[17px] sm:text-[19px] leading-[1.05] tracking-[-0.02em] group-hover:text-tn-red transition-colors line-clamp-1 text-tn-text">
           {play.title}
         </h4>
-        <span className="italic text-xs sm:text-sm text-tn-text-2 dark:text-tn-text/90 truncate">
+        <span className="font-accent italic font-normal text-base sm:text-[20px] text-tn-text-2 dark:text-tn-text/90 truncate">
           {play.playwright || 'Yazar belirtilmemiş'}
         </span>
         {play.director && (
@@ -58,9 +58,9 @@ export const CatalogCard: React.FC<CatalogCardProps> = ({ play }) => {
         )}
 
         {/* Bottom row: red genre + year */}
-        <div className="mt-2 flex justify-between gap-1 text-[11px] font-semibold tracking-wide">
+        <div className="mt-2 flex justify-between gap-1 text-[11px] font-sans font-bold tracking-[0.07em]">
           <span className="text-tn-red truncate uppercase">{play.genre || 'TİYATRO'}</span>
-          <span className="text-tn-muted flex-shrink-0">{play.year || ''}</span>
+          <span className="text-tn-muted font-sans font-medium flex-shrink-0">{play.year || ''}</span>
         </div>
       </div>
     </Link>

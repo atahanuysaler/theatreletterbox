@@ -107,20 +107,20 @@ export const WordPuzzleModal: React.FC<WordPuzzleModalProps> = ({ isOpen, onClos
       />
 
       {/* Modal Dialog */}
-      <div className="relative z-10 w-full max-w-[460px] bg-white dark:bg-[#1E1B1D] text-[#1C1A1B] dark:text-[#F3EFEA] rounded-[20px] shadow-2xl p-6 border border-black/5 dark:border-white/10 overflow-hidden font-serif my-auto animate-fade-in flex flex-col gap-4">
+      <div className="relative z-10 w-full max-w-[460px] bg-white dark:bg-[#1E1B1D] text-[#1C1A1B] dark:text-[#F3EFEA] rounded-[20px] shadow-2xl p-6 border border-black/5 dark:border-white/10 overflow-hidden font-sans my-auto animate-fade-in flex flex-col gap-4">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="h-5 px-2.5 flex items-center rounded-full border border-[#1C1A1B]/35 dark:border-white/35 text-[10px] font-bold tracking-wider uppercase text-[#1C1A1B] dark:text-white">
+              <span className="h-5 px-2.5 flex items-center rounded-full border border-[#1C1A1B]/35 dark:border-white/35 text-[10px] font-sans font-bold tracking-wider uppercase text-[#1C1A1B] dark:text-white">
                 KELİME OYUNU · 25 XP
               </span>
               <span className="text-xs italic text-tn-muted dark:text-[#A8A199]">{formattedDate}</span>
             </div>
-            <h3 className="font-serif font-extrabold text-[26px] text-[#1C1A1B] dark:text-white mt-1.5 leading-tight">
+            <h3 className="font-display font-extrabold text-[26px] text-[#1C1A1B] dark:text-white mt-1.5 leading-tight tracking-[-0.03em]">
               Perde Arkası: Kelime
             </h3>
-            <p className="font-serif italic text-xs text-tn-muted dark:text-[#A8A199] mt-0.5">
+            <p className="font-sans text-xs text-tn-muted dark:text-[#A8A199] mt-0.5">
               Tiyatro jargonu & terimler
             </p>
           </div>
@@ -147,10 +147,10 @@ export const WordPuzzleModal: React.FC<WordPuzzleModalProps> = ({ isOpen, onClos
           <div className="flex flex-col gap-3">
             {/* Definition */}
             <div className="bg-[#FAF2E6] dark:bg-[#28221B] rounded-[14px] p-4.5 border border-[#EBDCC5]/70 dark:border-[#3D352B]">
-              <span className="text-[10px] uppercase tracking-wider text-[#A26D2B] dark:text-[#E4B33A] font-extrabold block mb-1">
+              <span className="text-[10px] uppercase tracking-wider text-[#A26D2B] dark:text-[#E4B33A] font-sans font-extrabold block mb-1">
                 {activeWord.category || 'Tiyatro Kavramı'} · Tanım
               </span>
-              <p className="text-sm sm:text-base text-[#1C1A1B] dark:text-white leading-relaxed font-serif m-0 italic">
+              <p className="text-base sm:text-lg text-[#1C1A1B] dark:text-white leading-relaxed font-accent italic font-normal m-0">
                 “{activeWord.definition}”
               </p>
             </div>
@@ -160,7 +160,7 @@ export const WordPuzzleModal: React.FC<WordPuzzleModalProps> = ({ isOpen, onClos
               {Array.from(activeWord.word).map((char, idx) => (
                 <div
                   key={idx}
-                  className="w-10 h-11 border border-neutral-300 dark:border-neutral-700 rounded-lg flex items-center justify-center font-serif font-extrabold text-lg bg-[#FAF8F5] dark:bg-[#252224] text-[#1C1A1B] dark:text-white shadow-xs"
+                  className="w-10 h-11 border border-neutral-300 dark:border-neutral-700 rounded-lg flex items-center justify-center font-display font-extrabold text-lg bg-[#FAF8F5] dark:bg-[#252224] text-[#1C1A1B] dark:text-white shadow-xs"
                 >
                   {completed ? char : (idx === 0 ? char : '•')}
                 </div>
@@ -168,8 +168,8 @@ export const WordPuzzleModal: React.FC<WordPuzzleModalProps> = ({ isOpen, onClos
             </div>
 
             {/* Hint */}
-            <div className="flex items-center justify-between text-xs px-1">
-              <span className="text-tn-muted italic">
+            <div className="flex items-center justify-between text-xs px-1 font-sans">
+              <span className="text-tn-muted">
                 Uzunluk: {activeWord.word.length} Harf
               </span>
               {!showHint ? (
@@ -189,17 +189,17 @@ export const WordPuzzleModal: React.FC<WordPuzzleModalProps> = ({ isOpen, onClos
 
             {/* Completed Screen */}
             {completed ? (
-              <div className={`p-4 rounded-[14px] border text-center space-y-3 animate-fade-in ${
+              <div className={`p-4 rounded-[14px] border text-center space-y-3 animate-fade-in font-sans ${
                 won ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-red-500/10 border-red-500/30'
               }`}>
                 <div className="flex items-center justify-center gap-2">
                   {won ? <CheckCircle2 className="w-5 h-5 text-emerald-600" /> : <XCircle className="w-5 h-5 text-red-600" />}
-                  <h4 className="font-serif font-extrabold text-base m-0">
+                  <h4 className="font-display font-extrabold text-base m-0">
                     {won ? 'Tebrikler, Bildiniz!' : 'Deneme Hakkı Bitti!'}
                   </h4>
                 </div>
                 <p className="text-sm font-semibold m-0">
-                  Doğru Kelime: <span className="text-[#BA1B23] text-base font-extrabold">{activeWord.word}</span>
+                  Doğru Kelime: <span className="text-[#BA1B23] text-base font-display font-extrabold">{activeWord.word}</span>
                 </p>
                 {won && (
                   <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-bold">

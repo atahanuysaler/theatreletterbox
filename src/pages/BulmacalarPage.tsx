@@ -51,32 +51,29 @@ export const BulmacalarPage: React.FC<BulmacalarPageProps> = ({ onOpenDailyQuote
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 py-2 font-serif text-tn-text">
+    <div className="w-full flex flex-col gap-6 py-2 font-sans text-tn-text">
       {/* Main Bulmacalar Bento Section */}
       <section className="rounded-[20px] bg-[#F1E3C4] dark:bg-[#251E17] text-[#1C1A1B] dark:text-[#F3EFEA] p-3.5 sm:p-8 flex flex-col gap-4 sm:gap-6 border border-[#E5D5B3] dark:border-[#382E24] shadow-sm">
         {/* Header matching Main.dc.html & MobilGiris.dc.html */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 sm:gap-3 pb-2 border-b border-[#1C1A1B]/10 dark:border-white/10">
           <div>
-            <span className="text-[10.5px] sm:text-[12px] font-extrabold tracking-wider uppercase text-[#1C1A1B] dark:text-[#F3EFEA]">
-              GÜNLÜK TİYATRO BULMACALARI
-            </span>
-            <h1 className="m-0 mt-0.5 sm:mt-1 font-extrabold text-2xl sm:text-[44px] leading-tight text-[#1C1A1B] dark:text-[#FFFFFF]">
-              Bulmacalar <span className="font-normal italic text-lg sm:text-[26px] text-[#1C1A1B]/80 dark:text-[#F3EFEA]/80 hidden sm:inline">— sahne hafızanı tazele, XP kazan.</span>
+            <h1 className="m-0 font-display font-extrabold text-2xl sm:text-[44px] leading-tight tracking-[-0.035em] text-[#1C1A1B] dark:text-[#FFFFFF]">
+              Bulmacalar <span className="font-accent italic font-normal text-lg sm:text-[26px] text-[#1C1A1B]/80 dark:text-[#F3EFEA]/80 hidden sm:inline">— sahne hafızanı tazele, XP kazan.</span>
             </h1>
-            <p className="sm:hidden m-0 mt-0.5 text-xs italic text-[#5E5852] dark:text-[#A8A199]">
+            <p className="sm:hidden m-0 mt-0.5 text-xs text-[#5E5852] dark:text-[#A8A199]">
               Sahne hafızanı tazele, XP kazan. Her gece 00:00’da yenilenir.
             </p>
           </div>
           <div className="flex items-center gap-3 self-start sm:self-auto">
-            <span className="italic text-sm sm:text-[15px] text-[#5E5852] dark:text-[#A8A199] hidden sm:inline">
+            <span className="text-sm sm:text-[15px] text-[#5E5852] dark:text-[#A8A199] hidden sm:inline">
               Her gece 00:00’da yenilenir
             </span>
             {user && (
               <div className="rounded-full bg-white/70 dark:bg-black/40 px-3 py-1 sm:px-3.5 sm:py-1.5 flex items-center gap-2 border border-[#1C1A1B]/15 dark:border-white/15">
-                <span className="w-5 h-5 rounded-full bg-[#BA1B23] text-white flex items-center justify-center font-extrabold text-[10px]">
+                <span className="w-5 h-5 rounded-full bg-[#BA1B23] text-white flex items-center justify-center font-display font-extrabold text-[10px]">
                   XP
                 </span>
-                <span className="font-extrabold text-xs sm:text-sm text-[#1C1A1B] dark:text-white">
+                <span className="font-display font-extrabold text-xs sm:text-sm text-[#1C1A1B] dark:text-white">
                   {user.xp || 0} XP
                 </span>
               </div>
@@ -130,7 +127,7 @@ export const BulmacalarPage: React.FC<BulmacalarPageProps> = ({ onOpenDailyQuote
       </section>
 
       {/* Info note */}
-      <div className="rounded-2xl bg-tn-surface p-4.5 text-center text-sm italic text-tn-muted border border-tn-line">
+      <div className="rounded-2xl bg-tn-surface p-4.5 text-center text-sm text-tn-muted border border-tn-line">
         Tüm bulmacalar her gece saat 00:00’da sıfırlanır ve yeni sorularla güncellenir.
       </div>
 

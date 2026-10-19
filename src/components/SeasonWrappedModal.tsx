@@ -30,7 +30,7 @@ function drawStamp(ctx: CanvasRenderingContext2D, x: number, y: number, text: st
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angleRad);
-  ctx.font = "800 24px 'Newsreader', Georgia, serif";
+  ctx.font = "800 24px 'Bricolage Grotesque', system-ui, sans-serif";
   const metrics = ctx.measureText(text);
   const padX = 20;
   const padY = 8;
@@ -194,20 +194,20 @@ export const SeasonWrappedModal: React.FC<SeasonWrappedModalProps> = ({
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = "800 42px 'Newsreader', Georgia, serif";
+    ctx.font = "800 42px 'Bricolage Grotesque', system-ui, sans-serif";
     ctx.fillText('TİYATRONOT', 540, 160);
 
     ctx.fillStyle = '#E4B33A';
-    ctx.font = "italic 28px 'Newsreader', Georgia, serif";
+    ctx.font = "italic 28px 'Instrument Serif', Georgia, serif";
     ctx.fillText(`${stats.year} TİYATRO SEZONU ÖZETİ`, 540, 210);
 
     // User Info
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = "800 56px 'Newsreader', Georgia, serif";
+    ctx.font = "800 56px 'Bricolage Grotesque', system-ui, sans-serif";
     ctx.fillText(user.displayName || 'Tiyatrosever', 540, 310);
 
     ctx.fillStyle = '#E4B33A';
-    ctx.font = "800 24px 'Newsreader', Georgia, serif";
+    ctx.font = "800 24px 'Bricolage Grotesque', system-ui, sans-serif";
     ctx.fillText(`${user.level} · ${user.xp} XP`, 540, 360);
 
     // Divider
@@ -223,11 +223,11 @@ export const SeasonWrappedModal: React.FC<SeasonWrappedModalProps> = ({
 
     // Big Hero Stat: Izlenen Oyun
     ctx.fillStyle = '#FAF8F5';
-    ctx.font = "800 140px 'Newsreader', Georgia, serif";
+    ctx.font = "800 140px 'Bricolage Grotesque', system-ui, sans-serif";
     ctx.fillText(String(stats.totalPlays), 540, 560);
 
     ctx.fillStyle = '#E4B33A';
-    ctx.font = "800 28px 'Newsreader', Georgia, serif";
+    ctx.font = "800 28px 'Bricolage Grotesque', system-ui, sans-serif";
     ctx.fillText('BU SEZON İZLENEN OYUN', 540, 620);
 
     // 4 Stat Cards
@@ -240,17 +240,17 @@ export const SeasonWrappedModal: React.FC<SeasonWrappedModalProps> = ({
 
       ctx.textAlign = 'left';
       ctx.fillStyle = '#A8A199';
-      ctx.font = "800 22px 'Newsreader', Georgia, serif";
+      ctx.font = "800 22px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.fillText(label, x + 25, y + 45);
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = "800 38px 'Newsreader', Georgia, serif";
+      ctx.font = "800 38px 'Bricolage Grotesque', system-ui, sans-serif";
       const truncatedVal = val.length > 18 ? val.slice(0, 17) + '…' : val;
       ctx.fillText(truncatedVal, x + 25, y + 105);
 
       if (sub) {
         ctx.fillStyle = '#E4B33A';
-        ctx.font = "italic 20px 'Newsreader', Georgia, serif";
+        ctx.font = "italic 20px 'Instrument Serif', Georgia, serif";
         ctx.fillText(sub, x + 25, y + 145);
       }
     };
@@ -270,20 +270,20 @@ export const SeasonWrappedModal: React.FC<SeasonWrappedModalProps> = ({
 
       ctx.textAlign = 'center';
       ctx.fillStyle = '#E4B33A';
-      ctx.font = "800 24px 'Newsreader', Georgia, serif";
+      ctx.font = "800 24px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.fillText('★ SEZONUN AYAKTA ALKIŞLANAN BAŞYAPITI ★', 540, 1200);
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = "800 50px 'Newsreader', Georgia, serif";
+      ctx.font = "800 50px 'Bricolage Grotesque', system-ui, sans-serif";
       const title = stats.topRatedPlay.title.length > 25 ? stats.topRatedPlay.title.slice(0, 24) + '…' : stats.topRatedPlay.title;
       ctx.fillText(title, 540, 1280);
 
       ctx.fillStyle = '#D0D0D0';
-      ctx.font = "italic 26px 'Newsreader', Georgia, serif";
+      ctx.font = "italic 26px 'Instrument Serif', Georgia, serif";
       ctx.fillText(`${stats.topRatedPlay.playwright} · ${stats.topRatedPlay.company || stats.topRatedPlay.venue}`, 540, 1340);
 
       ctx.fillStyle = '#E4B33A';
-      ctx.font = "800 32px 'Newsreader', Georgia, serif";
+      ctx.font = "800 32px 'Bricolage Grotesque', system-ui, sans-serif";
       ctx.fillText(`★ ${stats.highestRating.toFixed(1)} / 5.0`, 540, 1400);
     }
 
@@ -292,7 +292,7 @@ export const SeasonWrappedModal: React.FC<SeasonWrappedModalProps> = ({
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#A8A199';
-    ctx.font = "italic 24px 'Newsreader', Georgia, serif";
+    ctx.font = "italic 24px 'Instrument Serif', Georgia, serif";
     ctx.fillText('tiyatronot.com · Sahne Not Defteri', 540, 1770);
 
     return canvas;
@@ -388,7 +388,7 @@ export const SeasonWrappedModal: React.FC<SeasonWrappedModalProps> = ({
       />
 
       {/* Modal Dialog Card */}
-      <div className="relative z-10 w-full max-w-lg bg-[#191617] text-[#F3EFEA] border border-[#332F31] rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-auto animate-fade-in font-serif">
+      <div className="relative z-10 w-full max-w-lg bg-[#191617] text-[#F3EFEA] border border-[#332F31] rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-auto animate-fade-in font-sans">
         {/* Modal Top Bar */}
         <div className="sticky top-0 z-10 flex items-center justify-between p-4 sm:p-5 border-b border-[#332F31] bg-[#1F1C1D]/95 backdrop-blur-sm shadow-xs">
           <div className="flex items-center gap-2.5">
@@ -396,10 +396,10 @@ export const SeasonWrappedModal: React.FC<SeasonWrappedModalProps> = ({
               <Sparkles className="w-4 h-4" />
             </span>
             <div>
-              <h2 className="font-serif font-extrabold text-lg sm:text-xl text-[#F3EFEA] leading-tight">
+              <h2 className="font-display font-extrabold text-lg sm:text-xl text-[#F3EFEA] leading-tight">
                 {stats.year} Tiyatro Sezonu Özeti
               </h2>
-              <p className="font-serif italic text-xs text-[#A8A199] mt-0.5">
+              <p className="font-accent italic font-normal text-xs text-[#A8A199] mt-0.5">
                 Sahne yolculuğunun yıllık dökümü
               </p>
             </div>
@@ -418,24 +418,24 @@ export const SeasonWrappedModal: React.FC<SeasonWrappedModalProps> = ({
         <div ref={cardRef} className="p-6 overflow-y-auto space-y-6 text-center">
           {/* Header Card */}
           <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#BA1B23]/15 text-[#BA1B23] border border-[#BA1B23]/30 text-xs font-serif font-extrabold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#BA1B23]/15 text-[#BA1B23] border border-[#BA1B23]/30 text-xs font-sans font-extrabold uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5" />
               <span>TİYATRONOT WRAPPED</span>
             </div>
-            <h3 className="font-serif font-extrabold text-3xl sm:text-4xl text-[#FFFFFF]">
+            <h3 className="font-display font-extrabold text-3xl sm:text-4xl text-[#FFFFFF]">
               {user.displayName}
             </h3>
-            <p className="text-sm font-serif italic text-[#E4B33A]">
+            <p className="text-sm font-accent italic font-normal text-[#E4B33A]">
               {user.level} · {user.xp} XP
             </p>
           </div>
 
           {/* Big Stat Hero */}
           <div className="p-6 bg-[#242022] border border-[#3A3437] rounded-2xl space-y-1 shadow-inner">
-            <div className="text-6xl sm:text-7xl font-serif font-extrabold text-[#BA1B23]">
+            <div className="text-6xl sm:text-7xl font-sans font-extrabold text-[#BA1B23]">
               {stats.totalPlays}
             </div>
-            <div className="text-xs sm:text-sm font-serif font-extrabold tracking-wider text-[#A8A199] uppercase">
+            <div className="text-xs sm:text-sm font-sans font-extrabold tracking-wider text-[#A8A199] uppercase">
               Bu Sezon İzlenen Oyun
             </div>
           </div>
@@ -443,53 +443,53 @@ export const SeasonWrappedModal: React.FC<SeasonWrappedModalProps> = ({
           {/* Grid Stats */}
           <div className="grid grid-cols-2 gap-3 text-left">
             <div className="p-4 bg-[#242022] border border-[#3A3437] rounded-2xl space-y-1">
-              <div className="flex items-center gap-1.5 text-[#A8A199] text-xs font-serif">
+              <div className="flex items-center gap-1.5 text-[#A8A199] text-xs font-sans">
                 <MapPin className="w-3.5 h-3.5 text-[#BA1B23]" />
                 <span className="font-semibold">Favori Sahne</span>
               </div>
-              <div className="font-serif font-extrabold text-base text-[#FFFFFF] truncate" title={stats.topVenue}>
+              <div className="font-display font-extrabold text-base text-[#FFFFFF] truncate" title={stats.topVenue}>
                 {stats.topVenue}
               </div>
-              <div className="text-xs font-serif italic text-[#A8A199]">
+              <div className="text-xs font-accent italic font-normal text-[#A8A199]">
                 {stats.topVenueCount > 0 ? `${stats.topVenueCount} Ziyaret` : 'Henüz yok'}
               </div>
             </div>
 
             <div className="p-4 bg-[#242022] border border-[#3A3437] rounded-2xl space-y-1">
-              <div className="flex items-center gap-1.5 text-[#A8A199] text-xs font-serif">
+              <div className="flex items-center gap-1.5 text-[#A8A199] text-xs font-sans">
                 <Theater className="w-3.5 h-3.5 text-[#BA1B23]" />
                 <span className="font-semibold">Favori Yazar</span>
               </div>
-              <div className="font-serif font-extrabold text-base text-[#FFFFFF] truncate" title={stats.topPlaywright}>
+              <div className="font-display font-extrabold text-base text-[#FFFFFF] truncate" title={stats.topPlaywright}>
                 {stats.topPlaywright}
               </div>
-              <div className="text-xs font-serif italic text-[#A8A199]">
+              <div className="text-xs font-accent italic font-normal text-[#A8A199]">
                 {stats.topPlaywrightCount > 0 ? `${stats.topPlaywrightCount} Oyun` : 'Henüz yok'}
               </div>
             </div>
 
             <div className="p-4 bg-[#242022] border border-[#3A3437] rounded-2xl space-y-1">
-              <div className="flex items-center gap-1.5 text-[#A8A199] text-xs font-serif">
+              <div className="flex items-center gap-1.5 text-[#A8A199] text-xs font-sans">
                 <Star className="w-3.5 h-3.5 text-[#E4B33A]" />
                 <span className="font-semibold">Ortalama Puan</span>
               </div>
-              <div className="font-serif font-extrabold text-base text-[#FFFFFF]">
+              <div className="font-display font-extrabold text-base text-[#FFFFFF]">
                 {stats.avgRating > 0 ? `★ ${stats.avgRating} / 5.0` : '—'}
               </div>
-              <div className="text-xs font-serif italic text-[#A8A199]">
+              <div className="text-xs font-accent italic font-normal text-[#A8A199]">
                 {stats.totalReviews} Not Yazıldı
               </div>
             </div>
 
             <div className="p-4 bg-[#242022] border border-[#3A3437] rounded-2xl space-y-1">
-              <div className="flex items-center gap-1.5 text-[#A8A199] text-xs font-serif">
+              <div className="flex items-center gap-1.5 text-[#A8A199] text-xs font-sans">
                 <Clock className="w-3.5 h-3.5 text-[#BA1B23]" />
                 <span className="font-semibold">Seyir Süresi</span>
               </div>
-              <div className="font-serif font-extrabold text-base text-[#FFFFFF]">
+              <div className="font-display font-extrabold text-base text-[#FFFFFF]">
                 ~{stats.totalHours} Saat
               </div>
-              <div className="text-xs font-serif italic text-[#A8A199]">
+              <div className="text-xs font-accent italic font-normal text-[#A8A199]">
                 Sahneler Karşısında
               </div>
             </div>
@@ -498,17 +498,17 @@ export const SeasonWrappedModal: React.FC<SeasonWrappedModalProps> = ({
           {/* Top Play Highlight */}
           {stats.topRatedPlay && (
             <div className="p-4.5 bg-[#242022] border border-[#E4B33A]/40 rounded-2xl text-left space-y-1.5">
-              <div className="flex items-center gap-1.5 text-xs font-serif uppercase tracking-wider text-[#E4B33A] font-extrabold">
+              <div className="flex items-center gap-1.5 text-xs font-sans uppercase tracking-wider text-[#E4B33A] font-extrabold">
                 <Award className="w-4 h-4" />
                 <span>Sezonun Ayakta Alkışlanan Başyapıtı</span>
               </div>
-              <div className="font-serif font-extrabold text-lg text-[#FFFFFF] line-clamp-1">
+              <div className="font-display font-extrabold text-lg text-[#FFFFFF] line-clamp-1">
                 {stats.topRatedPlay.title}
               </div>
-              <div className="text-xs text-[#A8A199] line-clamp-1 font-serif italic">
+              <div className="text-xs text-[#A8A199] line-clamp-1 font-accent italic font-normal">
                 {stats.topRatedPlay.playwright} · {stats.topRatedPlay.company || stats.topRatedPlay.venue}
               </div>
-              <div className="text-sm font-serif font-bold text-[#E4B33A] pt-1">
+              <div className="text-sm font-display font-bold text-[#E4B33A] pt-1">
                 ★ {stats.highestRating.toFixed(1)} / 5.0
               </div>
             </div>
@@ -517,7 +517,7 @@ export const SeasonWrappedModal: React.FC<SeasonWrappedModalProps> = ({
 
         {/* Modal Actions */}
         <div className="p-4 border-t border-[#332F31] bg-[#1F1C1D]/90 flex flex-wrap items-center justify-between gap-2.5">
-          <p className="text-xs text-[#A8A199] font-serif italic">
+          <p className="text-xs text-[#A8A199] font-accent italic font-normal">
             9:16 Instagram Hikaye formatında
           </p>
           <div className="flex items-center gap-2">
@@ -543,7 +543,7 @@ export const SeasonWrappedModal: React.FC<SeasonWrappedModalProps> = ({
               type="button"
               onClick={handleDownload}
               disabled={downloading}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#BA1B23] hover:bg-[#BA1B23]/90 text-white text-xs font-serif font-bold rounded-full shadow-md transition-colors cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#BA1B23] hover:bg-[#BA1B23]/90 text-white text-xs font-display font-bold rounded-full shadow-md transition-colors cursor-pointer disabled:opacity-50"
             >
               {downloaded ? (
                 <>

@@ -57,23 +57,23 @@ export const ListsPage: React.FC<ListsPageProps> = () => {
 
   if (loading) {
     return (
-      <div className="w-full min-h-[400px] flex items-center justify-center font-serif text-tn-muted">
-        <span className="italic text-lg animate-pulse">Seçkiler yükleniyor…</span>
+      <div className="w-full min-h-[400px] flex items-center justify-center font-sans text-tn-muted">
+        <span className="font-accent italic text-lg animate-pulse">Seçkiler yükleniyor…</span>
       </div>
     );
   }
 
   return (
-    <div className="w-full flex flex-col gap-6 py-4 font-serif text-tn-text">
+    <div className="w-full flex flex-col gap-6 py-4 font-sans text-tn-text">
       {/* Header */}
       <div className="border-b border-tn-line pb-4">
-        <span className="text-xs font-extrabold tracking-wider text-tn-red uppercase">
+        <span className="text-[11px] font-bold tracking-[0.07em] text-tn-red uppercase">
           KÜRATÖRLÜ SEÇKİLER
         </span>
-        <h1 className="m-0 mt-1 font-extrabold text-3xl sm:text-5xl leading-tight">
-          Tiyatro Listeleri
+        <h1 className="m-0 mt-1 font-display font-extrabold text-3xl sm:text-5xl leading-[0.95] tracking-[-0.035em]">
+          Tiyatro <span className="font-accent italic font-normal">listeleri</span>
         </h1>
-        <p className="m-0 mt-1 text-base sm:text-lg italic text-tn-muted max-w-2xl">
+        <p className="m-0 mt-1 text-base sm:text-lg text-tn-muted max-w-2xl">
           Tiyatronot editörleri ve topluluk tarafından hazırlanan tematik seçkiler. İster tek kişilik oyunların peşine düşün, ister Kadıköy sahnelerinin nabzını tutun.
         </p>
       </div>
@@ -98,24 +98,24 @@ export const ListsPage: React.FC<ListsPageProps> = () => {
                 setSelectedListId(list.id);
                 window.history.replaceState(null, '', `#${list.id}`);
               }}
-              className={`min-h-[160px] p-5 rounded-2xl flex flex-col justify-between text-left cursor-pointer transition-all border font-serif ${colorClass} ${
+              className={`min-h-[160px] p-5 rounded-2xl flex flex-col justify-between text-left cursor-pointer transition-all border font-sans ${colorClass} ${
                 isSelected
                   ? 'ring-3 ring-tn-red scale-[1.02] shadow-md'
                   : 'opacity-85 hover:opacity-100 hover:scale-[1.01]'
               }`}
             >
               <div className="flex justify-between items-center w-full">
-                <span className="text-xs font-extrabold tracking-wider uppercase opacity-85">
+                <span className="text-[11px] font-bold tracking-[0.07em] uppercase opacity-85">
                   {list.category || 'SEÇKİ'}
                 </span>
-                <span className="text-xs italic">{list.playIds.length} oyun</span>
+                <span className="text-xs font-accent italic">{list.playIds.length} oyun</span>
               </div>
               <div>
-                <h3 className="m-0 font-extrabold text-xl sm:text-2xl leading-tight">
+                <h3 className="m-0 font-display font-extrabold text-xl sm:text-2xl leading-[1.05] tracking-[-0.02em]">
                   {list.title}
                 </h3>
               </div>
-              <span className="text-xs italic opacity-85">
+              <span className="text-xs font-accent italic font-normal opacity-85">
                 {list.curator || '— Tiyatronot'}
               </span>
             </button>
@@ -127,20 +127,20 @@ export const ListsPage: React.FC<ListsPageProps> = () => {
       {selectedList && (
         <section className="rounded-2xl bg-tn-surface p-5 sm:p-6 flex flex-col gap-4 border border-tn-line">
           <div>
-            <span className="text-xs font-extrabold uppercase text-tn-red">
+            <span className="text-[11px] font-bold tracking-[0.07em] uppercase text-tn-red">
               SEÇİLİ LİSTE · {selectedList.category || 'ÖZEL SEÇKİ'}
             </span>
-            <h2 className="m-0 mt-1 font-extrabold text-3xl sm:text-4xl">
+            <h2 className="m-0 mt-1 font-display font-extrabold text-3xl sm:text-4xl tracking-[-0.03em] leading-tight">
               {selectedList.title}
             </h2>
-            <p className="m-0 mt-2 text-base sm:text-lg italic text-tn-muted max-w-3xl leading-relaxed">
+            <p className="m-0 mt-2 text-base sm:text-lg text-tn-muted max-w-3xl leading-relaxed">
               {selectedList.description}
             </p>
           </div>
 
           {/* Plays in list */}
           <div className="pt-2">
-            <h3 className="m-0 font-extrabold text-xl mb-3">
+            <h3 className="m-0 font-display font-extrabold text-xl mb-3 tracking-[-0.02em]">
               Listede Yer Alan Oyunlar ({listPlays.length})
             </h3>
             {listPlays.length > 0 ? (
@@ -150,7 +150,7 @@ export const ListsPage: React.FC<ListsPageProps> = () => {
                 ))}
               </div>
             ) : (
-              <div className="p-8 text-center italic text-tn-muted font-serif">
+              <div className="p-8 text-center italic text-tn-muted font-sans">
                 Bu listede henüz oyun bulunamadı.
               </div>
             )}

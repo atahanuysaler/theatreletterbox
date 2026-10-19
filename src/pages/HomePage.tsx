@@ -66,7 +66,8 @@ export const HomePage: React.FC<HomePageProps> = ({
           setPlays(loadedPlays || []);
           setReviews(loadedReviews || []);
           setCuratedLists(loadedLists && loadedLists.length > 0 ? loadedLists : CURATED_LISTS);
-          setTopUsers(loadedUsers || []);
+          const sortedUsers = (loadedUsers || []).sort((a, b) => (b.xp || 0) - (a.xp || 0));
+          setTopUsers(sortedUsers);
           setFeaturedPlayIds(loadedFeaturedIds || []);
         }
       } catch (err) {
@@ -121,8 +122,64 @@ export const HomePage: React.FC<HomePageProps> = ({
   }, [plays, featuredPlayIds]);
 
   const recentReviews = useMemo(() => {
-    return reviews.slice(0, 2);
-  }, [reviews]);
+    const playMap = new Map(plays.map((p) => [p.id, p]));
+    const saticininOlumuPlay = plays.find(
+      (p) => p.title.toLowerCase().includes('satıcı') || p.title.toLowerCase().includes('ölümü')
+    );
+    const clownJamPlay = plays.find((p) => p.title.toLowerCase().includes('clown'));
+
+    const fallbackReviews: ReviewEntry[] = [
+      {
+        id: 'mock-rev-1',
+        playId: saticininOlumuPlay?.id || 'p-saticinin-olumu',
+        playTitle: saticininOlumuPlay?.title || 'Satıcının Ölümü',
+        playPosterUrl:
+          saticininOlumuPlay?.posterUrl ||
+          'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=400&q=80',
+        userId: 'u-1',
+        userName: 'Atahan Uysaler',
+        rating: 5.0,
+        reviewText: 'gözlerimi arda ergulden alamadım maalesef..',
+        performanceDate: '10 Eyl',
+        hasSpoilers: false,
+        likes: 12,
+        createdAt: '2026-09-10T20:00:00Z',
+      },
+      {
+        id: 'mock-rev-2',
+        playId: clownJamPlay?.id || 'p-clown-jam',
+        playTitle: clownJamPlay?.title || 'Clown Jam',
+        playPosterUrl:
+          clownJamPlay?.posterUrl ||
+          'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80',
+        userId: 'u-1',
+        userName: 'Atahan Uysaler',
+        rating: 5.0,
+        reviewText: 'cemre kaboglu zaveyo performansı.. yorumsuz',
+        performanceDate: '10 Eyl',
+        hasSpoilers: false,
+        likes: 8,
+        createdAt: '2026-09-10T20:00:00Z',
+      },
+    ];
+
+    if (!reviews || reviews.length === 0) {
+      return fallbackReviews;
+    }
+
+    const mapped = reviews.slice(0, 2).map((r) => {
+      const play = playMap.get(r.playId);
+      return {
+        ...r,
+        playPosterUrl: r.playPosterUrl || play?.posterUrl || '',
+      };
+    });
+
+    if (mapped.length < 2) {
+      mapped.push(fallbackReviews[1]);
+    }
+    return mapped;
+  }, [reviews, plays]);
 
   const sharePlay = useMemo(() => {
     if (!shareReview) return null;
@@ -145,12 +202,12 @@ export const HomePage: React.FC<HomePageProps> = ({
   };
 
   return (
-    <div className="w-full flex flex-col gap-2 sm:gap-2.5 font-serif text-tn-text">
+    <div className="w-full flex flex-col gap-2 sm:gap-2.5 font-sans text-tn-text">
       {/* 1. Intro Slogan */}
       <section className="flex justify-between items-end gap-5 sm:gap-10 py-1.5 sm:py-3 px-1 sm:px-1.5">
-        <h1 className="m-0 font-normal text-[38px] sm:text-5xl lg:text-[64px] leading-[0.96] sm:leading-[0.95] tracking-tight max-w-[900px]">
+        <h1 className="m-0 font-display font-normal text-[32px] sm:text-[40px] md:text-[clamp(40px,6vw,88px)] leading-[0.96] md:leading-[0.92] tracking-[-0.04em] max-w-[960px]">
           Türk tiyatrosunun <span className="font-extrabold">kataloğu,</span> senin{' '}
-          <span className="italic text-tn-red">sahne not defterin.</span>
+          <span className="font-accent italic font-normal text-tn-red">sahne not defterin.</span>
         </h1>
       </section>
 
@@ -169,95 +226,19 @@ export const HomePage: React.FC<HomePageProps> = ({
 
       {/* 3. DESKTOP BENTO GRID */}
       <main className="hidden md:grid md:grid-cols-3 gap-1.5 mt-1">
-        {/* Row 1: Unified Featured Play Card */}
+        {/* Row 1: Featured Play Card */}
         {featuredPlay && (
-          <Link
-            to={`/oyun/${featuredPlay.id}`}
-            className="col-span-3 rounded-2xl overflow-hidden bg-tn-red text-white flex flex-col lg:flex-row no-underline group shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 min-h-[440px] cursor-pointer"
-            aria-label={`${featuredPlay.title} oyun detayına git`}
-          >
-            {/* Left: Editorial Content & Description */}
-            <div className="w-full lg:w-[42%] p-6 sm:p-7 flex flex-col justify-between font-serif z-10 bg-tn-red flex-shrink-0">
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-between items-center">
-                  <span className="h-6.5 px-3 flex items-center border border-white/75 rounded-full text-[13px] italic bg-white/10 backdrop-blur-xs">
-                    Ayakta Alkış
-                  </span>
-                  <span className="text-base font-semibold">
-                    ★ {featuredPlay.rating ? featuredPlay.rating.toFixed(1) : '5.0'}{' '}
-                    <span className="font-normal italic opacity-85">
-                      ({featuredPlay.reviewCount || 1} not)
-                    </span>
-                  </span>
-                </div>
-
-                <div>
-                  <h2 className="m-0 font-extrabold text-4xl sm:text-5xl lg:text-[54px] leading-[0.92] tracking-tight group-hover:text-white transition-colors">
-                    {featuredPlay.title}
-                  </h2>
-                  {featuredPlay.playwright && !featuredPlay.playwright.toLowerCase().includes('belirtilme') && (
-                    <div className="italic text-xl sm:text-2xl leading-tight mt-1 opacity-95">
-                      {featuredPlay.playwright}
-                    </div>
-                  )}
-                </div>
-
-                <p className="m-0 text-sm sm:text-[15px] opacity-85 italic">
-                  {featuredPlay.genre || 'Tiyatro'}
-                  {featuredPlay.duration ? ` · ${featuredPlay.duration} dk` : ''}
-                  {featuredPlay.year ? ` — ${featuredPlay.year}` : ''}
-                </p>
-
-                {/* Shortened Game Description on Left */}
-                {featuredPlay.synopsis && (
-                  <p className="m-0 text-sm sm:text-[15px] leading-snug text-white/90 italic line-clamp-3 sm:line-clamp-4 drop-shadow-xs pt-1">
-                    {featuredPlay.synopsis}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Right: Scene photo with arrow on bottom right */}
-            <div
-              className="w-full lg:w-[58%] min-h-[300px] lg:min-h-[440px] p-6 flex flex-col justify-between relative overflow-hidden text-white"
-              style={{
-                backgroundColor: '#2B2927',
-              }}
-            >
-              {/* Background photo with hover zoom */}
-              <div
-                className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-105"
-                style={{
-                  backgroundImage: featuredPlay.posterUrl ? `url(${featuredPlay.posterUrl})` : undefined,
-                }}
-              />
-              {/* Gradients */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/15 pointer-events-none" />
-              <div className="hidden lg:block absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-tn-red via-tn-red/60 to-transparent pointer-events-none" />
-
-              {/* Top Badge */}
-              <span className="self-end relative z-10 h-7.5 px-3 flex items-center rounded-full bg-black/60 backdrop-blur-md text-xs sm:text-[13px] italic text-white/95 shadow-xs border border-white/20">
-                Sahne fotoğrafı · {featuredPlay.title}
-              </span>
-
-              {/* Bottom Right: Circular Arrow Button */}
-              <div className="relative z-10 self-end">
-                <div className="w-12 h-12 rounded-full bg-tn-ink text-white flex items-center justify-center group-hover:bg-white group-hover:text-tn-ink group-hover:scale-105 transition-all duration-300 shadow-lg">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14M13 6l6 6-6 6" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </Link>
+          <div className="col-span-3 h-[400px] lg:h-[450px]">
+            <SplitCard play={featuredPlay} variant="hero" colorVariant="red" />
+          </div>
         )}
 
-        {/* Row 2: 3 Split Cards (blush, sage, sand) */}
+        {/* Row 2: 3 Showcased Split Cards with different colors */}
         {splitCardPlays.map((p, idx) => {
-          const variants: Array<'blush' | 'sage' | 'sand'> = ['blush', 'sage', 'sand'];
+          const colors: Array<'ink' | 'lilac' | 'sage'> = ['ink', 'lilac', 'sage'];
           return (
-            <div key={p.id} className="h-[460px]">
-              <SplitCard play={p} colorVariant={variants[idx % 3]} />
+            <div key={p.id} className="col-span-1 h-[260px] sm:h-[270px]">
+              <SplitCard play={p} colorVariant={colors[idx % colors.length]} />
             </div>
           );
         })}
@@ -269,278 +250,236 @@ export const HomePage: React.FC<HomePageProps> = ({
 
         <section
           aria-label="Son seyirci notları"
-          className="col-span-2 rounded-2xl bg-tn-ink text-white p-6 sm:p-7 flex flex-col justify-between shadow-sm min-h-[380px]"
+          className="col-span-2 rounded-[24px] bg-[#1C1A1B] text-white p-5 sm:p-6 lg:p-7 flex flex-col gap-3.5 sm:gap-4 shadow-sm"
         >
-          <div className="flex flex-col gap-3">
-            <h2 className="m-0 font-normal text-3xl sm:text-[38px] leading-tight text-white tracking-tight">
-              Son <span className="font-extrabold">Seyirci</span> <span className="italic text-[#E2DCD4]">Notları</span>
+          <div>
+            <h2 className="m-0 font-display font-extrabold text-[22px] sm:text-[28px] lg:text-[34px] leading-normal text-white tracking-[-0.03em]">
+              Son seyirci <span className="font-accent italic font-normal text-[#E2DCD4]">notları</span>
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
-              {recentReviews.length > 0 ? (
-                recentReviews.map((r) => (
-                  <TicketNote key={r.id} review={r} onShare={(rev) => setShareReview(rev)} />
-                ))
-              ) : (
-                <div className="col-span-2 rounded-xl border border-white/20 p-6 text-center">
-                  <span className="italic text-base text-white/80">
-                    Henüz seyirci notu bırakılmamış. İlk notu sen yaz!
-                  </span>
-                </div>
-              )}
-            </div>
           </div>
-          <div className="flex justify-between items-center pt-4 border-t border-white/10 mt-3">
-            <span className="italic text-sm text-tn-on-dark-muted">
-              Tiyatroseverlerin son paylaştığı izlenimler
-            </span>
-            <Link
-              to="/izlediklerim"
-              className="text-sm font-semibold text-white hover:text-tn-red transition-colors no-underline"
-            >
-              Tüm Notları Gör →
-            </Link>
+
+          <div className="grid grid-cols-2 gap-3.5">
+            {recentReviews.map((r) => (
+              <TicketNote
+                key={r.id}
+                review={r}
+                variant="bento"
+                onShare={(rev) => setShareReview(rev)}
+              />
+            ))}
           </div>
         </section>
 
-        {/* Row 4: Col 1-2 Bulmacalar (2x2 grid), Col 3 Sahne Liderleri */}
-        <section className="col-span-2 rounded-[20px] bg-[#F1E3C4] dark:bg-[#251E17] text-[#1C1A1B] dark:text-[#F3EFEA] p-3.5 sm:p-7 flex flex-col gap-3 sm:gap-4 shadow-sm min-h-[380px] sm:min-h-[460px] border border-[#E5D5B3] dark:border-[#382E24]">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-1 sm:gap-2 pb-1 border-b border-[#1C1A1B]/10 dark:border-white/10">
-            <div>
-              <span className="text-[10.5px] sm:text-[12px] font-extrabold tracking-wider uppercase text-[#1C1A1B] dark:text-[#F3EFEA]">
-                GÜNLÜK TİYATRO BULMACALARI
-              </span>
-              <h2 className="m-0 mt-0.5 sm:mt-1 font-extrabold text-2xl sm:text-[40px] leading-tight text-[#1C1A1B] dark:text-[#FFFFFF]">
-                Bulmacalar <span className="font-normal italic text-lg sm:text-[24px] text-[#1C1A1B]/80 dark:text-[#F3EFEA]/80 hidden sm:inline">— sahne hafızanı tazele, XP kazan.</span>
-              </h2>
-              <p className="sm:hidden m-0 mt-0.5 text-xs italic text-[#5E5852] dark:text-[#A8A199]">
-                Sahne hafızanı tazele, XP kazan. Her gece 00:00’da yenilenir.
-              </p>
+        {/* Row 4: Col 1-2 Bulmacalar (4 columns), Col 3 Sahne Liderleri */}
+        <section className="col-span-2 rounded-[24px] bg-[#F1E3C4] dark:bg-[#251E17] text-[#1C1A1B] dark:text-[#F3EFEA] p-5 sm:p-6 lg:p-7 flex flex-col justify-between shadow-sm min-h-[380px] border border-[#E5D5B3] dark:border-[#382E24]">
+          {/* Header */}
+          <div>
+            <div className="flex justify-between items-center gap-2">
+              <Link
+                to="/bulmacalar"
+                className="m-0 font-display font-extrabold text-[22px] sm:text-[28px] lg:text-[34px] leading-normal text-[#1C1A1B] dark:text-white tracking-[-0.03em] hover:text-tn-red transition-colors no-underline block"
+              >
+                Günün <span className="font-accent italic font-normal">bulmacaları</span>
+              </Link>
+              {/* Desktop Header Pills */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#2E2824] text-[#1C1A1B] dark:text-white font-sans text-xs font-semibold shadow-xs">
+                  <span>🔥</span>
+                  <span>3 gün seri</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#1C1A1B] text-white dark:bg-white dark:text-[#1C1A1B] font-sans text-xs font-semibold shadow-xs">
+                  <span className="text-[#F1C40F]">★</span>
+                  <span>110 XP</span>
+                </div>
+              </div>
             </div>
-            <span className="italic text-sm sm:text-[15px] text-[#5E5852] dark:text-[#A8A199] hidden sm:inline">
-              Her gece 00:00’da yenilenir
-            </span>
+
+            {/* Segmented Progress */}
+            <div className="flex items-center gap-1.5 mt-2.5">
+              <span className="w-7 h-1.5 rounded-full bg-[#1C1A1B] dark:bg-white" />
+              <span className="w-7 h-1.5 rounded-full bg-[#1C1A1B]/15 dark:bg-white/20" />
+              <span className="w-7 h-1.5 rounded-full bg-[#1C1A1B]/15 dark:bg-white/20" />
+              <span className="w-7 h-1.5 rounded-full bg-[#1C1A1B]/15 dark:bg-white/20" />
+              <span className="font-sans font-medium text-xs sm:text-[13px] text-[#1C1A1B]/70 dark:text-white/70 ml-2">
+                1 / 4 tamamlandı
+              </span>
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 mt-1">
+
+          {/* Cards Grid: 4 columns in 1 row */}
+          <div className="grid grid-cols-4 gap-2.5 mt-4">
             <PuzzleCard
               title="Günün Repliği"
-              subtitle="Replik Tahmin Oyunu"
-              description="Kült oyunlardan unutulmaz repliği tahmin et, hafızanı tazele."
-              badge="YENİ"
+              colorVariant="red"
               xpReward={30}
-              estimatedTime="~2 dk"
-              bgVariant="cream"
+              isCompleted={true}
+              statusText="Tamamlandı"
               onClick={() => setIsDailyQuoteOpen(true)}
             />
             <PuzzleCard
               title="Oyuncu Dedektifi"
-              subtitle="Usta Oyuncu Tahmini"
-              description="Usta oyuncuları rolleri, efsane tiradları ve kariyer ipuçlarıyla keşfet."
-              badge="YENİ"
+              colorVariant="dark"
               xpReward={30}
-              estimatedTime="2 dk"
-              bgVariant="sand"
               onClick={() => setIsActorDetectiveOpen(true)}
             />
             <PuzzleCard
               title="Sahne Trivia"
-              subtitle="Günlük Tiyatro Bilgi Testi"
-              description="Tiyatro tarihi, yazarlar, prömiyerler ve sahne arkası üzerine 5 soru."
-              badge="BİLGİ YARIŞI"
+              colorVariant="lilac"
               xpReward={25}
-              estimatedTime="2 dk"
-              bgVariant="sand"
               onClick={() => setIsTriviaOpen(true)}
             />
             <PuzzleCard
-              title="Perde Arkası: Kelime"
-              subtitle="Tiyatro Jargonu & Terimler"
-              description="Tirad, fuaye, sufle, kulis… sahne jargonunu harf ve anlam ipuçlarıyla çöz."
-              badge="KELİME OYUNU"
+              title="Perde Arkası"
+              colorVariant="sage"
               xpReward={25}
-              estimatedTime="2 dk"
-              bgVariant="cream"
               onClick={() => setIsWordPuzzleOpen(true)}
             />
           </div>
         </section>
 
-        <div className="col-span-1">
+        <div className="col-span-1 h-full">
           <LeaderboardSnippet topUsers={topUsers} />
         </div>
       </main>
 
       {/* 4. MOBILE VERTICAL BENTO */}
-      <div className="md:hidden flex flex-col gap-1.5 mt-1">
+      <div className="md:hidden flex flex-col gap-2.5 mt-1">
         {/* Mobile Featured Card */}
         {featuredPlay && (
-          <Link
-            to={`/oyun/${featuredPlay.id}`}
-            className="rounded-2xl overflow-hidden bg-tn-red text-white flex flex-col font-serif shadow-sm no-underline active:scale-[0.99] transition-all group"
-            aria-label={`${featuredPlay.title} detayına git`}
-          >
-            <div className="pt-6 pb-4 px-5 flex flex-col gap-2.5">
-              <div className="flex justify-between items-center">
-                <span className="h-6.5 px-3 flex items-center border border-white/75 rounded-full text-[13px] italic bg-white/10 backdrop-blur-xs">
-                  Ayakta Alkış
-                </span>
-                <span className="text-[15px] font-semibold">
-                  ★ {featuredPlay.rating ? featuredPlay.rating.toFixed(1) : '5.0'}{' '}
-                  <span className="font-normal italic opacity-85">
-                    ({featuredPlay.reviewCount || 1} not)
-                  </span>
-                </span>
-              </div>
-              <div>
-                <h2 className="m-0 font-extrabold text-[32px] sm:text-4xl leading-tight tracking-tight">
-                  {featuredPlay.title}
-                </h2>
-                {featuredPlay.playwright && !featuredPlay.playwright.toLowerCase().includes('belirtilme') && (
-                  <div className="italic text-lg sm:text-xl leading-snug mt-1 opacity-95">
-                    {featuredPlay.playwright}
-                  </div>
-                )}
-              </div>
-              <p className="m-0 text-sm opacity-85 italic">
-                {featuredPlay.genre || 'Tiyatro'}
-                {featuredPlay.duration ? ` · ${featuredPlay.duration} dk` : ''}
-                {featuredPlay.year ? ` — ${featuredPlay.year}` : ''}
-              </p>
-              {featuredPlay.synopsis && (
-                <p className="m-0 text-sm leading-snug opacity-90 italic line-clamp-3 pt-1">
-                  {featuredPlay.synopsis}
-                </p>
-              )}
-            </div>
-
-            {/* Seamless Scene Photo Section */}
-            <div
-              className="relative w-full h-[220px] p-4 box-border flex justify-between items-end bg-cover bg-center overflow-hidden"
-              style={{
-                backgroundColor: '#2B2927',
-                backgroundImage: featuredPlay.posterUrl ? `url(${featuredPlay.posterUrl})` : undefined,
-              }}
-            >
-              {/* Soft gradient blend from red header down into photo */}
-              <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-tn-red via-tn-red/60 to-transparent pointer-events-none z-10" />
-
-              {/* Bottom gradient overlay for caption and button contrast */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
-
-              {/* Caption badge */}
-              <span className="relative z-20 h-7 px-3 flex items-center rounded-full bg-black/60 backdrop-blur-md text-[13px] italic text-white/95 shadow-xs border border-white/20">
-                Sahne fotoğrafı · {featuredPlay.title}
-              </span>
-
-              {/* Circular arrow button */}
-              <div className="relative z-20 w-11 h-11 rounded-full bg-tn-ink text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </div>
-            </div>
-          </Link>
+          <div className="w-full h-[200px] sm:h-[250px]">
+            <SplitCard play={featuredPlay} variant="hero" colorVariant="red" />
+          </div>
         )}
 
         {/* Mobile Split Cards Carousel */}
-        <div className="flex justify-between items-baseline px-1.5 pt-3 pb-1">
-          <h2 className="m-0 text-2xl sm:text-[28px] leading-tight">
-            <span className="font-extrabold">Öne</span> <span className="italic">çıkanlar</span>
-          </h2>
-          <span className="text-xs sm:text-sm italic text-tn-muted">kaydır →</span>
-        </div>
-        <div className="flex gap-2.5 overflow-x-auto -mx-2 px-2 no-scrollbar snap-x snap-mandatory py-1">
+        <div className="flex gap-2.5 overflow-x-auto -mx-2 px-2 no-scrollbar snap-x snap-mandatory pt-1 pb-1">
           {splitCardPlays.map((p, idx) => {
-            const variants: Array<'blush' | 'sage' | 'sand'> = ['blush', 'sage', 'sand'];
+            const colors: Array<'ink' | 'lilac' | 'sage'> = ['ink', 'lilac', 'sage'];
             return (
-              <div key={p.id} className="flex-shrink-0 w-[295px] h-[420px] snap-center">
-                <SplitCard play={p} colorVariant={variants[idx % 3]} />
+              <div key={p.id} className="flex-shrink-0 w-[285px] sm:w-[330px] h-[195px] sm:h-[240px] snap-center">
+                <SplitCard play={p} colorVariant={colors[idx % colors.length]} />
               </div>
             );
           })}
+
+          {/* 4th Card: Go to Catalog */}
+          <div className="flex-shrink-0 w-[240px] sm:w-[280px] h-[195px] sm:h-[240px] snap-center">
+            <Link
+              to="/katalog"
+              className="w-full h-full rounded-[20px] bg-[#1C1A1B] text-white p-5 flex flex-col justify-between no-underline shadow-sm transition-all hover:scale-[1.01] hover:shadow-md border border-white/10 group"
+            >
+              <div className="flex justify-between items-start">
+                <div className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center shrink-0 group-hover:bg-tn-red group-hover:text-white transition-colors">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0l-7-7m7 7l-7 7" />
+                  </svg>
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-white/10 text-[#E2DCD4] text-[11px] font-sans font-semibold">
+                  {plays.length}+ Oyun
+                </span>
+              </div>
+
+              <div>
+                <div className="font-display font-extrabold text-[20px] sm:text-[22px] leading-tight text-white tracking-[-0.02em]">
+                  Tüm Kataloğu<br />
+                  <span className="font-accent italic font-normal text-[#E2DCD4]">Keşfet</span>
+                </div>
+                <div className="font-sans text-xs text-white/70 mt-1.5 flex items-center gap-1 group-hover:text-tn-red transition-colors font-medium">
+                  <span>Kataloğa git</span>
+                  <span className="transition-transform group-hover:translate-x-1">→</span>
+                </div>
+              </div>
+            </Link>
+          </div>
         </div>
 
         {/* Mobile Sen De Yaz */}
         <SenDeYazOval onClick={() => onOpenLogModal?.(null)} />
 
         {/* Mobile Seyirci Notları */}
-        <section className="rounded-2xl bg-tn-ink text-white pt-6 pb-5 px-4.5 sm:p-6 flex flex-col gap-3 shadow-sm">
-          <div className="px-1 text-center flex flex-col items-center">
-            <span className="text-[11px] font-extrabold tracking-wider uppercase text-tn-on-dark-muted block mb-1">
-              SEYİRCİ GÜNLÜĞÜ
-            </span>
-            <h2 className="m-0 font-normal text-2xl sm:text-[28px] leading-tight text-white tracking-tight">
-              Son <span className="font-extrabold">Seyirci</span> <span className="italic text-[#E2DCD4]">Notları</span>
+        <section className="rounded-[20px] sm:rounded-[24px] bg-[#1C1A1B] text-white pt-4 pb-3.5 px-3.5 sm:p-6 flex flex-col gap-2.5 shadow-sm">
+          <div className="pt-0.5">
+            <h2 className="m-0 font-display font-extrabold text-[20px] sm:text-[26px] lg:text-[32px] leading-normal text-white tracking-[-0.03em]">
+              Son seyirci <span className="font-accent italic font-normal text-[#E2DCD4]">notları</span>
             </h2>
           </div>
-          <div className="flex flex-col gap-1.5">
-            {recentReviews.length > 0 ? (
-              recentReviews.map((r) => (
-                <TicketNote
-                  key={r.id}
-                  review={r}
-                  variant="horizontal"
-                  onShare={(rev) => setShareReview(rev)}
-                />
-              ))
-            ) : (
-              <div className="rounded-xl border border-white/20 p-5 text-center">
-                <span className="italic text-sm text-white/80">
-                  Henüz seyirci notu bırakılmamış. İlk notu sen yaz!
-                </span>
-              </div>
-            )}
+          <div className="flex flex-col gap-2">
+            {recentReviews.map((r) => (
+              <TicketNote
+                key={r.id}
+                review={r}
+                variant="bento"
+                onShare={(rev) => setShareReview(rev)}
+              />
+            ))}
           </div>
         </section>
 
         {/* Mobile Bulmacalar */}
-        <section className="rounded-2xl bg-tn-sand pt-6 pb-5 px-4.5 sm:p-6 flex flex-col gap-3 shadow-sm">
-          <div className="px-1 text-center flex flex-col items-center">
-            <span className="text-[11px] font-extrabold tracking-wider text-tn-text/80 uppercase block mb-1">
-              GÜNLÜK TİYATRO BULMACALARI
-            </span>
-            <h2 className="m-0 font-extrabold text-2xl sm:text-[28px] leading-tight text-tn-text tracking-tight">
-              Bulmacalar
-            </h2>
+        <section className="rounded-[20px] sm:rounded-[24px] bg-[#F1E3C4] dark:bg-[#251E17] text-[#1C1A1B] dark:text-[#F3EFEA] pt-4 pb-3.5 px-3.5 sm:p-6 flex flex-col gap-2 sm:gap-2.5 shadow-sm border border-[#E5D5B3] dark:border-[#382E24]">
+          <div>
+            <div className="flex justify-between items-center gap-2">
+              <div className="pt-0.5">
+                <Link
+                  to="/bulmacalar"
+                  className="m-0 font-display font-extrabold text-[20px] sm:text-[26px] lg:text-[32px] leading-normal text-[#1C1A1B] dark:text-white tracking-[-0.03em] hover:text-tn-red transition-colors no-underline block"
+                >
+                  Günün <span className="font-accent italic font-normal">bulmacaları</span>
+                </Link>
+              </div>
+              {/* Mobile Header Pills */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white dark:bg-[#2E2824] text-[#1C1A1B] dark:text-white font-sans text-[11px] sm:text-xs font-semibold shadow-xs">
+                  <span>🔥</span>
+                  <span>3</span>
+                </div>
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#1C1A1B] text-white dark:bg-white dark:text-[#1C1A1B] font-sans text-[11px] sm:text-xs font-semibold shadow-xs">
+                  <span className="text-[#F1C40F]">★</span>
+                  <span>110</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Subheader: Segments on left, 1 / 4 tamamlandı on right */}
+            <div className="flex justify-between items-center mt-1.5 sm:mt-2.5">
+              <div className="flex items-center gap-1.5">
+                <span className="w-5 sm:w-6 h-1 sm:h-1.5 rounded-full bg-[#1C1A1B] dark:bg-white" />
+                <span className="w-5 sm:w-6 h-1 sm:h-1.5 rounded-full bg-[#1C1A1B]/15 dark:bg-white/20" />
+                <span className="w-5 sm:w-6 h-1 sm:h-1.5 rounded-full bg-[#1C1A1B]/15 dark:bg-white/20" />
+                <span className="w-5 sm:w-6 h-1 sm:h-1.5 rounded-full bg-[#1C1A1B]/15 dark:bg-white/20" />
+              </div>
+              <span className="font-sans font-medium text-[11px] sm:text-xs text-[#1C1A1B]/75 dark:text-white/75">
+                1 / 4 tamamlandı
+              </span>
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-1.5">
+
+          {/* Mobile 2x2 Grid */}
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
             <PuzzleCard
               title="Günün Repliği"
-              subtitle="Replik Tahmin"
-              description="Kült oyunlardan unutulmaz repliği çöz."
-              badge="YENİ"
+              colorVariant="red"
               xpReward={30}
-              estimatedTime="~2 dk"
-              bgVariant="cream"
+              isCompleted={true}
+              statusText="Tamamlandı"
               onClick={() => setIsDailyQuoteOpen(true)}
             />
             <PuzzleCard
               title="Oyuncu Dedektifi"
-              subtitle="Usta Oyuncu"
-              description="Oyuncuyu rolleri ve tiradlarıyla keşfet."
-              badge="YENİ"
+              colorVariant="dark"
               xpReward={30}
-              estimatedTime="2 dk"
-              bgVariant="sand"
               onClick={() => setIsActorDetectiveOpen(true)}
             />
             <PuzzleCard
               title="Sahne Trivia"
-              subtitle="Bilgi Testi"
-              description="Tiyatro tarihi üzerine 5 soru."
-              badge="YARIŞ"
+              colorVariant="lilac"
               xpReward={25}
-              estimatedTime="2 dk"
-              bgVariant="sand"
               onClick={() => setIsTriviaOpen(true)}
             />
             <PuzzleCard
               title="Perde Arkası"
-              subtitle="Kelime Oyunu"
-              description="Tiyatro jargonunu harflerle bul."
-              badge="KELİME"
+              colorVariant="sage"
               xpReward={25}
-              estimatedTime="2 dk"
-              bgVariant="cream"
               onClick={() => setIsWordPuzzleOpen(true)}
             />
           </div>
@@ -552,8 +491,19 @@ export const HomePage: React.FC<HomePageProps> = ({
 
       {/* 5. Curated Lists */}
       <section id="listeler" className="my-2 sm:my-3">
-        {/* Desktop Curated Lists Grid */}
-        <div className="hidden md:grid md:grid-cols-4 gap-1.5">
+        <div className="flex justify-between items-center mb-2.5 sm:mb-3 px-1">
+          <Link
+            to="/listeler"
+            className="group inline-flex items-center no-underline"
+          >
+            <h2 className="m-0 font-display font-extrabold text-[20px] sm:text-[26px] lg:text-[32px] leading-normal text-tn-text dark:text-white tracking-[-0.03em] group-hover:text-tn-red transition-colors">
+              Küratörlü <span className="font-accent italic font-normal">listeler</span>
+            </h2>
+          </Link>
+        </div>
+
+        {/* Desktop Curated Lists Grid (4 columns) */}
+        <div className="hidden md:grid md:grid-cols-4 gap-3">
           {curatedLists.slice(0, 4).map((list, idx) => {
             const variants: Array<'ink' | 'lilac' | 'sage' | 'red'> = ['ink', 'lilac', 'sage', 'red'];
             return (
@@ -571,50 +521,41 @@ export const HomePage: React.FC<HomePageProps> = ({
           })}
         </div>
 
-        {/* Mobile Curated Lists Carousel */}
-        <div className="md:hidden flex flex-col gap-2">
-          <div className="flex justify-between items-baseline px-1.5 pt-3 pb-1">
-            <h2 className="m-0 text-2xl sm:text-[28px] leading-tight">
-              <span className="font-extrabold">Küratörlü</span> <span className="italic">seçkiler</span>
-            </h2>
-            <span className="text-xs sm:text-sm italic text-tn-muted">kaydır →</span>
-          </div>
-          <div className="flex gap-2 overflow-x-auto -mx-2 px-2 no-scrollbar">
-            {curatedLists.slice(0, 4).map((list, idx) => {
-              const variants: Array<'ink' | 'lilac' | 'sage' | 'red'> = ['ink', 'lilac', 'sage', 'red'];
-              return (
-                <div key={list.id} className="flex-shrink-0 w-[295px] h-[300px]">
-                  <CuratedListCard
-                    id={list.id}
-                    category={list.category || 'SEÇKİ'}
-                    playCount={list.playIds?.length || 4}
-                    title={list.title}
-                    description={list.description}
-                    curator={list.curator || 'Tiyatronot'}
-                    colorVariant={variants[idx % 4]}
-                  />
-                </div>
-              );
-            })}
-          </div>
+        {/* Mobile Curated Lists 2x2 Grid (matches Image 4) */}
+        <div className="md:hidden grid grid-cols-2 gap-2.5">
+          {curatedLists.slice(0, 4).map((list, idx) => {
+            const variants: Array<'ink' | 'lilac' | 'sage' | 'red'> = ['ink', 'lilac', 'sage', 'red'];
+            return (
+              <CuratedListCard
+                key={list.id}
+                id={list.id}
+                category={list.category || 'SEÇKİ'}
+                playCount={list.playIds?.length || 4}
+                title={list.title}
+                description={list.description}
+                curator={list.curator || 'Tiyatronot'}
+                colorVariant={variants[idx % 4]}
+              />
+            );
+          })}
         </div>
       </section>
 
       {/* 6. Callout: Go to Full Catalogue */}
       <section className="my-4 sm:my-6 p-6 sm:p-8 rounded-2xl bg-tn-surface border border-tn-line/60 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
         <div>
-          <h3 className="m-0 text-2xl sm:text-3xl font-extrabold tracking-tight">
+          <h3 className="m-0 text-2xl sm:text-3xl font-display font-extrabold tracking-[-0.03em]">
             Tüm Oyunları ve Toplulukları Keşfet
           </h3>
-          <p className="m-0 text-tn-muted italic text-base mt-1">
+          <p className="m-0 text-tn-muted font-accent italic font-normal text-base mt-1">
             Yüzlerce sahne eseri, filtreleme ve sıralama seçenekleriyle katalog sayfasında seni bekliyor.
           </p>
         </div>
         <Link
           to="/katalog"
-          className="h-12 px-7 rounded-xl bg-tn-ink text-white font-semibold text-base inline-flex items-center justify-center hover:bg-black/90 transition-all no-underline shadow-sm flex-shrink-0"
+          className="h-12 px-7 rounded-xl bg-tn-ink text-white font-sans font-semibold text-base inline-flex items-center justify-center hover:bg-black/90 transition-all no-underline shadow-sm flex-shrink-0"
         >
-          Kataloğa Git →
+          Kataloğa Git
         </Link>
       </section>
 

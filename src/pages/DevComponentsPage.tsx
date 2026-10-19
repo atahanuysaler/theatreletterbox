@@ -71,9 +71,9 @@ export const DevComponentsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   return (
-    <div className="w-full flex flex-col gap-10 font-serif p-4 sm:p-8 bg-tn-container rounded-2xl">
+    <div className="w-full flex flex-col gap-10 font-sans p-4 sm:p-8 bg-tn-container rounded-2xl">
       <div className="border-b border-tn-line pb-4">
-        <h1 className="text-4xl font-extrabold text-tn-text">Tiyatronot Bileşen Kütüphanesi</h1>
+        <h1 className="text-4xl font-display font-extrabold text-tn-text tracking-[-0.03em]">Tiyatronot Bileşen Kütüphanesi</h1>
         <p className="italic text-tn-muted text-base mt-1">
           DESIGN.md §7'deki tüm component'ler, durumlar ve tasarım token'ları.
         </p>
@@ -81,7 +81,7 @@ export const DevComponentsPage: React.FC = () => {
 
       {/* Buttons & Switches */}
       <section className="flex flex-col gap-4">
-        <h2 className="text-2xl font-bold border-b border-tn-line/40 pb-2">1. Kontroller (Switch, Segmented, CircleArrow)</h2>
+        <h2 className="text-2xl font-display font-bold border-b border-tn-line/40 pb-2 tracking-[-0.02em]">1. Kontroller (Switch, Segmented, CircleArrow)</h2>
         <div className="flex flex-wrap items-center gap-6">
           <Switch
             checked={isSwitchOn}

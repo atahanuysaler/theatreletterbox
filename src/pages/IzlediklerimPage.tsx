@@ -102,28 +102,28 @@ export const IzlediklerimPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="w-full min-h-[400px] flex items-center justify-center font-serif text-tn-muted">
-        <span className="italic text-lg animate-pulse">İzlenen oyunlar yükleniyor…</span>
+      <div className="w-full min-h-[400px] flex items-center justify-center font-sans text-tn-muted">
+        <span className="font-accent italic text-lg animate-pulse">İzlenen oyunlar yükleniyor…</span>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="max-w-md mx-auto py-16 text-center flex flex-col items-center gap-4 font-serif text-tn-text">
+      <div className="max-w-md mx-auto py-16 text-center flex flex-col items-center gap-4 font-sans text-tn-text">
         <span className="w-16 h-16 rounded-full bg-tn-surface flex items-center justify-center text-3xl">
           🎭
         </span>
-        <h1 className="font-extrabold text-3xl">
+        <h1 className="font-display font-extrabold text-3xl leading-tight tracking-[-0.03em]">
           İzlediklerini Görmek İçin Giriş Yap
         </h1>
-        <p className="text-sm italic text-tn-muted leading-relaxed">
+        <p className="text-sm text-tn-muted leading-relaxed">
           İzlediğin oyunları kaydetmek, hafızanı canlı tutmak ve Sahne Liderleri sıralamasına katılmak için Google hesabınla giriş yapabilirsin.
         </p>
         <button
           type="button"
           onClick={() => loginWithGoogle()}
-          className="mt-2 h-12 px-6 rounded-full bg-tn-red text-white text-base font-semibold hover:bg-tn-red/90 transition-colors cursor-pointer border-none shadow-sm"
+          className="mt-2 h-12 px-6 rounded-full bg-tn-red text-white text-base font-semibold hover:bg-tn-red/90 transition-colors cursor-pointer border-none shadow-sm font-sans"
         >
           Google ile Giriş Yap
         </button>
@@ -132,12 +132,12 @@ export const IzlediklerimPage: React.FC = () => {
   }
 
   return (
-    <div className="w-full flex flex-col gap-6 py-4 font-serif text-tn-text">
+    <div className="w-full flex flex-col gap-6 py-4 font-sans text-tn-text">
       {/* XP Popups */}
       {xpPopups.map((popup) => (
         <div
           key={popup.id}
-          className="fixed z-50 font-extrabold text-sm text-[#E4B33A] pointer-events-none animate-bounce"
+          className="fixed z-50 font-display font-extrabold text-sm text-[#E4B33A] pointer-events-none animate-bounce"
           style={{ left: `${popup.x}%`, top: `${popup.y}%` }}
         >
           +{popup.amount} XP
@@ -149,7 +149,7 @@ export const IzlediklerimPage: React.FC = () => {
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-tn-surface border border-tn-red shadow-lg px-5 py-3 rounded-2xl flex items-center gap-3">
           <span className="text-xl">🏆</span>
           <div>
-            <div className="text-xs font-extrabold uppercase text-tn-red">Rozet Kazanıldı!</div>
+            <div className="text-[11px] font-bold tracking-[0.07em] uppercase text-tn-red">Rozet Kazanıldı!</div>
             <div className="text-sm font-semibold">{unlockedBadge}</div>
           </div>
         </div>
@@ -158,13 +158,13 @@ export const IzlediklerimPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-tn-line">
         <div>
-          <span className="text-xs font-extrabold tracking-wider text-tn-red uppercase">
+          <span className="text-[11px] font-bold tracking-[0.07em] text-tn-red uppercase">
             SEYİRCİ GÜNLÜĞÜ & PASAPORT
           </span>
-          <h1 className="m-0 mt-1 font-extrabold text-3xl sm:text-5xl leading-tight">
+          <h1 className="m-0 mt-1 font-display font-extrabold text-3xl sm:text-5xl leading-[0.95] tracking-[-0.035em]">
             İzlediklerim
           </h1>
-          <p className="m-0 mt-1 text-base sm:text-lg italic text-tn-muted">
+          <p className="m-0 mt-1 text-base sm:text-lg text-tn-muted">
             İzlediğin oyunları buradan takip edebilir, bilet notlarını inceleyebilirsin.
           </p>
         </div>
@@ -172,14 +172,14 @@ export const IzlediklerimPage: React.FC = () => {
         {/* Stats widget */}
         <div className="rounded-2xl bg-tn-surface p-4 px-5 flex items-center gap-4 border border-tn-line">
           <div>
-            <div className="text-xs italic text-tn-muted">Tiyatro İndeksin</div>
-            <div className="font-extrabold text-2xl leading-tight">
+            <div className="text-xs font-accent italic font-normal text-tn-muted">Tiyatro İndeksin</div>
+            <div className="font-display font-extrabold text-2xl leading-tight">
               {seenCount} <span className="text-sm font-normal text-tn-muted">/ {totalCount}</span>
             </div>
           </div>
           <div className="border-l border-tn-line pl-4">
-            <div className="text-xs italic text-tn-muted">{level}</div>
-            <div className="font-extrabold text-xl text-tn-red">{xp} XP</div>
+            <div className="text-xs font-accent italic font-normal text-tn-muted">{level}</div>
+            <div className="font-display font-extrabold text-xl text-tn-red">{xp} XP</div>
           </div>
         </div>
       </div>
@@ -201,7 +201,7 @@ export const IzlediklerimPage: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="İzlediğin oyunlar arasında ara (oyun adı, yazar, sahne, topluluk)…"
-            className="w-full h-11 pl-11 pr-10 rounded-full bg-tn-surface border border-tn-line/70 focus:border-tn-red focus:outline-none text-sm font-serif text-tn-text placeholder:text-tn-muted/80 shadow-2xs transition-colors"
+            className="w-full h-11 pl-11 pr-10 rounded-full bg-tn-surface border border-tn-line/70 focus:border-tn-red focus:outline-none text-sm font-sans text-tn-text placeholder:text-tn-muted/80 shadow-2xs transition-colors"
           />
           {searchQuery && (
             <button
@@ -220,7 +220,7 @@ export const IzlediklerimPage: React.FC = () => {
       {displayedPlays.length > 0 ? (
         <div className="flex flex-col gap-3">
           <div className="flex justify-between items-baseline">
-            <h2 className="m-0 font-extrabold text-2xl">
+            <h2 className="m-0 font-display font-extrabold text-2xl tracking-[-0.02em]">
               Kayıtlı Oyunlar ({displayedPlays.length}{searchQuery ? ` / ${watchedPlays.length}` : ''})
             </h2>
             <span className="text-xs italic text-tn-muted">
@@ -232,7 +232,7 @@ export const IzlediklerimPage: React.FC = () => {
             {displayedPlays.map((play) => (
               <div key={play.id} className="relative group">
                 <CatalogCard play={play} />
-                <span className="absolute top-3 left-3 z-10 w-6 h-6 rounded-full bg-tn-red text-white flex items-center justify-center text-xs font-extrabold shadow-sm pointer-events-none">
+                <span className="absolute top-3 left-3 z-10 w-6 h-6 rounded-full bg-tn-red text-white flex items-center justify-center text-xs font-display font-extrabold shadow-sm pointer-events-none">
                   ✓
                 </span>
               </div>
@@ -243,14 +243,14 @@ export const IzlediklerimPage: React.FC = () => {
         /* Search Query No Match */
         <div className="rounded-2xl border-2 border-dashed border-tn-line p-12 text-center flex flex-col items-center gap-3">
           <Search className="w-8 h-8 text-tn-muted opacity-50" />
-          <h3 className="font-extrabold text-xl m-0">Aramanızla eşleşen oyun bulunamadı</h3>
-          <p className="italic text-sm text-tn-muted max-w-md m-0">
+          <h3 className="font-display font-extrabold text-xl m-0 tracking-[-0.02em]">Aramanızla eşleşen oyun bulunamadı</h3>
+          <p className="text-sm text-tn-muted max-w-md m-0">
             "{searchQuery}" ifadesine uyan izlediğin bir oyun bulunmuyor. Farklı bir arama terimi deneyebilirsin.
           </p>
           <button
             type="button"
             onClick={() => setSearchQuery('')}
-            className="mt-2 h-9 px-4 rounded-full bg-tn-surface border border-tn-line text-tn-text font-serif text-xs font-semibold hover:bg-tn-line transition-colors cursor-pointer"
+            className="mt-2 h-9 px-4 rounded-full bg-tn-surface border border-tn-line text-tn-text font-sans text-xs font-semibold hover:bg-tn-line transition-colors cursor-pointer"
           >
             Aramayı Temizle
           </button>
@@ -258,8 +258,8 @@ export const IzlediklerimPage: React.FC = () => {
       ) : (
         <div className="rounded-2xl border-2 border-dashed border-tn-line p-12 text-center flex flex-col items-center gap-3">
           <span className="text-4xl">🎟️</span>
-          <h3 className="font-extrabold text-2xl m-0">Henüz izlenen oyun işaretlenmedi</h3>
-          <p className="italic text-base text-tn-muted max-w-md m-0">
+          <h3 className="font-display font-extrabold text-2xl m-0 tracking-[-0.02em]">Henüz izlenen oyun işaretlenmedi</h3>
+          <p className="text-base text-tn-muted max-w-md m-0">
             Katalogdaki oyunların detay sayfalarından "İzledim" butonuna basarak tiyatro pasaportunu doldurmaya başlayabilirsin.
           </p>
           <Link

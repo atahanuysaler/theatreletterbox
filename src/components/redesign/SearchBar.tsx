@@ -23,6 +23,7 @@ interface SearchBarProps {
   onResetSort?: () => void;
   onClearFilters?: () => void;
   placeholder?: string;
+  mobilePlaceholder?: string;
   autoFocus?: boolean;
   onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
   onSubmit?: () => void;
@@ -40,6 +41,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   isSortActive = false,
   onResetSort,
   placeholder = 'Oyun, topluluk, yazar veya oyuncu ara…',
+  mobilePlaceholder = 'Oyun ara',
   autoFocus = false,
   onFocus,
   onSubmit,
@@ -47,6 +49,18 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const [isSortOpen, setIsSortOpen] = useState(false);
   const sortRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false
+  );
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const activePlaceholder = isMobile ? mobilePlaceholder : placeholder;
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {
@@ -78,9 +92,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const currentSortLabel = SORT_OPTIONS.find((s) => s.key === selectedSort)?.label || 'En Yüksek Puan';
 
   return (
-    <div className="w-full flex gap-1.5 font-serif text-tn-text">
+    <div className="w-full flex gap-1.5 font-sans text-tn-text">
       {/* Search Input Box */}
-      <div className={`flex-grow h-[52px] sm:h-[68px] px-3.5 sm:px-5 py-1 sm:py-2 rounded-[14px] sm:rounded-2xl bg-tn-surface border transition-all shadow-2xs flex items-center gap-2 sm:gap-3 box-border ${
+      <div className={`flex-1 min-w-0 h-[46px] sm:h-[68px] px-3 sm:px-5 py-1 sm:py-2 rounded-[14px] sm:rounded-2xl bg-tn-surface border transition-all shadow-2xs flex items-center gap-2 sm:gap-3 box-border ${
         value
           ? 'border-tn-red ring-1 ring-tn-red/30'
           : 'border-tn-line/40 focus-within:ring-2 focus-within:ring-tn-red/30'
@@ -108,8 +122,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               onSubmit?.();
             }
           }}
-          placeholder={placeholder}
-          className="flex-grow h-full border-none bg-transparent font-serif italic text-base sm:text-[24px] text-tn-text placeholder:text-tn-muted/60 focus:outline-none px-1 min-w-0"
+          placeholder={activePlaceholder}
+          className="w-full min-w-0 h-full border-none bg-transparent font-sans text-base sm:text-[20px] text-tn-text placeholder:text-tn-muted/60 focus:outline-none px-1"
         />
 
         {/* Clear button */}
@@ -167,7 +181,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
           {/* Sort Dropdown Popover */}
           {isSortOpen && (
-            <div className="absolute top-full right-0 mt-1.5 w-52 rounded-xl bg-white dark:bg-tn-card border border-tn-line shadow-lg z-30 py-1 divide-y divide-tn-line/40 font-serif">
+            <div className="absolute top-full right-0 mt-1.5 w-52 rounded-xl bg-white dark:bg-tn-card border border-tn-line shadow-lg z-30 py-1 divide-y divide-tn-line/40 font-sans">
               {SORT_OPTIONS.map((opt) => (
                 <button
                   key={opt.key}
@@ -211,7 +225,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         aria-expanded={isFiltersOpen}
         aria-controls="filtre-satiri"
         onClick={onToggleFilters}
-        className={`sm:hidden relative w-[52px] h-[52px] rounded-[14px] border-none cursor-pointer flex items-center justify-center transition-colors flex-shrink-0 ${
+        className={`sm:hidden relative w-[46px] h-[46px] rounded-[13px] border-none cursor-pointer flex items-center justify-center transition-colors shrink-0 ${
           isFiltersOpen
             ? 'bg-tn-red text-white'
             : 'bg-tn-ink text-white'
@@ -219,20 +233,20 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       >
         <SlidersHorizontal className="w-[18px] h-[18px]" />
         {activeFiltersCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-4.5 h-4.5 rounded-full bg-white text-tn-ink text-[10px] font-extrabold flex items-center justify-center shadow-xs">
+          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white text-tn-ink text-[10px] font-extrabold flex items-center justify-center shadow-xs">
             {activeFiltersCount}
           </span>
         )}
       </button>
 
       {/* Mobile Sorting Button (Right end of SearchBar, black box icon-only, turns red when selected) */}
-      <div className="sm:hidden relative flex-shrink-0">
+      <div className="sm:hidden relative shrink-0">
         <button
           type="button"
           onClick={() => setIsSortOpen(!isSortOpen)}
           aria-label={`Sıralama: ${currentSortLabel}`}
           title={`Sıralama: ${currentSortLabel}`}
-          className={`w-[52px] h-[52px] rounded-[14px] border-none flex items-center justify-center cursor-pointer transition-colors shadow-2xs ${
+          className={`w-[46px] h-[46px] rounded-[13px] border-none flex items-center justify-center cursor-pointer transition-colors shadow-2xs ${
             isSortActive
               ? 'bg-tn-red text-white hover:bg-tn-red/90'
               : 'bg-tn-ink text-white hover:bg-tn-ink/85'
@@ -243,7 +257,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
         {/* Mobile Sort Dropdown Popover */}
         {isSortOpen && (
-          <div className="absolute top-full right-0 mt-1.5 w-48 rounded-xl bg-white dark:bg-tn-card border border-tn-line shadow-lg z-30 py-1 divide-y divide-tn-line/40 font-serif">
+          <div className="absolute top-full right-0 mt-1.5 w-48 rounded-xl bg-white dark:bg-tn-card border border-tn-line shadow-lg z-30 py-1 divide-y divide-tn-line/40 font-sans">
             {SORT_OPTIONS.map((opt) => (
               <button
                 key={opt.key}

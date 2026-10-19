@@ -92,6 +92,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
 
   const navLinks = [
     { label: 'Ana Sayfa', path: '/' },
+    { label: 'Sahne Akışı (Keşfet)', path: '/kesfet', badge: 'YENİ' },
     { label: 'Katalog', path: '/katalog' },
     { label: 'İzlediklerim', path: '/izlediklerim' },
     { label: 'İzlemek İstediklerim', path: '/izlemek-istediklerim' },
@@ -119,7 +120,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
       {/* Drawer — smooth sliding transition from left */}
       <aside
         ref={drawerRef}
-        className={`fixed top-2 left-2 bottom-2 z-[999] w-[calc(100vw-16px)] sm:w-[380px] max-w-[380px] rounded-[20px] shadow-2xl p-4 flex flex-col gap-1.5 font-serif border overflow-y-auto transition-transform duration-350 ease-out transform ${
+        className={`fixed top-2 left-2 bottom-2 z-[999] w-[calc(100vw-16px)] sm:w-[380px] max-w-[380px] rounded-[20px] shadow-2xl p-4 flex flex-col gap-1.5 font-sans border overflow-y-auto transition-transform duration-350 ease-out transform ${
           isVisible ? 'translate-x-0' : '-translate-x-[110%]'
         }`}
         role="dialog"
@@ -139,7 +140,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
             className="flex items-center gap-2.5 text-tn-text no-underline hover:text-tn-red transition-colors"
           >
             <img src="/logo.png" alt="Tiyatronot Logo" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
-            <span className="font-bold text-[22px] tracking-tight leading-none font-sans" style={{ color: 'var(--tn-text)' }}>
+            <span className="font-display font-extrabold text-[22px] tracking-[-0.035em] leading-none" style={{ color: 'var(--tn-text)' }}>
               TİYATRO<span style={{ color: 'var(--tn-red)' }}>·</span>NOT
             </span>
           </Link>

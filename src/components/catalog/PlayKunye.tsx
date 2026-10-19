@@ -29,7 +29,7 @@ export const PlayKunye: React.FC<PlayKunyeProps> = ({ play, className = '' }) =>
           <span>Tiyatro Künyesi</span>
         </div>
         {play.originalTitle && play.originalTitle !== play.title && (
-          <span className="font-serif italic text-xs text-text-tertiary">
+          <span className="font-accent italic font-normal text-xs text-text-tertiary">
             Orijinal: {play.originalTitle}
           </span>
         )}
@@ -42,7 +42,7 @@ export const PlayKunye: React.FC<PlayKunyeProps> = ({ play, className = '' }) =>
           <BookOpen className="w-4 h-4 text-theatre-curtain flex-shrink-0 mt-0.5" />
           <div className="flex-1 flex justify-between gap-2">
             <span className="font-mono uppercase text-text-secondary">Yazar</span>
-            <span className="font-semibold text-text-primary text-right font-serif text-sm">
+            <span className="font-accent italic font-normal text-text-primary text-right text-base">
               {play.playwright}
             </span>
           </div>

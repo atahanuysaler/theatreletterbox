@@ -26,7 +26,7 @@ export function SegmentedControl<T extends string>({
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      className={`inline-flex items-center gap-1 p-1 rounded-xl font-serif text-sm border ${
+      className={`inline-flex items-center gap-1 p-1 rounded-xl font-sans text-sm border ${
         variant === 'dark'
           ? 'bg-tn-ink text-white border-tn-ink'
           : 'bg-tn-surface text-tn-text border-tn-line/50'
@@ -44,7 +44,7 @@ export function SegmentedControl<T extends string>({
             role="radio"
             aria-checked={isSelected}
             onClick={() => onChange(optVal as T)}
-            className={`min-h-[36px] px-3.5 rounded-lg font-serif text-sm transition-all cursor-pointer ${
+            className={`min-h-[36px] px-3.5 rounded-lg font-sans text-sm transition-all cursor-pointer ${
               isSelected
                 ? 'bg-white dark:bg-tn-card text-tn-text font-bold shadow-seg'
                 : 'bg-transparent text-tn-muted hover:text-tn-text font-normal'

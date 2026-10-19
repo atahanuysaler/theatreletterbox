@@ -50,7 +50,7 @@ function AccessDenied() {
   return (
     <div className="max-w-lg mx-auto px-4 py-20 text-center space-y-4">
       <Shield className="w-10 h-10 text-border-strong mx-auto" />
-      <h1 className="font-serif font-bold text-2xl text-text-primary">Erişim Yetkisi Gerekli</h1>
+      <h1 className="font-display font-bold text-2xl text-text-primary tracking-[-0.02em]">Erişim Yetkisi Gerekli</h1>
       <p className="text-sm text-text-secondary font-mono">Bu sayfaya sadece yönetici rolündeki kullanıcılar erişebilir.</p>
     </div>
   );
@@ -112,7 +112,7 @@ function SubmissionsSection({ onPlayApproved }: { onPlayApproved: () => void }) 
       <div className="flex items-center justify-between pb-2 border-b border-border-subtle">
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-theatre-curtain" />
-          <h2 className="font-serif font-bold text-base text-text-primary">
+          <h2 className="font-display font-bold text-base text-text-primary tracking-[-0.01em]">
             Onay Bekleyen Oyun Önerileri
           </h2>
           <span className="font-mono text-xs text-text-tertiary">
@@ -147,7 +147,7 @@ function SubmissionsSection({ onPlayApproved }: { onPlayApproved: () => void }) 
       ) : submissions.length === 0 ? (
         <div className="p-8 bg-layer-01 border border-border-subtle rounded-sm text-center space-y-2">
           <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto" />
-          <div className="font-serif font-semibold text-text-primary text-sm">
+          <div className="font-sans font-semibold text-text-primary text-sm">
             Onay bekleyen oyun önerisi bulunmuyor.
           </div>
           <p className="text-xs text-text-tertiary font-mono">
@@ -177,7 +177,7 @@ function SubmissionsSection({ onPlayApproved }: { onPlayApproved: () => void }) 
               {/* Main Information */}
               <div className="flex-1 min-w-0 space-y-1.5">
                 <div className="flex flex-wrap items-baseline gap-2">
-                  <h3 className="font-serif font-bold text-base text-text-primary">
+                  <h3 className="font-display font-bold text-base text-text-primary tracking-[-0.01em]">
                     {sub.title}
                   </h3>
                   <span className="font-mono text-xs text-theatre-curtain font-semibold">
@@ -217,7 +217,7 @@ function SubmissionsSection({ onPlayApproved }: { onPlayApproved: () => void }) 
                 )}
 
                 {sub.synopsis && (
-                  <p className="text-xs text-text-secondary font-serif line-clamp-2 pt-1">
+                  <p className="text-xs text-text-secondary font-sans line-clamp-2 pt-1">
                     {sub.synopsis}
                   </p>
                 )}
@@ -466,7 +466,7 @@ function PublishedPlaysSection() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border-subtle">
         <div className="flex items-center gap-2">
           <BookOpen className="w-4 h-4 text-theatre-curtain" />
-          <h2 className="font-serif font-bold text-base text-text-primary">
+          <h2 className="font-display font-bold text-base text-text-primary tracking-[-0.01em]">
             Katalogdaki Oyunlar
           </h2>
           <span className="font-mono text-xs text-text-tertiary">
@@ -527,7 +527,7 @@ function PublishedPlaysSection() {
                     </div>
                   )}
                   <div className="min-w-0">
-                    <div className="font-serif font-semibold text-xs sm:text-sm text-text-primary truncate flex items-center gap-2">
+                    <div className="font-sans font-semibold text-xs sm:text-sm text-text-primary truncate flex items-center gap-2">
                       <span>{play.title}</span>
                       <span className="font-mono text-xs text-text-tertiary font-normal">({play.year})</span>
                       {play.genre && (
@@ -617,7 +617,7 @@ function PublishedPlaysSection() {
             <div className="px-5 py-3.5 border-b border-border-subtle flex items-center justify-between bg-layer-01">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-theatre-curtain" />
-                <h3 className="font-serif font-bold text-sm sm:text-base text-text-primary">
+                <h3 className="font-display font-bold text-sm sm:text-base text-text-primary tracking-[-0.01em]">
                   {editingPlay ? `Oyunu Düzenle: ${editingPlay.title}` : 'Yeni Oyun Ekle'}
                 </h3>
               </div>
@@ -984,7 +984,7 @@ function HomepageFeaturedSection() {
         <div>
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-theatre-curtain" />
-            <h2 className="font-serif font-bold text-base text-text-primary">
+            <h2 className="font-display font-bold text-base text-text-primary tracking-[-0.01em]">
               Ana Sayfa Öne Çıkanlar (4 Oyun Vitrini)
             </h2>
           </div>
@@ -1083,7 +1083,7 @@ function HomepageFeaturedSection() {
                     <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-xs bg-layer-02 text-theatre-curtain border border-theatre-curtain/20">
                       {slot.badge}
                     </span>
-                    <span className="font-serif font-bold text-base text-text-primary truncate">
+                    <span className="font-sans font-bold text-base text-text-primary truncate">
                       {play?.title || 'Oyun Seçilmedi'}
                     </span>
                     {play && (
@@ -1143,7 +1143,7 @@ function HomepageFeaturedSection() {
             {/* Modal Header */}
             <div className="p-4 border-b border-border-subtle flex items-center justify-between">
               <div>
-                <h3 className="font-serif font-bold text-base text-text-primary">
+                <h3 className="font-display font-bold text-base text-text-primary tracking-[-0.01em]">
                   {slotLabels[pickerSlotIndex]?.title} İçin Oyun Seç
                 </h3>
                 <p className="text-xs text-text-secondary font-mono">
@@ -1209,7 +1209,7 @@ function HomepageFeaturedSection() {
                           </div>
                         )}
                         <div className="min-w-0">
-                          <div className="font-serif font-bold text-sm text-text-primary truncate">
+                          <div className="font-sans font-bold text-sm text-text-primary truncate">
                             {p.title}
                           </div>
                           <div className="text-xs text-text-secondary font-mono truncate">
@@ -1392,7 +1392,7 @@ function CuratedListsSection() {
         <div>
           <div className="flex items-center gap-2">
             <Library className="w-4 h-4 text-theatre-curtain" />
-            <h2 className="font-serif font-bold text-base text-text-primary">
+            <h2 className="font-display font-bold text-base text-text-primary tracking-[-0.01em]">
               Küratörlü Listeler
             </h2>
             <span className="font-mono text-xs text-text-tertiary">
@@ -1466,7 +1466,7 @@ function CuratedListsSection() {
                     </div>
                   </div>
 
-                  <h3 className="font-serif font-bold text-base text-text-primary leading-snug">
+                  <h3 className="font-display font-bold text-base text-text-primary leading-snug tracking-[-0.01em]">
                     {list.title}
                   </h3>
                   <p className="text-xs text-text-secondary line-clamp-2 mt-1 font-sans">
@@ -1508,7 +1508,7 @@ function CuratedListsSection() {
             <div className="px-5 py-3.5 border-b border-border-subtle flex items-center justify-between bg-layer-01">
               <div className="flex items-center gap-2">
                 <Library className="w-4 h-4 text-theatre-curtain" />
-                <h3 className="font-serif font-bold text-sm sm:text-base text-text-primary">
+                <h3 className="font-display font-bold text-sm sm:text-base text-text-primary tracking-[-0.01em]">
                   {editingList ? 'Listeyi Düzenle' : 'Yeni Küratörlü Liste'}
                 </h3>
               </div>
@@ -1760,7 +1760,7 @@ function ContactMessagesSection({ onMessagesUpdated }: { onMessagesUpdated?: () 
       <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
         <div className="flex items-center gap-2">
           <Mail className="w-4 h-4 text-theatre-curtain" />
-          <h2 className="font-serif font-bold text-base text-text-primary">
+          <h2 className="font-display font-bold text-base text-text-primary tracking-[-0.01em]">
             Gelen İletişim Mesajları
           </h2>
           <span className="font-mono text-xs text-text-tertiary">
@@ -1792,7 +1792,7 @@ function ContactMessagesSection({ onMessagesUpdated }: { onMessagesUpdated?: () 
       ) : messages.length === 0 ? (
         <div className="p-8 bg-layer-01 border border-border-subtle rounded-sm text-center space-y-2">
           <Mail className="w-8 h-8 text-text-tertiary mx-auto opacity-50" />
-          <div className="font-serif font-semibold text-text-primary text-sm">
+          <div className="font-sans font-semibold text-text-primary text-sm">
             Henüz hiç iletişim mesajı bulunmuyor.
           </div>
           <p className="text-xs text-text-tertiary font-mono">
@@ -1852,7 +1852,7 @@ function ContactMessagesSection({ onMessagesUpdated }: { onMessagesUpdated?: () 
             <div className="md:col-span-7 bg-layer-01 border border-border-subtle rounded-sm p-5 space-y-4 sticky top-20">
               <div className="flex items-start justify-between gap-4 border-b border-border-subtle pb-4">
                 <div>
-                  <h3 className="font-serif font-bold text-lg text-text-primary">
+                  <h3 className="font-display font-bold text-lg text-text-primary tracking-[-0.01em]">
                     {selectedMessage.name}
                   </h3>
                   <a
@@ -1979,7 +1979,7 @@ function ReviewsManagementSection({ onReviewsUpdated }: { onReviewsUpdated?: () 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border-subtle">
         <div className="flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-theatre-curtain" />
-          <h2 className="font-serif font-bold text-base text-text-primary">
+          <h2 className="font-display font-bold text-base text-text-primary tracking-[-0.01em]">
             Kullanıcı Seyirci Notları Yönetimi
           </h2>
           <span className="text-xs font-mono text-text-tertiary">
@@ -2031,7 +2031,7 @@ function ReviewsManagementSection({ onReviewsUpdated }: { onReviewsUpdated?: () 
       ) : filteredReviews.length === 0 ? (
         <div className="p-10 text-center bg-layer-01/60 border border-dashed border-border-subtle rounded-sm space-y-1.5">
           <MessageSquare className="w-8 h-8 text-text-tertiary mx-auto opacity-40" />
-          <p className="font-serif italic text-sm text-text-secondary">
+          <p className="font-sans italic text-sm text-text-secondary">
             {search ? 'Aramanızla eşleşen seyirci notu bulunamadı.' : 'Henüz hiç kullanıcı notu bulunmuyor.'}
           </p>
         </div>
@@ -2058,7 +2058,7 @@ function ReviewsManagementSection({ onReviewsUpdated }: { onReviewsUpdated?: () 
 
                 <div className="min-w-0 space-y-1 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-serif font-bold text-sm text-text-primary">
+                    <span className="font-sans font-bold text-sm text-text-primary">
                       {rev.playTitle}
                     </span>
                     <span className="text-xs font-mono text-theatre-curtain font-semibold">
@@ -2175,7 +2175,7 @@ export const AdminPage: React.FC = () => {
             <Shield className="w-4 h-4" />
             <span>Yönetici Konsolu</span>
           </div>
-          <h1 className="font-serif font-bold text-2xl text-text-primary tracking-tight">
+          <h1 className="font-display font-bold text-2xl text-text-primary tracking-[-0.02em]">
             Tiyatronot Yönetim Paneli
           </h1>
         </div>

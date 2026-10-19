@@ -85,7 +85,7 @@ export const PlayCard: React.FC<PlayCardProps> = ({
               </div>
               <div className="space-y-1.5 my-auto">
                 <Theater className="w-7 h-7 mx-auto text-theatre-curtain opacity-70" />
-                <h4 className="font-serif font-bold text-sm sm:text-base text-text-primary leading-tight line-clamp-3">
+                <h4 className="font-display font-extrabold text-sm sm:text-base text-text-primary leading-tight line-clamp-3">
                   {play.title}
                 </h4>
                 <p className="font-sans text-xs text-text-secondary line-clamp-1">
@@ -205,14 +205,14 @@ export const PlayCard: React.FC<PlayCardProps> = ({
         <div className="space-y-1">
           <Link
             to={`/oyun/${play.id}`}
-            className="block font-serif font-bold text-sm sm:text-base text-text-primary group-hover:text-theatre-curtain transition-colors line-clamp-1 leading-snug tracking-tight"
+            className="block font-display font-extrabold text-sm sm:text-base text-text-primary group-hover:text-theatre-curtain transition-colors line-clamp-1 leading-snug tracking-[-0.02em]"
             title={play.title}
           >
             {play.title}
           </Link>
 
-          <div className="text-[11px] space-y-0.5 text-text-secondary leading-tight font-sans">
-            <p className="font-medium text-text-primary line-clamp-1" title={play.playwright}>
+          <div className="text-[11px] space-y-0.5 text-text-secondary leading-tight">
+            <p className="font-accent italic font-normal text-sm text-text-primary line-clamp-1" title={play.playwright}>
               {play.playwright}
             </p>
 

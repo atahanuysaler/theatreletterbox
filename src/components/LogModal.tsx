@@ -326,7 +326,7 @@ export const LogModal: React.FC<LogModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md overflow-y-auto">
       {/* Modal Dialog Card */}
-      <div className="relative w-full max-w-5xl bg-[#FFFCF7] dark:bg-[#1A1819] rounded-t-[28px] sm:rounded-[24px] overflow-hidden shadow-2xl border border-black/10 dark:border-white/10 flex flex-col lg:grid lg:grid-cols-[430px_minmax(0,1fr)] max-h-[95vh] sm:max-h-[90vh] my-auto animate-fade-in font-serif transition-colors duration-200">
+      <div className="relative w-full max-w-5xl bg-[#FFFCF7] dark:bg-[#1A1819] rounded-t-[28px] sm:rounded-[24px] overflow-hidden shadow-2xl border border-black/10 dark:border-white/10 flex flex-col lg:grid lg:grid-cols-[430px_minmax(0,1fr)] max-h-[95vh] sm:max-h-[90vh] my-auto animate-fade-in font-sans transition-colors duration-200">
 
         {/* DESKTOP LEFT COLUMN: THEATRICAL BACKDROP & LIVE TICKET STUB */}
         <div className="hidden lg:flex bg-[#181617] dark:bg-[#121011] p-6 lg:p-7 flex-col justify-between items-center relative overflow-hidden select-none border-r border-[#2A2628] dark:border-[#221F21]">
@@ -335,7 +335,7 @@ export const LogModal: React.FC<LogModalProps> = ({
 
           {/* Top Stage Logo */}
           <div className="w-full flex items-center justify-between text-white/80 z-10">
-            <span className="font-serif font-extrabold tracking-[0.2em] text-xs uppercase text-white/90">
+            <span className="font-display font-extrabold tracking-[0.2em] text-xs uppercase text-white/90">
               TİYATRO NOT
             </span>
             <span className="text-[10px] font-mono tracking-widest text-[#8E8780] uppercase">
@@ -371,12 +371,12 @@ export const LogModal: React.FC<LogModalProps> = ({
                 {/* Play Title & Playwright (Dynamic fit for long titles) */}
                 <div className="my-1.5 min-w-0">
                   <div
-                    className={`font-bold text-[#1C1A1B] dark:text-white line-clamp-2 break-words ${playTitleSizeClass}`}
+                    className={`font-display font-extrabold text-[#1C1A1B] dark:text-white line-clamp-2 break-words ${playTitleSizeClass}`}
                     title={selectedPlay?.title || 'Oyun Seçiniz'}
                   >
                     {selectedPlay?.title || 'Oyun Seçiniz'}
                   </div>
-                  <div className="italic text-xs text-[#6E6862] dark:text-[#A8A29E] truncate mt-0.5">
+                  <div className="font-accent italic font-normal text-xs text-[#6E6862] dark:text-[#A8A29E] truncate mt-0.5">
                     {selectedPlay?.playwright || 'Yazar Belirtilmemiş'}
                   </div>
                 </div>
@@ -451,7 +451,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                   </span>
                   {rating > 0 ? (
                     <div className="mt-1">
-                      <div className="font-extrabold text-2xl text-[#1C1A1B] dark:text-white leading-none">
+                      <div className="font-display font-extrabold text-2xl text-[#1C1A1B] dark:text-white leading-none">
                         {rating.toFixed(1)}
                       </div>
                       <div className="text-[10px] font-medium text-[#BA1B23] italic leading-tight mt-0.5">
@@ -467,7 +467,7 @@ export const LogModal: React.FC<LogModalProps> = ({
 
                 {/* Rubber Stamp for Step 4 / Completed */}
                 {step === 4 && (
-                  <div className="border-[1.5px] border-[#BA1B23] text-[#BA1B23] font-serif font-black text-[9px] tracking-widest uppercase px-1 py-0.5 rounded -rotate-6 select-none shadow-2xs my-1 animate-scale-in">
+                  <div className="border-[1.5px] border-[#BA1B23] text-[#BA1B23] font-display font-black text-[9px] tracking-widest uppercase px-1 py-0.5 rounded -rotate-6 select-none shadow-2xs my-1 animate-scale-in">
                     GİRİŞ ONAYLI
                   </div>
                 )}
@@ -501,7 +501,7 @@ export const LogModal: React.FC<LogModalProps> = ({
           
           {/* Top Header & Close Button */}
           <div className="flex items-center justify-between pb-3 border-b border-[#EADBCA]/60 dark:border-[#332E31]">
-            <h2 className="font-serif font-bold text-lg sm:text-xl text-[#1C1A1B] dark:text-white">
+            <h2 className="font-display font-extrabold text-lg sm:text-xl text-[#1C1A1B] dark:text-white">
               Bilet Kes
             </h2>
             <button
@@ -626,7 +626,7 @@ export const LogModal: React.FC<LogModalProps> = ({
 
                 {/* Rubber Stamp for Step 4 */}
                 {step === 4 && (
-                  <div className="border-[1.5px] border-[#BA1B23] text-[#BA1B23] font-serif font-black text-[9px] tracking-widest uppercase px-1.5 py-0.5 rounded -rotate-6 select-none shadow-2xs animate-scale-in">
+                  <div className="border-[1.5px] border-[#BA1B23] text-[#BA1B23] font-display font-black text-[9px] tracking-widest uppercase px-1.5 py-0.5 rounded -rotate-6 select-none shadow-2xs animate-scale-in">
                     GİRİŞ ONAYLI
                   </div>
                 )}
@@ -648,7 +648,7 @@ export const LogModal: React.FC<LogModalProps> = ({
           {/* Stepper Tabs Bar (Steps 1 to 3) */}
           {step <= 3 && (
             <div className="pt-1 sm:pt-2">
-              <div className="flex items-center justify-between text-xs font-serif border-b border-[#EADBCA]/50 dark:border-[#332E31] pb-2">
+              <div className="flex items-center justify-between text-xs font-sans border-b border-[#EADBCA]/50 dark:border-[#332E31] pb-2">
                 {[
                   { num: 1, label: 'I · Oyun & Tarih' },
                   { num: 2, label: 'II · Alkış' },
@@ -662,7 +662,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                         setStep(item.num as Step);
                       }
                     }}
-                    className={`transition-colors cursor-pointer pb-0.5 text-xs sm:text-sm ${
+                    className={`transition-colors cursor-pointer pb-0.5 text-xs sm:text-sm font-sans ${
                       step === item.num
                         ? 'font-bold text-[#1C1A1B] dark:text-white border-b-2 border-[#BA1B23]'
                         : item.num < step
@@ -677,10 +677,10 @@ export const LogModal: React.FC<LogModalProps> = ({
 
               {/* Subheading Badge */}
               <div className="mt-2.5 sm:mt-3">
-                <span className="text-[10px] font-bold text-[#BA1B23] tracking-widest uppercase">
+                <span className="text-[10px] font-sans font-bold text-[#BA1B23] tracking-widest uppercase">
                   PERDE {['I', 'II', 'III'][step - 1]} / III
                 </span>
-                <h3 className="font-serif font-bold text-xl sm:text-2xl text-[#1C1A1B] dark:text-white leading-tight">
+                <h3 className="font-display font-extrabold text-xl sm:text-2xl text-[#1C1A1B] dark:text-white leading-tight">
                   {step === 1 && 'Oyun & Tarih'}
                   {step === 2 && 'Alkış ölçeği'}
                   {step === 3 && 'İzlenimin'}
@@ -691,22 +691,22 @@ export const LogModal: React.FC<LogModalProps> = ({
 
           {/* Error Message */}
           {error && (
-            <div className="my-2 p-2.5 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-[#BA1B23] text-xs font-serif rounded-xl">
+            <div className="my-2 p-2.5 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-[#BA1B23] text-xs font-sans rounded-xl">
               {error}
             </div>
           )}
 
           {/* STEP 1: PERDE I - OYUN & TARİH */}
           {step === 1 && (
-            <div className="space-y-4 py-3 my-auto">
+            <div className="space-y-4 py-3 my-auto font-sans">
               {/* Play Selection Card */}
               {selectedPlay && !isChangingPlay ? (
                 <div className="bg-[#FBF9F5] dark:bg-[#232022] border border-[#EADBCA] dark:border-[#383235] rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-2xs">
                   <div className="min-w-0">
-                    <h4 className="font-serif font-bold text-sm sm:text-base text-[#1C1A1B] dark:text-white truncate">
+                    <h4 className="font-display font-extrabold text-sm sm:text-base text-[#1C1A1B] dark:text-white truncate">
                       {selectedPlay.title}
                     </h4>
-                    <p className="italic text-xs text-[#6E6862] dark:text-[#9A928A] truncate mt-0.5">
+                    <p className="font-accent italic font-normal text-xs text-[#6E6862] dark:text-[#9A928A] truncate mt-0.5">
                       {selectedPlay.playwright || 'Arthur Miller'} {selectedPlay.company ? `· ${selectedPlay.company}` : ''}
                     </p>
                   </div>
@@ -717,7 +717,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                         setIsChangingPlay(true);
                         setTimeout(() => searchInputRef.current?.focus(), 50);
                       }}
-                      className="px-3 py-1.5 bg-white dark:bg-[#2C272A] hover:bg-[#F1EDE7] dark:hover:bg-[#383236] text-[#1C1A1B] dark:text-white text-xs font-serif font-medium rounded-full border border-[#D8D2CA] dark:border-[#443E42] shadow-2xs transition-colors shrink-0 cursor-pointer"
+                      className="px-3 py-1.5 bg-white dark:bg-[#2C272A] hover:bg-[#F1EDE7] dark:hover:bg-[#383236] text-[#1C1A1B] dark:text-white text-xs font-sans font-medium rounded-full border border-[#D8D2CA] dark:border-[#443E42] shadow-2xs transition-colors shrink-0 cursor-pointer"
                     >
                       Değiştir
                     </button>
@@ -733,7 +733,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                       value={playSearch}
                       onChange={e => setPlaySearch(e.target.value)}
                       placeholder="Oyun adı veya yazar ara..."
-                      className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#2A2628] rounded-xl border border-[#D8D2CA] dark:border-[#3F3A3D] text-sm font-serif text-[#1C1A1B] dark:text-white placeholder:text-[#9A928A] focus:outline-none focus:ring-1 focus:ring-[#BA1B23]"
+                      className="w-full pl-9 pr-3 py-2 bg-white dark:bg-[#2A2628] rounded-xl border border-[#D8D2CA] dark:border-[#3F3A3D] text-sm font-sans text-[#1C1A1B] dark:text-white placeholder:text-[#9A928A] focus:outline-none focus:ring-1 focus:ring-[#BA1B23]"
                     />
                   </div>
                   {/* Results list */}
@@ -747,10 +747,10 @@ export const LogModal: React.FC<LogModalProps> = ({
                           setIsChangingPlay(false);
                           setPlaySearch('');
                         }}
-                        className="w-full p-2 text-left hover:bg-[#F6F3EE] dark:hover:bg-[#342F32] flex items-center justify-between text-xs font-serif transition-colors cursor-pointer"
+                        className="w-full p-2 text-left hover:bg-[#F6F3EE] dark:hover:bg-[#342F32] flex items-center justify-between text-xs font-sans transition-colors cursor-pointer"
                       >
                         <span className="font-bold text-[#1C1A1B] dark:text-white truncate">{p.title}</span>
-                        <span className="italic text-[#6E6862] dark:text-[#9A928A] text-[11px] truncate ml-2">
+                        <span className="font-accent italic font-normal text-[#6E6862] dark:text-[#9A928A] text-[11px] truncate ml-2">
                           {p.playwright}
                         </span>
                       </button>
@@ -760,15 +760,15 @@ export const LogModal: React.FC<LogModalProps> = ({
               )}
 
               {/* Ne zaman izledin? Date options */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-serif text-[#6E6862] dark:text-[#A8A29E] italic block">
+              <div className="space-y-1.5 font-sans">
+                <label className="text-xs font-sans text-[#6E6862] dark:text-[#A8A29E] block">
                   Ne zaman izledin?
                 </label>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => handleDateModeChange('today')}
-                    className={`flex-1 py-2 px-2.5 rounded-xl font-serif text-xs transition-colors cursor-pointer ${
+                    className={`flex-1 py-2 px-2.5 rounded-xl font-sans text-xs transition-colors cursor-pointer ${
                       dateMode === 'today'
                         ? 'bg-[#1C1A1B] text-white dark:bg-white dark:text-[#1C1A1B] font-medium shadow-sm'
                         : 'bg-[#F1EDE7] dark:bg-[#282426] text-[#1C1A1B] dark:text-[#DDD7CF] hover:bg-[#E8E2D9] dark:hover:bg-[#332E31]'
@@ -779,7 +779,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleDateModeChange('yesterday')}
-                    className={`flex-1 py-2 px-2.5 rounded-xl font-serif text-xs transition-colors cursor-pointer ${
+                    className={`flex-1 py-2 px-2.5 rounded-xl font-sans text-xs transition-colors cursor-pointer ${
                       dateMode === 'yesterday'
                         ? 'bg-[#1C1A1B] text-white dark:bg-white dark:text-[#1C1A1B] font-medium shadow-sm'
                         : 'bg-[#F1EDE7] dark:bg-[#282426] text-[#1C1A1B] dark:text-[#DDD7CF] hover:bg-[#E8E2D9] dark:hover:bg-[#332E31]'
@@ -790,7 +790,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleDateModeChange('custom')}
-                    className={`flex-1 py-2 px-2.5 rounded-xl font-serif text-xs transition-colors cursor-pointer ${
+                    className={`flex-1 py-2 px-2.5 rounded-xl font-sans text-xs transition-colors cursor-pointer ${
                       dateMode === 'custom'
                         ? 'bg-[#1C1A1B] text-white dark:bg-white dark:text-[#1C1A1B] font-medium shadow-sm'
                         : 'bg-[#F1EDE7] dark:bg-[#282426] text-[#1C1A1B] dark:text-[#DDD7CF] hover:bg-[#E8E2D9] dark:hover:bg-[#332E31]'
@@ -804,7 +804,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                     type="date"
                     value={performanceDate}
                     onChange={e => setPerformanceDate(e.target.value)}
-                    className="w-full mt-2 py-2 px-3 rounded-xl bg-[#F1EDE7] dark:bg-[#282426] border-0 text-sm font-serif text-[#1C1A1B] dark:text-white focus:ring-2 focus:ring-[#BA1B23]"
+                    className="w-full mt-2 py-2 px-3 rounded-xl bg-[#F1EDE7] dark:bg-[#282426] border-0 text-sm font-sans text-[#1C1A1B] dark:text-white focus:ring-2 focus:ring-[#BA1B23]"
                   />
                 )}
               </div>
@@ -813,7 +813,7 @@ export const LogModal: React.FC<LogModalProps> = ({
 
           {/* STEP 2: PERDE II - ALKIŞ ÖLÇEĞİ & AYRINTILI PERFORMANS PUANLARI */}
           {step === 2 && (
-            <div className="space-y-4 py-2 my-auto flex flex-col items-center">
+            <div className="space-y-4 py-2 my-auto flex flex-col items-center font-sans">
               {/* 5 Vertical Height-staggered Ovation Bars (Supports Half-Stars) */}
               <div className="w-full">
                 <div className="flex items-end justify-center gap-2 sm:gap-3.5 h-32 sm:h-36 w-full max-w-sm mx-auto px-2">
@@ -851,7 +851,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                         />
 
                         {/* Bar number indicator at the bottom */}
-                        <span className="font-serif font-bold text-xs sm:text-sm pointer-events-none z-0">
+                        <span className="font-display font-extrabold text-xs sm:text-sm pointer-events-none z-0">
                           {level}
                         </span>
                       </div>
@@ -862,22 +862,22 @@ export const LogModal: React.FC<LogModalProps> = ({
                 {/* Theatrical Rating Name & Poetic Subtitle & Quick Half-Step Adjuster */}
                 <div className="text-center space-y-1 mt-2.5">
                   <div className="flex items-center justify-center gap-2">
-                    <span className="font-serif font-extrabold text-2xl sm:text-3xl text-[#1C1A1B] dark:text-white leading-none">
+                    <span className="font-display font-extrabold text-2xl sm:text-3xl text-[#1C1A1B] dark:text-white leading-none">
                       {rating.toFixed(1)}
                     </span>
                     <button
                       type="button"
                       onClick={() => setRating(prev => (prev % 1 === 0 ? Math.max(0.5, prev - 0.5) : Math.min(5, Math.floor(prev) + 1)))}
-                      className="px-2 py-0.5 rounded-full text-xs font-serif border border-[#D8D2CA] dark:border-[#443E42] bg-white dark:bg-[#2C2729] text-[#BA1B23] font-bold hover:bg-[#F1EDE7] cursor-pointer transition-colors shadow-2xs"
+                      className="px-2 py-0.5 rounded-full text-xs font-sans border border-[#D8D2CA] dark:border-[#443E42] bg-white dark:bg-[#2C2729] text-[#BA1B23] font-bold hover:bg-[#F1EDE7] cursor-pointer transition-colors shadow-2xs"
                       title="Yarım puan ekle / çıkar"
                     >
                       {rating % 1 === 0 ? '½ Puan Düşür' : 'Tam Puana Yuvarla'}
                     </button>
                   </div>
-                  <div className="font-serif font-bold text-base sm:text-lg text-[#BA1B23]">
+                  <div className="font-display font-extrabold text-base sm:text-lg text-[#BA1B23]">
                     {currentOvation.title}
                   </div>
-                  <div className="font-serif italic text-xs text-[#6E6862] dark:text-[#A8A29E]">
+                  <div className="font-accent italic font-normal text-sm text-[#6E6862] dark:text-[#A8A29E]">
                     "{currentOvation.quote}"
                   </div>
                 </div>
@@ -892,7 +892,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                       <Theater className="w-3.5 h-3.5" />
                     </div>
                     <div className="min-w-0">
-                      <div className="font-serif font-bold text-xs text-[#1C1A1B] dark:text-white flex items-center gap-1.5 truncate">
+                      <div className="font-sans font-bold text-xs text-[#1C1A1B] dark:text-white flex items-center gap-1.5 truncate">
                         <span>Oyuncuların Performansı</span>
                         <span className="text-[10px] text-[#8E8780] font-normal italic">(İsteğe bağlı)</span>
                       </div>
@@ -911,7 +911,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                           key={score}
                           type="button"
                           onClick={() => setPerformanceRating(performanceRating === score ? 0 : score)}
-                          className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg text-xs font-serif font-bold transition-all cursor-pointer flex items-center justify-center ${
+                          className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg text-xs font-sans font-bold transition-all cursor-pointer flex items-center justify-center ${
                             isActive
                               ? 'bg-purple-600 text-white shadow-sm ring-2 ring-purple-400/40'
                               : 'bg-[#F1EDE7] dark:bg-[#2C2729] text-[#6E6862] dark:text-[#9A928A] hover:bg-purple-50 dark:hover:bg-purple-950/40'
@@ -925,7 +925,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                       <button
                         type="button"
                         onClick={() => setPerformanceRating(0)}
-                        className="text-[10px] font-serif text-[#8E8780] hover:text-[#BA1B23] px-1 underline cursor-pointer"
+                        className="text-[10px] font-sans text-[#8E8780] hover:text-[#BA1B23] px-1 underline cursor-pointer"
                         title="Puanı kaldır"
                       >
                         Sıfırla
@@ -941,7 +941,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                       <Sparkles className="w-3.5 h-3.5" />
                     </div>
                     <div className="min-w-0">
-                      <div className="font-serif font-bold text-xs text-[#1C1A1B] dark:text-white flex items-center gap-1.5 truncate">
+                      <div className="font-sans font-bold text-xs text-[#1C1A1B] dark:text-white flex items-center gap-1.5 truncate">
                         <span>Prodüksiyon & Reji</span>
                         <span className="text-[10px] text-[#8E8780] font-normal italic">(İsteğe bağlı)</span>
                       </div>
@@ -960,7 +960,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                           key={score}
                           type="button"
                           onClick={() => setTechnicalRating(technicalRating === score ? 0 : score)}
-                          className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg text-xs font-serif font-bold transition-all cursor-pointer flex items-center justify-center ${
+                          className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg text-xs font-sans font-bold transition-all cursor-pointer flex items-center justify-center ${
                             isActive
                               ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-400/40'
                               : 'bg-[#F1EDE7] dark:bg-[#2C2729] text-[#6E6862] dark:text-[#9A928A] hover:bg-blue-50 dark:hover:bg-blue-950/40'
@@ -974,7 +974,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                       <button
                         type="button"
                         onClick={() => setTechnicalRating(0)}
-                        className="text-[10px] font-serif text-[#8E8780] hover:text-[#BA1B23] px-1 underline cursor-pointer"
+                        className="text-[10px] font-sans text-[#8E8780] hover:text-[#BA1B23] px-1 underline cursor-pointer"
                         title="Puanı kaldır"
                       >
                         Sıfırla
@@ -988,10 +988,10 @@ export const LogModal: React.FC<LogModalProps> = ({
 
           {/* STEP 3: PERDE III - İZLENİMİN */}
           {step === 3 && (
-            <div className="space-y-3 py-2 my-auto">
+            <div className="space-y-3 py-2 my-auto font-sans">
               {/* Highlight tags */}
               <div className="space-y-1.5">
-                <label className="text-xs font-serif text-[#6E6862] dark:text-[#A8A29E] italic block">
+                <label className="text-xs font-sans text-[#6E6862] dark:text-[#A8A29E] block">
                   Sence en çok ne öne çıktı?
                 </label>
                 <div className="flex flex-wrap gap-1.5">
@@ -1002,7 +1002,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                         key={tag}
                         type="button"
                         onClick={() => handleTagToggle(tag)}
-                        className={`px-3 py-1 rounded-full text-xs font-serif transition-colors cursor-pointer ${
+                        className={`px-3 py-1 rounded-full text-xs font-sans transition-colors cursor-pointer ${
                           isSelected
                             ? 'bg-[#1C1A1B] text-white dark:bg-white dark:text-[#1C1A1B] font-medium'
                             : 'bg-[#F1EDE7] dark:bg-[#282426] text-[#1C1A1B] dark:text-[#DDD7CF] hover:bg-[#E8E2D9] dark:hover:bg-[#332E31]'
@@ -1017,7 +1017,7 @@ export const LogModal: React.FC<LogModalProps> = ({
 
               {/* Review Textarea */}
               <div className="space-y-1">
-                <label className="text-xs font-serif text-[#6E6862] dark:text-[#A8A29E] italic block">
+                <label className="text-xs font-sans text-[#6E6862] dark:text-[#A8A29E] block">
                   İzlenimin
                 </label>
                 <div className="bg-[#F1EDE7] dark:bg-[#242022] rounded-2xl p-3 border border-[#EADBCA]/50 dark:border-[#383235]">
@@ -1026,7 +1026,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                     onChange={e => setReviewText(e.target.value.slice(0, 1000))}
                     rows={3}
                     placeholder="Sahne deneyimin, oyunculuk, reji, izlenimlerin…"
-                    className="w-full bg-transparent border-0 font-serif italic text-sm text-[#1C1A1B] dark:text-white placeholder:text-[#9A928A] focus:outline-none resize-none"
+                    className="w-full bg-transparent border-0 font-sans text-sm text-[#1C1A1B] dark:text-white placeholder:text-[#9A928A] focus:outline-none resize-none"
                   />
                   <div className="text-[10px] font-mono text-[#8E8780] text-right">
                     {reviewText.length} / 1000
@@ -1037,7 +1037,7 @@ export const LogModal: React.FC<LogModalProps> = ({
               {/* Spoiler Switch */}
               <div className="flex items-center justify-between pt-1">
                 <div>
-                  <span className="font-serif text-sm text-[#1C1A1B] dark:text-white">
+                  <span className="font-sans text-sm text-[#1C1A1B] dark:text-white">
                     Spoiler içeriyor
                   </span>
                   <span className="italic text-xs text-[#8E8780] ml-1.5">
@@ -1065,15 +1065,15 @@ export const LogModal: React.FC<LogModalProps> = ({
 
           {/* STEP 4: SUCCESS / BILET KESILDI */}
           {step === 4 && (
-            <div className="space-y-5 py-4 my-auto text-left">
+            <div className="space-y-5 py-4 my-auto text-left font-sans">
               <div>
-                <span className="text-[11px] font-bold text-[#BA1B23] tracking-widest uppercase block">
+                <span className="text-[11px] font-sans font-bold text-[#BA1B23] tracking-widest uppercase block">
                   SONSUZ SAHNE GÜNLÜĞÜ EKLENDİ
                 </span>
-                <h3 className="font-serif font-extrabold text-2xl sm:text-4xl text-[#1C1A1B] dark:text-white mt-1 mb-2">
-                  Biletin <span className="italic font-normal">kesildi.</span>
+                <h3 className="font-display font-extrabold text-2xl sm:text-4xl text-[#1C1A1B] dark:text-white mt-1 mb-2">
+                  Biletin <span className="font-accent italic font-normal">kesildi.</span>
                 </h3>
-                <p className="font-serif text-xs sm:text-sm text-[#6E6862] dark:text-[#A8A29E] leading-relaxed max-w-md">
+                <p className="font-sans text-xs sm:text-sm text-[#6E6862] dark:text-[#A8A29E] leading-relaxed max-w-md">
                   Koçanı sende kaldı. Tiyatro İndeksi: 1 / 10.04; Sahne Tozu Yazarı rütbesine 1/5.
                 </p>
               </div>
@@ -1082,7 +1082,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                 <button
                   type="button"
                   onClick={handleShareTicket}
-                  className="bg-[#F1EDE7] hover:bg-[#E8E2D9] dark:bg-[#282426] dark:hover:bg-[#332E31] text-[#1C1A1B] dark:text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-serif font-medium text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-colors"
+                  className="bg-[#F1EDE7] hover:bg-[#E8E2D9] dark:bg-[#282426] dark:hover:bg-[#332E31] text-[#1C1A1B] dark:text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-sans font-medium text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-colors"
                 >
                   <Share2 className="w-4 h-4 text-[#BA1B23]" />
                   {copiedShare ? 'Bağlantı Kopyalandı!' : 'Bileti Paylaş'}
@@ -1090,7 +1090,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="bg-[#BA1B23] hover:bg-[#9E171E] text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl font-serif font-semibold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-colors shadow-sm"
+                  className="bg-[#BA1B23] hover:bg-[#9E171E] text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl font-sans font-semibold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-colors shadow-sm"
                 >
                   <Check className="w-4 h-4" />
                   Tamam
@@ -1101,12 +1101,12 @@ export const LogModal: React.FC<LogModalProps> = ({
 
           {/* Bottom Action Footer for Steps 1-3 */}
           {step <= 3 && (
-            <div className="pt-3 sm:pt-4 border-t border-[#EADBCA]/60 dark:border-[#332E31] flex items-center justify-between gap-3 mt-auto">
+            <div className="pt-3 sm:pt-4 border-t border-[#EADBCA]/60 dark:border-[#332E31] flex items-center justify-between gap-3 mt-auto font-sans">
               {step > 1 ? (
                 <button
                   type="button"
                   onClick={() => setStep((step - 1) as Step)}
-                  className="bg-[#F1EDE7] hover:bg-[#E8E2D9] dark:bg-[#282426] dark:hover:bg-[#332E31] text-[#1C1A1B] dark:text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-serif text-xs sm:text-sm font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                  className="bg-[#F1EDE7] hover:bg-[#E8E2D9] dark:bg-[#282426] dark:hover:bg-[#332E31] text-[#1C1A1B] dark:text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-sans text-xs sm:text-sm font-medium flex items-center gap-1 cursor-pointer transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Geri
@@ -1122,7 +1122,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                   onClick={() => {
                     if (selectedPlay) setStep((step + 1) as Step);
                   }}
-                  className="bg-[#1C1A1B] hover:bg-black text-white dark:bg-white dark:hover:bg-gray-100 dark:text-[#1C1A1B] disabled:bg-[#A8A29E] px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl font-serif text-xs sm:text-sm font-medium flex-1 ml-3 cursor-pointer transition-colors text-center"
+                  className="bg-[#1C1A1B] hover:bg-black text-white dark:bg-white dark:hover:bg-gray-100 dark:text-[#1C1A1B] disabled:bg-[#A8A29E] px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl font-sans text-xs sm:text-sm font-medium flex-1 ml-3 cursor-pointer transition-colors text-center"
                 >
                   Devam
                 </button>
@@ -1131,7 +1131,7 @@ export const LogModal: React.FC<LogModalProps> = ({
                   type="button"
                   disabled={submitting || !selectedPlay}
                   onClick={handleBiletiKes}
-                  className="bg-[#BA1B23] hover:bg-[#9E171E] disabled:bg-[#A8A29E] text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl font-serif font-bold text-sm sm:text-base flex-1 ml-3 flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                  className="bg-[#BA1B23] hover:bg-[#9E171E] disabled:bg-[#A8A29E] text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl font-sans font-bold text-sm sm:text-base flex-1 ml-3 flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
                 >
                   <Scissors className="w-4 h-4" />
                   {submitting ? 'Kesiliyor...' : isEditing ? 'Bileti Güncelle ✂' : 'Bileti Kes ✂'}

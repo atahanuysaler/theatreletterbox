@@ -16,6 +16,7 @@ import ProfilePage from './pages/ProfilePage';
 import IzlemekIstediklerimPage from './pages/IzlemekIstediklerimPage';
 import ContactPage from './pages/ContactPage';
 import AddPlayPage from './pages/AddPlayPage';
+import KesfetPage from './pages/KesfetPage';
 import NotFoundPage from './pages/NotFoundPage';
 import DevComponentsPage from './pages/DevComponentsPage';
 import LogModal from './components/LogModal';
@@ -52,19 +53,22 @@ const AppContent: React.FC = () => {
   const handleOpenDailyQuote = () => setIsDailyQuoteOpen(true);
 
   const isPlayDetailPage = location.pathname.startsWith('/oyun/');
+  const isKesfetPage = location.pathname === '/kesfet';
 
   return (
-    <div className="min-h-screen w-full bg-white dark:bg-tn-container md:bg-tn-page text-tn-text font-serif p-0 md:p-[10px] box-border flex flex-col items-center selection:bg-tn-red selection:text-white">
+    <div className="min-h-screen w-full bg-white dark:bg-tn-container md:bg-tn-page text-tn-text font-sans p-0 md:p-[10px] box-border flex flex-col items-center selection:bg-tn-red selection:text-white">
       {/* 1440px max width container with 22px border-radius matching DESIGN.md */}
-      <div className="w-full max-w-[1440px] bg-white dark:bg-tn-container rounded-none md:rounded-[22px] p-2 md:p-[18px_16px_16px] box-border flex flex-col gap-1.5 shadow-none md:shadow-sm min-h-screen border-none md:border md:border-tn-line/40">
-        {/* Editorial Header */}
-        <SiteHeader
-          onOpenLogModal={() => handleOpenLogModal()}
-          onOpenDailyQuote={handleOpenDailyQuote}
-        />
+      <div className={`w-full max-w-[1440px] bg-white dark:bg-tn-container ${isKesfetPage ? 'p-0 md:p-0 rounded-none' : 'rounded-none md:rounded-[22px] p-2 md:p-[18px_16px_16px]'} box-border flex flex-col gap-1.5 shadow-none md:shadow-sm min-h-screen border-none ${isKesfetPage ? '' : 'md:border md:border-tn-line/40'}`}>
+        {/* Editorial Header - hidden on full-screen Kesfet stage feed */}
+        {!isKesfetPage && (
+          <SiteHeader
+            onOpenLogModal={() => handleOpenLogModal()}
+            onOpenDailyQuote={handleOpenDailyQuote}
+          />
+        )}
 
         {/* Main Viewport Content */}
-        <main className="flex-1 w-full pb-4 md:pb-2">
+        <main className={`flex-1 w-full ${isKesfetPage ? 'pb-0' : 'pb-4 md:pb-2'}`}>
           <Routes>
             <Route
               path="/"
@@ -74,6 +78,10 @@ const AppContent: React.FC = () => {
                   onOpenDailyQuote={handleOpenDailyQuote}
                 />
               }
+            />
+            <Route
+              path="/kesfet"
+              element={<KesfetPage onOpenLogModal={handleOpenLogModal} />}
             />
             <Route
               path="/katalog"
@@ -117,13 +125,15 @@ const AppContent: React.FC = () => {
           </Routes>
         </main>
 
-        {/* Editorial Footer - with safe clearance for fixed mobile bottom nav */}
-        <div className="w-full pb-[100px] md:pb-0">
-          <Footer />
-        </div>
+        {/* Editorial Footer - hidden on full-screen Kesfet feed */}
+        {!isKesfetPage && (
+          <div className="w-full pb-[100px] md:pb-0">
+            <Footer />
+          </div>
+        )}
       </div>
 
-      {/* Mobile Tab Bar (Bottom Nav - hidden on PlayDetail where StickyActionBar is used) */}
+      {/* Mobile Tab Bar (Bottom Nav - visible on Kesfet for seamless tab switching, hidden on PlayDetail) */}
       {!isPlayDetailPage && (
         <MobileTabBar onOpenLogModal={() => handleOpenLogModal()} />
       )}

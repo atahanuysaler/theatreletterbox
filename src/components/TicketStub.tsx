@@ -140,7 +140,7 @@ export const TicketStub: React.FC<TicketStubProps> = ({
               {showPlayTitle && (
                 <Link
                   to={`/oyun/${review.playId}`}
-                  className="font-serif font-bold text-base sm:text-lg text-text-primary hover:text-theatre-curtain transition-colors inline-block"
+                  className="font-display font-extrabold text-base sm:text-lg text-text-primary hover:text-theatre-curtain transition-colors inline-block tracking-[-0.02em]"
                 >
                   {review.playTitle}
                 </Link>

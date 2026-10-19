@@ -189,20 +189,20 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
       />
 
       {/* Modal Card matching Frame 05 and 06 */}
-      <div className="relative z-10 w-full max-w-[460px] bg-white dark:bg-[#1E1B1D] text-[#1C1A1B] dark:text-[#F3EFEA] rounded-[20px] shadow-2xl p-6 border border-black/5 dark:border-white/10 overflow-hidden font-serif my-auto animate-fade-in flex flex-col gap-4">
+      <div className="relative z-10 w-full max-w-[460px] bg-white dark:bg-[#1E1B1D] text-[#1C1A1B] dark:text-[#F3EFEA] rounded-[20px] shadow-2xl p-6 border border-black/5 dark:border-white/10 overflow-hidden font-sans my-auto animate-fade-in flex flex-col gap-4">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="h-5 px-2.5 flex items-center rounded-full border border-[#1C1A1B]/35 dark:border-white/35 text-[10px] font-bold tracking-wider uppercase text-[#1C1A1B] dark:text-white">
+              <span className="h-5 px-2.5 flex items-center rounded-full border border-[#1C1A1B]/35 dark:border-white/35 text-[10px] font-sans font-bold tracking-wider uppercase text-[#1C1A1B] dark:text-white">
                 HER GÜN YENİ · 30 XP
               </span>
               <span className="text-xs italic text-tn-muted dark:text-[#A8A199]">{formattedDate}</span>
             </div>
-            <h3 className="font-serif font-extrabold text-[26px] text-[#1C1A1B] dark:text-white mt-1.5 leading-tight">
+            <h3 className="font-display font-extrabold text-[26px] text-[#1C1A1B] dark:text-white mt-1.5 leading-tight tracking-[-0.03em]">
               Günün Repliği
             </h3>
-            <p className="font-serif italic text-xs text-tn-muted dark:text-[#A8A199] mt-0.5">
+            <p className="font-sans text-xs text-tn-muted dark:text-[#A8A199] mt-0.5">
               Replik tahmin bulmacası — oyunu bul
             </p>
           </div>
@@ -228,10 +228,10 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
           <div className="flex flex-col gap-3.5">
             {/* Quote Card */}
             <div className="bg-[#FAF2E6] dark:bg-[#28221B] rounded-[14px] p-4.5 border border-[#EBDCC5]/70 dark:border-[#3D352B]">
-              <span className="text-[10px] font-extrabold tracking-wider uppercase text-[#A26D2B] dark:text-[#E4B33A] block mb-1">
+              <span className="text-[10px] font-sans font-extrabold tracking-wider uppercase text-[#A26D2B] dark:text-[#E4B33A] block mb-1">
                 SAHNEDEN BİR REPLİK
               </span>
-              <p className="font-serif italic font-bold text-[17px] sm:text-[18px] text-[#1C1A1B] dark:text-white leading-snug m-0">
+              <p className="font-accent italic font-normal text-xl sm:text-2xl text-[#1C1A1B] dark:text-white leading-snug m-0">
                 “{quote.quote}”
               </p>
             </div>
@@ -268,7 +268,7 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
                   key={i}
                   className="flex items-center justify-between px-3.5 py-2.5 rounded-[12px] bg-[#FBECEB] dark:bg-[#341C1E] border border-[#F3CFCF] dark:border-[#52252A] animate-fade-in"
                 >
-                  <span className="line-through text-neutral-500 dark:text-neutral-400 font-serif text-sm">
+                  <span className="line-through text-neutral-500 dark:text-neutral-400 font-sans text-sm">
                     {a.guess}
                   </span>
                   <span className="text-xs font-bold text-[#BA1B23] dark:text-[#FF6B6B]">
@@ -280,49 +280,49 @@ export const DailyQuoteModal: React.FC<DailyQuoteModalProps> = ({ isOpen, onClos
 
             {/* Clues System: Level 1 and Level 2 */}
             {attempts.length >= 1 && (
-              <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-[12px] bg-[#EFEFF8] dark:bg-[#222132] border border-[#DDDCEF] dark:border-[#383652] text-xs animate-fade-in">
-                <span className="font-extrabold text-[10px] uppercase tracking-wider text-[#574FA5] dark:text-[#A49DEC] shrink-0">
+              <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-[12px] bg-[#EFEFF8] dark:bg-[#222132] border border-[#DDDCEF] dark:border-[#383652] text-xs animate-fade-in font-sans">
+                <span className="font-extrabold text-[10px] uppercase tracking-wider text-[#574FA5] dark:text-[#A49DEC] shrink-0 font-sans">
                   İPUCU 1
                 </span>
-                <span className="font-serif text-[#1C1A1B] dark:text-white font-semibold">
-                  Yazar: {quote.playwright}
+                <span className="text-[#1C1A1B] dark:text-white font-medium">
+                  Yazar: <span className="font-accent italic font-normal text-sm">{quote.playwright}</span>
                 </span>
               </div>
             )}
 
             {attempts.length === 1 && !completed && (
-              <div className="flex items-center gap-2 px-3.5 py-2 rounded-[12px] bg-neutral-100/70 dark:bg-white/5 border border-dashed border-neutral-300 dark:border-white/10 text-xs italic text-neutral-400 dark:text-neutral-500">
+              <div className="flex items-center gap-2 px-3.5 py-2 rounded-[12px] bg-neutral-100/70 dark:bg-white/5 border border-dashed border-neutral-300 dark:border-white/10 text-xs italic text-neutral-400 dark:text-neutral-500 font-sans">
                 <span>İPUCU 2 · Sonraki yanlış tahminde açılır</span>
               </div>
             )}
 
             {attempts.length >= 2 && (
-              <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-[12px] bg-[#EFEFF8] dark:bg-[#222132] border border-[#DDDCEF] dark:border-[#383652] text-xs animate-fade-in">
-                <span className="font-extrabold text-[10px] uppercase tracking-wider text-[#574FA5] dark:text-[#A49DEC] shrink-0">
+              <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-[12px] bg-[#EFEFF8] dark:bg-[#222132] border border-[#DDDCEF] dark:border-[#383652] text-xs animate-fade-in font-sans">
+                <span className="font-extrabold text-[10px] uppercase tracking-wider text-[#574FA5] dark:text-[#A49DEC] shrink-0 font-sans">
                   İPUCU 2
                 </span>
-                <span className="font-serif text-[#1C1A1B] dark:text-white font-semibold">
-                  Karakter: {quote.character || quote.hint}
+                <span className="text-[#1C1A1B] dark:text-white font-medium">
+                  Karakter: <span className="font-accent italic font-normal text-sm">{quote.character || quote.hint}</span>
                 </span>
               </div>
             )}
 
             {/* Game Result Screen or Guess Form */}
             {completed ? (
-              <div className={`p-4 rounded-[14px] border text-center space-y-3 animate-fade-in ${
+              <div className={`p-4 rounded-[14px] border text-center space-y-3 animate-fade-in font-sans ${
                 won
                   ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200'
                   : 'border-red-500/30 bg-red-500/10 text-red-800 dark:text-red-200'
               }`}>
                 <div className="flex items-center justify-center gap-2">
                   {won ? <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> : <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />}
-                  <h4 className="font-serif font-extrabold text-lg m-0">
+                  <h4 className="font-display font-extrabold text-lg m-0">
                     {won ? 'Tebrikler, bildiniz!' : 'Tüm tahmin haklarınız bitti!'}
                   </h4>
                 </div>
-                <p className="text-sm font-semibold m-0">
-                  Doğru Oyun: <span className="underline decoration-[#BA1B23] text-base">{quote.playTitle}</span>
-                  <span className="text-xs italic text-tn-muted ml-1">({quote.playwright})</span>
+                <p className="text-sm font-semibold m-0 font-sans">
+                  Doğru Oyun: <span className="font-display font-extrabold underline decoration-[#BA1B23] text-base">{quote.playTitle}</span>
+                  <span className="text-xs font-accent italic font-normal text-tn-muted ml-1">({quote.playwright})</span>
                 </p>
                 {won && (
                   <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold m-0 flex items-center justify-center gap-1">

@@ -16,13 +16,13 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({ onOpenLogModal }) =>
   return (
     <nav
       aria-label="Mobil alt gezinme"
-      className="md:hidden fixed bottom-2 left-2 right-2 max-w-[420px] mx-auto z-40 h-[76px] rounded-[22px] bg-white/85 dark:bg-tn-surface/85 backdrop-blur-[16px] shadow-bar border border-white/40 dark:border-tn-line/40 px-3 pb-[env(safe-area-inset-bottom)] box-border flex items-center justify-around font-serif text-tn-text"
+      className="md:hidden fixed bottom-2 left-2 right-2 max-w-[420px] mx-auto z-40 h-[76px] rounded-[22px] bg-white/85 dark:bg-black/90 backdrop-blur-[16px] shadow-bar border border-white/40 dark:border-white/10 px-3 pb-[env(safe-area-inset-bottom)] box-border flex items-center justify-around font-sans text-tn-text"
     >
       {/* Katalog */}
       <Link
         to="/katalog"
         className={`flex flex-col items-center gap-1 text-xs no-underline transition-colors ${
-          isTabActive('/katalog') ? 'text-tn-red font-bold' : 'text-tn-muted hover:text-tn-text'
+          isTabActive('/katalog') ? 'text-tn-red font-bold' : 'text-tn-muted hover:text-tn-text dark:text-[#A8A199] dark:hover:text-[#F3EFEA]'
         }`}
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -34,18 +34,18 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({ onOpenLogModal }) =>
         <span>Katalog</span>
       </Link>
 
-      {/* Biletlerim */}
+      {/* Keşfet (Stage Feed) */}
       <Link
-        to="/izlediklerim"
+        to="/kesfet"
         className={`flex flex-col items-center gap-1 text-xs no-underline transition-colors ${
-          isTabActive('/izlediklerim') ? 'text-tn-red font-bold' : 'text-tn-muted hover:text-tn-text'
+          isTabActive('/kesfet') ? 'text-tn-red font-bold' : 'text-tn-muted hover:text-tn-text dark:text-[#A8A199] dark:hover:text-[#F3EFEA]'
         }`}
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z" />
-          <path d="M13 5v2M13 17v2M13 11v2" />
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="5" />
+          <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
         </svg>
-        <span>Biletlerim</span>
+        <span>Keşfet</span>
       </Link>
 
       {/* Center: Not Ekle (+) Button (56px) */}
@@ -64,7 +64,7 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({ onOpenLogModal }) =>
       <Link
         to="/bulmacalar"
         className={`flex flex-col items-center gap-1 text-xs no-underline transition-colors ${
-          isTabActive('/bulmacalar') ? 'text-tn-red font-bold' : 'text-tn-muted hover:text-tn-text'
+          isTabActive('/bulmacalar') ? 'text-tn-red font-bold' : 'text-tn-muted hover:text-tn-text dark:text-[#A8A199] dark:hover:text-[#F3EFEA]'
         }`}
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -77,7 +77,7 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({ onOpenLogModal }) =>
       <Link
         to="/profil"
         className={`flex flex-col items-center gap-1 text-xs no-underline transition-colors ${
-          isTabActive('/profil') ? 'text-tn-red font-bold' : 'text-tn-muted hover:text-tn-text'
+          isTabActive('/profil') ? 'text-tn-red font-bold' : 'text-tn-muted hover:text-tn-text dark:text-[#A8A199] dark:hover:text-[#F3EFEA]'
         }`}
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

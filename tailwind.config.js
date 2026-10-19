@@ -101,10 +101,11 @@ export default {
         },
       },
       fontFamily: {
-        serif: ['Newsreader', 'Georgia', 'Times New Roman', 'serif'],
-        display: ['Newsreader', 'Georgia', 'Times New Roman', 'serif'],
-        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
-        mono: ['IBM Plex Mono', 'ui-monospace', 'Menlo', 'Monaco', 'Cascadia Mono', 'Courier New', 'monospace'],
+        display: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+        accent:  ['"Instrument Serif"', 'Georgia', 'serif'],
+        sans:    ['"Instrument Sans"', 'Inter', 'system-ui', 'sans-serif'],
+        serif:   ['"Instrument Serif"', 'Georgia', 'serif'],
+        mono:    ['IBM Plex Mono', 'ui-monospace', 'Menlo', 'Monaco', 'Cascadia Mono', 'Courier New', 'monospace'],
       },
       spacing: {
         gutter: '6px',

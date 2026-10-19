@@ -192,7 +192,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
                   alt="Tiyatronot"
                   className="h-9 sm:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-xs shrink-0"
                 />
-                <span className="font-serif font-black text-xl sm:text-2xl tracking-tighter text-text-primary group-hover:text-theatre-curtain transition-colors truncate">
+                <span className="font-display font-black text-xl sm:text-2xl tracking-tight text-text-primary group-hover:text-theatre-curtain transition-colors truncate">
                   TIYATRO·NOT
                 </span>
               </Link>
@@ -347,7 +347,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
                   alt="Tiyatronot"
                   className="w-8 h-8 object-contain transition-transform duration-200 group-hover:scale-105"
                 />
-                <span className="font-serif font-black text-lg tracking-tight text-text-primary group-hover:text-theatre-curtain transition-colors">
+                <span className="font-display font-black text-lg tracking-tight text-text-primary group-hover:text-theatre-curtain transition-colors">
                   TIYATRO·NOT
                 </span>
               </Link>
@@ -501,7 +501,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenLogModal }) => {
               </button>
             </div>
 
-            <p className="text-[11px] font-serif italic text-text-tertiary">
+            <p className="text-[11px] font-accent italic font-normal text-text-tertiary">
               Dijital Tiyatro Günlüğü & Topluluğu
             </p>
             {user ? (

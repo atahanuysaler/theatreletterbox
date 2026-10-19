@@ -178,19 +178,19 @@ export const AddPlayPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full flex flex-col gap-5 sm:gap-6 py-2 sm:py-4 font-serif text-tn-text">
+    <div className="w-full flex flex-col gap-5 sm:gap-6 py-2 sm:py-4 font-sans text-tn-text">
       {/* 1. Header with Eyebrow, Title and Description */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-tn-line pb-4">
         <div>
-          <span className="text-xs font-extrabold tracking-wider text-tn-red uppercase">
+          <span className="text-[11px] font-bold tracking-[0.07em] text-tn-red uppercase">
             TOPLULUK KATKISI
           </span>
-          <h1 className="m-0 mt-1 font-extrabold text-3xl sm:text-5xl leading-tight tracking-tight">
+          <h1 className="m-0 mt-1 font-display font-extrabold text-3xl sm:text-5xl leading-[0.95] tracking-[-0.035em]">
             Repertuara Oyun Ekle
           </h1>
         </div>
 
-        <p className="m-0 text-sm sm:text-base italic text-tn-muted max-w-sm self-start sm:self-end leading-relaxed">
+        <p className="m-0 text-sm sm:text-base text-tn-muted max-w-sm self-start sm:self-end leading-relaxed">
           Tiyatronot kataloğunda eksik olduğunu düşündüğün oyunu künye detaylarıyla ekle.
         </p>
       </div>
@@ -199,16 +199,16 @@ export const AddPlayPage: React.FC = () => {
       <div className="w-full max-w-3xl mx-auto rounded-2xl bg-tn-surface border border-tn-line p-4 sm:p-9 shadow-2xs">
         {submitted ? (
           /* Step 4 / Success State (06 Oyun Ekle - gönderildi) */
-          <div className="py-8 sm:py-12 flex flex-col items-center text-center gap-3 font-serif">
+          <div className="py-8 sm:py-12 flex flex-col items-center text-center gap-3 font-sans">
             <div className="w-14 h-14 rounded-full bg-[#E6F4EA] text-[#137333] flex items-center justify-center mb-1">
               <Check className="w-7 h-7 stroke-[2.5]" />
             </div>
 
-            <h2 className="m-0 font-extrabold text-2xl sm:text-3xl text-tn-text">
+            <h2 className="m-0 font-display font-extrabold text-2xl sm:text-3xl text-tn-text tracking-[-0.02em]">
               Repertuara gönderildi.
             </h2>
 
-            <p className="m-0 text-sm sm:text-base italic text-tn-muted max-w-md leading-relaxed">
+            <p className="m-0 text-sm sm:text-base text-tn-muted max-w-md leading-relaxed">
               Gönderilen oyunlar editör onayı sonrası kataloğa ve tiyatro hafızasına dahil edilir. Onaylandığında sana haber vereceğiz.
             </p>
 
@@ -216,7 +216,7 @@ export const AddPlayPage: React.FC = () => {
               <button
                 type="button"
                 onClick={resetForm}
-                className="h-10 px-5 rounded-full border border-tn-line bg-white dark:bg-tn-container text-tn-text hover:bg-tn-line/40 font-serif text-sm font-semibold cursor-pointer transition-colors shadow-2xs"
+                className="h-10 px-5 rounded-full border border-tn-line bg-white dark:bg-tn-container text-tn-text hover:bg-tn-line/40 font-sans text-sm font-semibold cursor-pointer transition-colors shadow-2xs"
               >
                 Bir oyun daha ekle
               </button>
@@ -224,7 +224,7 @@ export const AddPlayPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/katalog')}
-                className="h-10 px-6 rounded-full border-none bg-tn-red text-white hover:bg-tn-red/90 font-serif text-sm font-semibold cursor-pointer transition-colors shadow-2xs"
+                className="h-10 px-6 rounded-full border-none bg-tn-red text-white hover:bg-tn-red/90 font-sans text-sm font-semibold cursor-pointer transition-colors shadow-2xs"
               >
                 Kataloğa dön
               </button>
@@ -237,7 +237,7 @@ export const AddPlayPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className={`border-none bg-transparent cursor-pointer p-0 font-serif transition-colors relative pb-1 ${
+                className={`border-none bg-transparent cursor-pointer p-0 font-sans transition-colors relative pb-1 ${
                   step === 1
                     ? 'text-tn-text font-bold after:content-[""] after:absolute after:bottom-[-13px] after:left-0 after:right-0 after:h-[2px] after:bg-tn-red'
                     : 'text-tn-muted hover:text-tn-text'
@@ -249,7 +249,7 @@ export const AddPlayPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => (title.trim() ? setStep(2) : null)}
-                className={`border-none bg-transparent cursor-pointer p-0 font-serif transition-colors relative pb-1 ${
+                className={`border-none bg-transparent cursor-pointer p-0 font-sans transition-colors relative pb-1 ${
                   step === 2
                     ? 'text-tn-text font-bold after:content-[""] after:absolute after:bottom-[-13px] after:left-0 after:right-0 after:h-[2px] after:bg-tn-red'
                     : 'text-tn-muted hover:text-tn-text'
@@ -261,7 +261,7 @@ export const AddPlayPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => (title.trim() ? setStep(3) : null)}
-                className={`border-none bg-transparent cursor-pointer p-0 font-serif transition-colors relative pb-1 ${
+                className={`border-none bg-transparent cursor-pointer p-0 font-sans transition-colors relative pb-1 ${
                   step === 3
                     ? 'text-tn-text font-bold after:content-[""] after:absolute after:bottom-[-13px] after:left-0 after:right-0 after:h-[2px] after:bg-tn-red'
                     : 'text-tn-muted hover:text-tn-text'
@@ -280,7 +280,7 @@ export const AddPlayPage: React.FC = () => {
             {/* STEP 1: Temel Bilgiler (04 Oyun Ekle - canlı) */}
             {step === 1 && (
               <form onSubmit={handleStep1Next} className="flex flex-col gap-4 sm:gap-5">
-                <h2 className="m-0 font-extrabold text-xl sm:text-2xl tracking-tight">
+                <h2 className="m-0 font-display font-extrabold text-xl sm:text-2xl tracking-[-0.02em]">
                   1. Temel oyun bilgileri
                 </h2>
 
@@ -294,7 +294,7 @@ export const AddPlayPage: React.FC = () => {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Örn. Lüküs Hayat, Keşanlı Ali Destanı..."
-                    className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
+                    className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-sans text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
                   />
                 </div>
 
@@ -307,7 +307,7 @@ export const AddPlayPage: React.FC = () => {
                     value={originalTitle}
                     onChange={(e) => setOriginalTitle(e.target.value)}
                     placeholder="Varsa orijinal dildeki adı..."
-                    className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
+                    className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-sans text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
                   />
                 </div>
 
@@ -322,7 +322,7 @@ export const AddPlayPage: React.FC = () => {
                       value={playwright}
                       onChange={(e) => setPlaywright(e.target.value)}
                       placeholder="Örn. Haldun Taner"
-                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
+                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-sans text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
                     />
                   </div>
 
@@ -336,7 +336,7 @@ export const AddPlayPage: React.FC = () => {
                       value={director}
                       onChange={(e) => setDirector(e.target.value)}
                       placeholder="Örn. Genco Erkal"
-                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
+                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-sans text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
                     />
                   </div>
                 </div>
@@ -352,7 +352,7 @@ export const AddPlayPage: React.FC = () => {
                       value={company}
                       onChange={(e) => setCompany(e.target.value)}
                       placeholder="Örn. Dostlar Tiyatrosu, Şehir Tiyatroları"
-                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
+                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-sans text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
                     />
                   </div>
 
@@ -368,7 +368,7 @@ export const AddPlayPage: React.FC = () => {
                       value={year}
                       onChange={(e) => setYear(Number(e.target.value))}
                       placeholder="2026"
-                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
+                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-sans text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
                     />
                   </div>
                 </div>
@@ -381,7 +381,7 @@ export const AddPlayPage: React.FC = () => {
                     <select
                       value={genre}
                       onChange={(e) => setGenre(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text focus:outline-none focus:border-tn-red focus:bg-white transition-colors cursor-pointer"
+                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-sans text-sm sm:text-base text-tn-text focus:outline-none focus:border-tn-red focus:bg-white transition-colors cursor-pointer"
                     >
                       {GENRE_OPTIONS.map((g) => (
                         <option key={g} value={g}>
@@ -402,7 +402,7 @@ export const AddPlayPage: React.FC = () => {
                       value={duration}
                       onChange={(e) => setDuration(Number(e.target.value))}
                       placeholder="90"
-                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
+                      className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-sans text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
                     />
                   </div>
                 </div>
@@ -415,7 +415,7 @@ export const AddPlayPage: React.FC = () => {
 
                   <button
                     type="submit"
-                    className="h-10 px-7 rounded-xl bg-tn-red text-white hover:bg-tn-red/90 font-serif text-sm font-semibold border-none cursor-pointer transition-colors shadow-2xs"
+                    className="h-10 px-7 rounded-xl bg-tn-red text-white hover:bg-tn-red/90 font-sans text-sm font-semibold border-none cursor-pointer transition-colors shadow-2xs"
                   >
                     Devam
                   </button>
@@ -426,7 +426,7 @@ export const AddPlayPage: React.FC = () => {
             {/* STEP 2: Kadro & Yaratıcı Ekip (05 Oyun Ekle - adım 2) */}
             {step === 2 && (
               <form onSubmit={handleStep2Next} className="flex flex-col gap-5">
-                <h2 className="m-0 font-extrabold text-xl sm:text-2xl tracking-tight">
+                <h2 className="m-0 font-display font-extrabold text-xl sm:text-2xl tracking-[-0.02em]">
                   2. Kadro & yaratıcı ekip
                 </h2>
 
@@ -458,7 +458,7 @@ export const AddPlayPage: React.FC = () => {
                       onKeyDown={handleActorKeyDown}
                       onBlur={handleAddActor}
                       placeholder={actors.length === 0 ? 'İsim yaz, Enter’a bas...' : 'Yeni isim ekle...'}
-                      className="flex-1 min-w-[150px] border-none bg-transparent px-2 py-1 font-serif text-sm text-tn-text placeholder:text-tn-muted/60 focus:outline-none"
+                      className="flex-1 min-w-[150px] border-none bg-transparent px-2 py-1 font-sans text-sm text-tn-text placeholder:text-tn-muted/60 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -475,7 +475,7 @@ export const AddPlayPage: React.FC = () => {
                         <select
                           value={member.role}
                           onChange={(e) => handleCrewChange(idx, 'role', e.target.value)}
-                          className="w-[125px] sm:w-[210px] h-10 px-2 sm:px-3 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-xs sm:text-sm text-tn-text focus:outline-none focus:border-tn-red transition-colors cursor-pointer shrink-0"
+                          className="w-[125px] sm:w-[210px] h-10 px-2 sm:px-3 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-sans text-xs sm:text-sm text-tn-text focus:outline-none focus:border-tn-red transition-colors cursor-pointer shrink-0"
                         >
                           {CREW_ROLES.map((r) => (
                             <option key={r} value={r}>
@@ -489,7 +489,7 @@ export const AddPlayPage: React.FC = () => {
                           value={member.name}
                           onChange={(e) => handleCrewChange(idx, 'name', e.target.value)}
                           placeholder="Kişinin adı"
-                          className="flex-1 h-10 px-3.5 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
+                          className="flex-1 h-10 px-3.5 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-sans text-sm text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
                         />
 
                         {crew.length > 1 && (
@@ -520,7 +520,7 @@ export const AddPlayPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="h-10 px-5 rounded-xl border border-tn-line bg-white dark:bg-tn-container text-tn-text font-serif text-sm font-semibold cursor-pointer hover:bg-tn-line/40 transition-colors"
+                    className="h-10 px-5 rounded-xl border border-tn-line bg-white dark:bg-tn-container text-tn-text font-sans text-sm font-semibold cursor-pointer hover:bg-tn-line/40 transition-colors"
                   >
                     Geri
                   </button>
@@ -532,7 +532,7 @@ export const AddPlayPage: React.FC = () => {
 
                     <button
                       type="submit"
-                      className="h-10 px-7 rounded-xl bg-tn-red text-white hover:bg-tn-red/90 font-serif text-sm font-semibold border-none cursor-pointer transition-colors shadow-2xs"
+                      className="h-10 px-7 rounded-xl bg-tn-red text-white hover:bg-tn-red/90 font-sans text-sm font-semibold border-none cursor-pointer transition-colors shadow-2xs"
                     >
                       Devam
                     </button>
@@ -544,7 +544,7 @@ export const AddPlayPage: React.FC = () => {
             {/* STEP 3: Tanıtım & Afiş */}
             {step === 3 && (
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                <h2 className="m-0 font-extrabold text-xl sm:text-2xl tracking-tight">
+                <h2 className="m-0 font-display font-extrabold text-xl sm:text-2xl tracking-[-0.02em]">
                   3. Tanıtım & afiş
                 </h2>
 
@@ -557,7 +557,7 @@ export const AddPlayPage: React.FC = () => {
                     value={synopsis}
                     onChange={(e) => setSynopsis(e.target.value)}
                     placeholder="Oyunun konusu, teması ve seyircinin bilmesi gerekenler..."
-                    className="w-full p-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors resize-none leading-relaxed"
+                    className="w-full p-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-sans text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors resize-none leading-relaxed"
                   />
                 </div>
 
@@ -570,7 +570,7 @@ export const AddPlayPage: React.FC = () => {
                     value={posterUrl}
                     onChange={(e) => setPosterUrl(e.target.value)}
                     placeholder="https://... afiş görsel bağlantısı"
-                    className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-serif text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
+                    className="w-full h-11 px-4 rounded-xl border border-tn-line bg-white/70 dark:bg-tn-container font-sans text-sm sm:text-base text-tn-text placeholder:text-tn-muted/60 focus:outline-none focus:border-tn-red focus:bg-white transition-colors"
                   />
                   {posterUrl && (
                     <div className="mt-2 flex items-center gap-3 p-3 bg-tn-surface border border-tn-line rounded-xl">
@@ -592,7 +592,7 @@ export const AddPlayPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="h-10 px-5 rounded-xl border border-tn-line bg-white dark:bg-tn-container text-tn-text font-serif text-sm font-semibold cursor-pointer hover:bg-tn-line/40 transition-colors"
+                    className="h-10 px-5 rounded-xl border border-tn-line bg-white dark:bg-tn-container text-tn-text font-sans text-sm font-semibold cursor-pointer hover:bg-tn-line/40 transition-colors"
                   >
                     Geri
                   </button>
@@ -600,7 +600,7 @@ export const AddPlayPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="h-10 px-7 rounded-xl bg-tn-red text-white hover:bg-tn-red/90 disabled:opacity-50 font-serif text-sm font-semibold border-none cursor-pointer transition-colors shadow-2xs"
+                    className="h-10 px-7 rounded-xl bg-tn-red text-white hover:bg-tn-red/90 disabled:opacity-50 font-sans text-sm font-semibold border-none cursor-pointer transition-colors shadow-2xs"
                   >
                     {submitting ? 'Gönderiliyor...' : 'Oyunu Gönder'}
                   </button>
