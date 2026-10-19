@@ -307,9 +307,9 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
 
           {/* Cards Grid: 4 columns in 1 row */}
-          <div className="grid grid-cols-4 gap-2.5 mt-4">
+          <div className="grid grid-cols-4 gap-3 lg:gap-3.5 mt-5">
             <PuzzleCard
-              title="Günün Repliği"
+              title={<>Günün<br />Repliği</>}
               colorVariant="red"
               xpReward={30}
               isCompleted={true}
@@ -317,19 +317,19 @@ export const HomePage: React.FC<HomePageProps> = ({
               onClick={() => setIsDailyQuoteOpen(true)}
             />
             <PuzzleCard
-              title="Oyuncu Dedektifi"
+              title={<>Oyuncu<br />Dedektifi</>}
               colorVariant="dark"
               xpReward={30}
               onClick={() => setIsActorDetectiveOpen(true)}
             />
             <PuzzleCard
-              title="Sahne Trivia"
+              title={<>Sahne<br />Trivia</>}
               colorVariant="lilac"
               xpReward={25}
               onClick={() => setIsTriviaOpen(true)}
             />
             <PuzzleCard
-              title="Perde Arkası"
+              title={<>Perde<br />Arkası</>}
               colorVariant="sage"
               xpReward={25}
               onClick={() => setIsWordPuzzleOpen(true)}
@@ -457,7 +457,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           {/* Mobile 2x2 Grid */}
           <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
             <PuzzleCard
-              title="Günün Repliği"
+              title={<>Günün<br />Repliği</>}
               colorVariant="red"
               xpReward={30}
               isCompleted={true}
@@ -465,19 +465,19 @@ export const HomePage: React.FC<HomePageProps> = ({
               onClick={() => setIsDailyQuoteOpen(true)}
             />
             <PuzzleCard
-              title="Oyuncu Dedektifi"
+              title={<>Oyuncu<br />Dedektifi</>}
               colorVariant="dark"
               xpReward={30}
               onClick={() => setIsActorDetectiveOpen(true)}
             />
             <PuzzleCard
-              title="Sahne Trivia"
+              title={<>Sahne<br />Trivia</>}
               colorVariant="lilac"
               xpReward={25}
               onClick={() => setIsTriviaOpen(true)}
             />
             <PuzzleCard
-              title="Perde Arkası"
+              title={<>Perde<br />Arkası</>}
               colorVariant="sage"
               xpReward={25}
               onClick={() => setIsWordPuzzleOpen(true)}

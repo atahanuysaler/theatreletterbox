@@ -92,7 +92,6 @@ export const SideMenu: React.FC<SideMenuProps> = ({
 
   const navLinks = [
     { label: 'Ana Sayfa', path: '/' },
-    { label: 'Sahne Akışı (Keşfet)', path: '/kesfet', badge: 'YENİ' },
     { label: 'Katalog', path: '/katalog' },
     { label: 'İzlediklerim', path: '/izlediklerim' },
     { label: 'İzlemek İstediklerim', path: '/izlemek-istediklerim' },

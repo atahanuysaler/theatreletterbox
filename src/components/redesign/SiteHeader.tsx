@@ -55,15 +55,15 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 w-full transition-transform duration-300 ease-out font-sans text-tn-text antialiased ${
-          isVisible ? 'translate-y-0' : '-translate-y-full'
+        className={`fixed md:static top-0 left-0 right-0 z-50 w-full transition-transform md:transition-none duration-300 ease-out font-sans text-tn-text antialiased ${
+          isVisible ? 'translate-y-0' : '-translate-y-full md:translate-y-0'
         } ${
           isScrolled
-            ? 'bg-white/95 dark:bg-[#1C1A1B]/95 backdrop-blur-md shadow-xs border-b border-tn-line/40 py-2 sm:py-2.5'
-            : 'bg-white dark:bg-tn-container sm:bg-transparent py-2.5 sm:py-3.5'
+            ? 'bg-white/95 dark:bg-[#1C1A1B]/95 backdrop-blur-md shadow-xs border-b border-tn-line/40 py-2 sm:py-2.5 md:bg-transparent md:dark:bg-transparent md:backdrop-blur-none md:shadow-none md:border-b-0 md:py-0 md:mb-2'
+            : 'bg-white dark:bg-tn-container sm:bg-transparent py-2.5 sm:py-3.5 md:py-0 md:mb-2'
         }`}
       >
-        <div className="w-full max-w-[1440px] mx-auto flex justify-between items-center gap-3 sm:gap-5 px-3 sm:px-4 md:px-5">
+        <div className="w-full max-w-[1440px] mx-auto flex justify-between items-center gap-3 sm:gap-5 px-3 sm:px-4 md:px-1">
           {/* Left: Hamburger + Smooth Logo & Subtitle */}
           <div className="flex items-center gap-2.5 sm:gap-3.5">
           <button
@@ -151,8 +151,8 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
         </div>
       </header>
 
-      {/* Spacer to prevent layout shift with fixed header */}
-      <div className="w-full h-[52px] sm:h-[68px] pointer-events-none" aria-hidden="true" />
+      {/* Spacer to prevent layout shift with fixed header (mobile only) */}
+      <div className="md:hidden w-full h-[52px] pointer-events-none" aria-hidden="true" />
 
       {/* SideMenu Drawer */}
       <SideMenu
