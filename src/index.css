@@ -141,7 +141,7 @@ html.dark [class*="dark:bg-white"] *:not([class*="text-white"]):not([class*="dar
   /* Editorial Headings: Display font (Bricolage Grotesque) */
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--tn-font-display, 'Bricolage Grotesque', system-ui, sans-serif);
-    color: var(--tn-text, #1C1A1B);
+    color: inherit;
     font-weight: 800;
     margin: 0;
   }

@@ -111,7 +111,7 @@ export const ListsPage: React.FC<ListsPageProps> = () => {
                 <span className="text-xs font-accent italic">{list.playIds.length} oyun</span>
               </div>
               <div>
-                <h3 className="m-0 font-display font-extrabold text-xl sm:text-2xl leading-[1.05] tracking-[-0.02em]">
+                <h3 className="m-0 font-display font-extrabold text-xl sm:text-2xl leading-[1.05] tracking-[-0.02em] text-inherit">
                   {list.title}
                 </h3>
               </div>
