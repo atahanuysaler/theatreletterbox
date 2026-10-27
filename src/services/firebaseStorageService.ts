@@ -37,6 +37,7 @@ import {
   DEFAULT_THEATRE_WORDS 
 } from '../data/puzzles';
 import { CURATED_LISTS } from '../data/curatedListsData';
+import { DEFAULT_FEATURED_PLAYS, getCachedFeaturedPlays, saveCachedFeaturedPlays } from '../data/featuredPlays';
 
 /**
  * Removes undefined fields from an object because Firestore setDoc/updateDoc
@@ -63,6 +64,7 @@ export class FirebaseStorageService implements IStorageService {
   }
 
   private cachedPlays: Play[] | null = null;
+  private cachedFeaturedPlays: Play[] | null = null;
   private readonly PLAYS_CACHE_KEY = 'tiyatronot_plays_cache_v3';
   private readonly PLAYS_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
@@ -188,6 +190,26 @@ export class FirebaseStorageService implements IStorageService {
   async createReview(reviewData: Omit<ReviewEntry, 'id' | 'createdAt' | 'likes'>): Promise<ReviewEntry> {
     const rawRating = Number(reviewData.rating);
     const rating = Math.min(5.0, Math.max(0.5, isNaN(rawRating) ? 3.0 : rawRating));
+
+    // Enforce 1 note per play per user constraint: update existing if already present
+    if (reviewData.userId && reviewData.playId) {
+      const existingReviews = await this.getReviews(reviewData.playId);
+      const existing = existingReviews.find((r) => r.userId === reviewData.userId);
+      if (existing) {
+        return this.updateReview(existing.id, {
+          rating,
+          technicalRating: reviewData.technicalRating,
+          performanceRating: reviewData.performanceRating,
+          reviewText: reviewData.reviewText,
+          performanceDate: reviewData.performanceDate,
+          hasSpoilers: Boolean(reviewData.hasSpoilers),
+          venue: reviewData.venue,
+          seatInfo: reviewData.seatInfo,
+          sessionType: reviewData.sessionType,
+        });
+      }
+    }
+
     const id = `rev-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
     const newReview: ReviewEntry = {
@@ -656,7 +678,11 @@ export class FirebaseStorageService implements IStorageService {
       const local = localStorage.getItem('tiyatronot_curated_lists');
       if (local) {
         const parsed = JSON.parse(local);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const hasStaleDummyIds = parsed.some((l: any) => l.playIds?.some((id: string) => id === 'p-1' || id === 'p-2'));
+          if (!hasStaleDummyIds) return parsed;
+          localStorage.removeItem('tiyatronot_curated_lists');
+        }
       }
     } catch {}
     return CURATED_LISTS;
@@ -1179,19 +1205,84 @@ export class FirebaseStorageService implements IStorageService {
     return [];
   }
 
-  async setHomepageFeaturedPlayIds(playIds: string[]): Promise<void> {
+  async getHomepageFeaturedPlays(): Promise<Play[]> {
+    if (this.cachedFeaturedPlays && this.cachedFeaturedPlays.length >= 4) {
+      return this.cachedFeaturedPlays;
+    }
+
+    const localCached = getCachedFeaturedPlays();
+    if (localCached && localCached.length >= 4) {
+      this.cachedFeaturedPlays = localCached;
+    }
+
     try {
-      await setDoc(doc(this.getDb(), 'config', 'homepage'), {
+      const snap = await getDoc(doc(this.getDb(), 'config', 'homepage'));
+      if (snap.exists()) {
+        const data = snap.data();
+        if (Array.isArray(data?.featuredPlays) && data.featuredPlays.length >= 4) {
+          const plays = data.featuredPlays as Play[];
+          this.cachedFeaturedPlays = plays;
+          saveCachedFeaturedPlays(plays);
+          return plays;
+        }
+
+        if (Array.isArray(data?.featuredPlayIds) && data.featuredPlayIds.length > 0) {
+          const ids = (data.featuredPlayIds as string[]).slice(0, 4);
+          let resolved: Play[] = [];
+          if (this.cachedPlays && this.cachedPlays.length > 0) {
+            const playMap = new Map(this.cachedPlays.map(p => [p.id, p]));
+            resolved = ids.map(id => playMap.get(id)).filter(Boolean) as Play[];
+          }
+
+          if (resolved.length < ids.length) {
+            const snaps = await Promise.all(ids.map(id => getDoc(doc(this.getDb(), 'plays', id))));
+            resolved = snaps.filter(s => s.exists()).map(s => ({ ...s.data(), id: s.id } as Play));
+          }
+
+          if (resolved.length >= 4) {
+            this.cachedFeaturedPlays = resolved;
+            saveCachedFeaturedPlays(resolved);
+            return resolved;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[FirebaseStorage] Could not fast-fetch featured plays:', err);
+    }
+
+    return this.cachedFeaturedPlays || localCached || DEFAULT_FEATURED_PLAYS;
+  }
+
+  async setHomepageFeaturedPlayIds(playIds: string[]): Promise<void> {
+    let resolvedPlays: Play[] = [];
+    try {
+      if (this.cachedPlays && this.cachedPlays.length > 0) {
+        const map = new Map(this.cachedPlays.map(p => [p.id, p]));
+        resolvedPlays = playIds.map(id => map.get(id)).filter(Boolean) as Play[];
+      }
+      if (resolvedPlays.length < playIds.length) {
+        const snaps = await Promise.all(playIds.map(id => getDoc(doc(this.getDb(), 'plays', id))));
+        resolvedPlays = snaps.filter(s => s.exists()).map(s => ({ ...s.data(), id: s.id } as Play));
+      }
+
+      await setDoc(doc(this.getDb(), 'config', 'homepage'), removeUndefined({
         featuredPlayIds: playIds,
+        featuredPlays: resolvedPlays.length > 0 ? resolvedPlays : undefined,
         updatedAt: new Date().toISOString()
-      }, { merge: true });
+      }), { merge: true });
     } catch (err) {
       console.warn('[FirebaseStorage] Could not save homepage config to Firestore:', err);
     }
 
     try {
+      if (resolvedPlays.length > 0) {
+        this.cachedFeaturedPlays = resolvedPlays;
+        saveCachedFeaturedPlays(resolvedPlays);
+      }
       localStorage.setItem('tiyatronot_homepage_featured_plays', JSON.stringify(playIds));
-      window.dispatchEvent(new CustomEvent('tiyatronot:homepage-featured-updated', { detail: playIds }));
+      window.dispatchEvent(new CustomEvent('tiyatronot:homepage-featured-updated', {
+        detail: { ids: playIds, plays: resolvedPlays }
+      }));
     } catch {}
   }
 

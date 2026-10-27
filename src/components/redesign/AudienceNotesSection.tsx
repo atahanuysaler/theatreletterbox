@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Pencil } from 'lucide-react';
+import { useAuthSafe } from '../../context/AuthContext';
 import type { Play, ReviewEntry } from '../../types';
 import { storageService } from '../../services/storage';
 
@@ -6,6 +8,7 @@ interface AudienceNotesSectionProps {
   play: Play;
   reviews: ReviewEntry[];
   onOpenLogModal: () => void;
+  onEditReview?: (review: ReviewEntry) => void;
   onShare: (review: ReviewEntry) => void;
 }
 
@@ -15,8 +18,15 @@ export const AudienceNotesSection: React.FC<AudienceNotesSectionProps> = ({
   play,
   reviews,
   onOpenLogModal,
+  onEditReview,
   onShare,
 }) => {
+  const auth = useAuthSafe();
+  const currentUserId = auth?.user?.uid;
+  const userOwnReview = useMemo(() => {
+    if (!currentUserId || !reviews.length) return null;
+    return reviews.find((r) => r.userId === currentUserId) || null;
+  }, [currentUserId, reviews]);
   // Sort and filter states
   const [sortOption, setSortOption] = useState<'latest' | 'top' | 'most_liked'>('latest');
   const [hideSpoilers, setHideSpoilers] = useState(true);
@@ -31,10 +41,12 @@ export const AudienceNotesSection: React.FC<AudienceNotesSectionProps> = ({
   const [exitingCard, setExitingCard] = useState<{
     review: ReviewEntry;
     direction: 'left' | 'right';
+    fromOffset?: number;
     animating: boolean;
   } | null>(null);
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
+  const touchStartTimeRef = useRef<number>(0);
   const isHorizontalSwipeRef = useRef<boolean | null>(null);
   const hasMovedRef = useRef<boolean>(false);
 
@@ -160,7 +172,7 @@ export const AudienceNotesSection: React.FC<AudienceNotesSectionProps> = ({
   };
 
   // Advance mobile card with smooth exit animation
-  const handleMobileAdvance = (direction: 'left' | 'right') => {
+  const handleMobileAdvance = (direction: 'left' | 'right', fromOffset: number = 0) => {
     if (totalCount <= 1 || exitingCard) return;
 
     const currentReview = sortedNotes[mobileIndex];
@@ -169,10 +181,11 @@ export const AudienceNotesSection: React.FC<AudienceNotesSectionProps> = ({
         ? (mobileIndex + 1) % totalCount
         : (mobileIndex - 1 + totalCount) % totalCount;
 
-    // 1. Stage current card as exiting overlay
+    // 1. Stage current card as exiting overlay smoothly starting from current release point
     setExitingCard({
       review: currentReview,
       direction,
+      fromOffset,
       animating: false,
     });
 
@@ -187,6 +200,7 @@ export const AudienceNotesSection: React.FC<AudienceNotesSectionProps> = ({
         setExitingCard({
           review: currentReview,
           direction,
+          fromOffset,
           animating: true,
         });
       });
@@ -195,49 +209,76 @@ export const AudienceNotesSection: React.FC<AudienceNotesSectionProps> = ({
     // 4. Remove overlay card after transition finishes
     setTimeout(() => {
       setExitingCard(null);
-    }, 340);
+    }, 360);
   };
 
-  // Mobile Touch Gestures
+  // Mobile Touch Gestures with calibrated sensitivity & smooth damping
   const handleTouchStart = (e: React.TouchEvent) => {
     if (exitingCard || totalCount <= 1) return;
     touchStartXRef.current = e.touches[0].clientX;
     touchStartYRef.current = e.touches[0].clientY;
+    touchStartTimeRef.current = Date.now();
     isHorizontalSwipeRef.current = null;
     hasMovedRef.current = false;
-    setIsDragging(true);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || touchStartXRef.current === null || touchStartYRef.current === null) return;
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
     const diffX = e.touches[0].clientX - touchStartXRef.current;
     const diffY = e.touches[0].clientY - touchStartYRef.current;
+    const absX = Math.abs(diffX);
+    const absY = Math.abs(diffY);
 
+    // Filter vertical scrolls vs horizontal swipes cleanly
     if (isHorizontalSwipeRef.current === null) {
-      if (Math.abs(diffX) > 8 || Math.abs(diffY) > 8) {
-        isHorizontalSwipeRef.current = Math.abs(diffX) > Math.abs(diffY);
+      // If user is clearly scrolling down the page, dismiss swipe lock
+      if (absY > 10 && absY >= absX) {
+        isHorizontalSwipeRef.current = false;
+        return;
+      }
+      // Require decisive horizontal movement (>14px and at least 1.4x of Y)
+      if (absX > 14 && absX > absY * 1.4) {
+        isHorizontalSwipeRef.current = true;
+        setIsDragging(true);
       }
     }
 
     if (isHorizontalSwipeRef.current) {
-      if (Math.abs(diffX) > 8) {
-        hasMovedRef.current = true;
-      }
-      setDragOffset(diffX);
+      hasMovedRef.current = true;
+      // Damped resistance: smooth and weighted feel
+      const dampedX = diffX * 0.85;
+      setDragOffset(dampedX);
     }
   };
 
   const handleTouchEnd = () => {
-    if (!isDragging) return;
-    setIsDragging(false);
+    const startX = touchStartXRef.current;
+    const startTime = touchStartTimeRef.current;
+    const currentOffset = dragOffset;
+
     touchStartXRef.current = null;
     touchStartYRef.current = null;
+    isHorizontalSwipeRef.current = null;
+    setIsDragging(false);
 
-    if (dragOffset < -50) {
-      handleMobileAdvance('left');
-    } else if (dragOffset > 50) {
-      handleMobileAdvance('right');
+    if (startX === null || !hasMovedRef.current) {
+      setDragOffset(0);
+      return;
+    }
+
+    const elapsed = Math.max(1, Date.now() - startTime);
+    const velocity = Math.abs(currentOffset) / elapsed; // px per ms
+
+    // Calibrated threshold: requires either sufficient distance (85px) or an intentional fast flick
+    const isSwipeLeft = currentOffset < -85 || (velocity > 0.42 && currentOffset < -45);
+    const isSwipeRight = currentOffset > 85 || (velocity > 0.42 && currentOffset > 45);
+
+    if (isSwipeLeft) {
+      handleMobileAdvance('left', currentOffset);
+    } else if (isSwipeRight) {
+      handleMobileAdvance('right', currentOffset);
     } else {
+      // Smooth snap-back
       setDragOffset(0);
     }
   };
@@ -249,6 +290,7 @@ export const AudienceNotesSection: React.FC<AudienceNotesSectionProps> = ({
     const effectiveLikes = likesMap[review.id] ?? review.likes ?? 0;
     const initials = getAvatarInitials(review.userName);
     const dateFormatted = formatReviewDate(review.performanceDate || review.createdAt);
+    const isOwnReview = Boolean(currentUserId && review.userId === currentUserId);
 
     return (
       <article className="rounded-2xl bg-[#FAF7F2] dark:bg-[#201D1E] border border-[#E8E2D9] dark:border-white/10 shadow-xs flex flex-row overflow-hidden select-none h-full min-h-[185px]">
@@ -278,20 +320,36 @@ export const AudienceNotesSection: React.FC<AudienceNotesSectionProps> = ({
               </div>
             </div>
 
-            {/* Review Quote */}
+            {/* Review Note without quotes */}
             <div className="my-3">
               <p
                 className={`m-0 font-sans not-italic font-medium text-base sm:text-[17px] leading-relaxed text-[#1C1A1B] dark:text-white line-clamp-3 ${
                   isSpoilerBlur ? 'filter blur-sm select-none' : ''
                 }`}
               >
-                “{review.reviewText}”
+                {review.reviewText}
               </p>
             </div>
           </div>
 
-          {/* Bottom Right Actions: Black Clap Hand Pill + Paylaş Pill */}
+          {/* Bottom Right Actions: Düzenle (if own) + Black Clap Hand Pill + Paylaş Pill */}
           <div className="flex items-center justify-end gap-2 pt-1">
+            {/* Düzenle Button for own note */}
+            {isOwnReview && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditReview?.(review);
+                }}
+                className="h-7 sm:h-8 px-2.5 sm:px-3 rounded-full bg-[#EFEAE2] dark:bg-white/10 hover:bg-[#E5DFD6] dark:hover:bg-white/15 text-xs sm:text-[13px] font-semibold text-[#1C1A1B] dark:text-white cursor-pointer border-none transition-colors flex items-center gap-1.5"
+                title="Notumu düzenle"
+              >
+                <Pencil className="w-3.5 h-3.5 shrink-0" />
+                <span>Düzenle</span>
+              </button>
+            )}
+
             {/* Clap / Alkış Pill (Monochrome black hand icon, toggles like & dislike) */}
             <button
               type="button"
@@ -419,7 +477,7 @@ export const AudienceNotesSection: React.FC<AudienceNotesSectionProps> = ({
       {/* ============================================================ */}
       {/* 1. HEADER & FILTER CONTROLS                                  */}
       {/* ============================================================ */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 px-1 sm:px-1.5">
         {/* Title: Seyirci Notları */}
         <h2 className="m-0 font-display font-extrabold text-2xl sm:text-[34px] leading-tight text-tn-text dark:text-white">
           Seyirci <span className="font-accent italic font-normal">Notları</span>
@@ -542,15 +600,22 @@ export const AudienceNotesSection: React.FC<AudienceNotesSectionProps> = ({
               </span>
             </div>
 
-            {/* Card 2: SEN DE YAZ Striped Card */}
+            {/* Card 2: SEN DE YAZ / NOTUNU DÜZENLE Striped Card */}
             <div
-              onClick={onOpenLogModal}
-              className="rounded-2xl bg-[#D9CFF2] dark:bg-[#352D48] p-3.5 flex items-center justify-center border border-tn-line/50 shadow-xs h-[165px] cursor-pointer hover:opacity-95 transition-all group bg-[repeating-linear-gradient(0deg,transparent_0_16px,rgba(0,0,0,0.05)_16px_18px)]"
+              onClick={() => {
+                if (userOwnReview && onEditReview) {
+                  onEditReview(userOwnReview);
+                } else {
+                  onOpenLogModal();
+                }
+              }}
+              className="rounded-2xl bg-[#D9CFF2] dark:bg-[#352D48] p-3.5 flex items-center justify-center border border-tn-line/50 shadow-xs h-[190px] cursor-pointer hover:opacity-95 transition-all group bg-[repeating-linear-gradient(0deg,transparent_0_16px,rgba(0,0,0,0.05)_16px_18px)]"
             >
               <div className="w-full h-full rounded-[50%] border-2 border-[#1C1A1B] dark:border-white flex flex-col items-center justify-center p-2 group-hover:scale-[1.02] transition-transform">
-                <span className="font-display font-black text-xl tracking-tight text-[#1C1A1B] dark:text-white leading-tight text-center">
-                  SEN DE<br />YAZ
+                <span className="font-display font-black text-2xl tracking-tight text-[#1C1A1B] dark:text-white leading-tight text-center">
+                  {userOwnReview ? <>NOTUNU<br />DÜZENLE</> : <>SEN DE<br />YAZ</>}
                 </span>
+                
               </div>
             </div>
           </div>
@@ -671,15 +736,22 @@ export const AudienceNotesSection: React.FC<AudienceNotesSectionProps> = ({
           </span>
         </div>
 
-        {/* SEN DE YAZ Full Width Card */}
+        {/* SEN DE YAZ / NOTUNU DÜZENLE Full Width Card */}
         <div
-          onClick={onOpenLogModal}
-          className="rounded-2xl bg-[#D9CFF2] dark:bg-[#352D48] p-3 flex items-center justify-center border border-tn-line/40 shadow-xs h-[100px] cursor-pointer hover:opacity-95 transition-all group bg-[repeating-linear-gradient(0deg,transparent_0_16px,rgba(0,0,0,0.05)_16px_18px)]"
+          onClick={() => {
+            if (userOwnReview && onEditReview) {
+              onEditReview(userOwnReview);
+            } else {
+              onOpenLogModal();
+            }
+          }}
+          className="rounded-2xl bg-[#D9CFF2] dark:bg-[#352D48] p-4 flex items-center justify-center border border-tn-line/40 shadow-xs h-[150px] sm:h-[170px] cursor-pointer hover:opacity-95 transition-all group bg-[repeating-linear-gradient(0deg,transparent_0_16px,rgba(0,0,0,0.05)_16px_18px)]"
         >
-          <div className="w-[85%] h-full rounded-[50%] border-2 border-[#1C1A1B] dark:border-white flex items-center justify-center p-2 group-hover:scale-[1.02] transition-transform">
-            <span className="font-display font-black text-xl tracking-tight text-[#1C1A1B] dark:text-white leading-none text-center">
-              SEN DE YAZ
+          <div className="w-[88%] max-w-[340px] h-full rounded-[50%] border-2 border-[#1C1A1B] dark:border-white flex flex-col items-center justify-center p-2 group-hover:scale-[1.02] transition-transform">
+            <span className="font-display font-black text-2xl tracking-tight text-[#1C1A1B] dark:text-white leading-none text-center">
+              {userOwnReview ? 'NOTUNU DÜZENLE' : 'SEN DE YAZ'}
             </span>
+            
           </div>
         </div>
 
@@ -691,11 +763,6 @@ export const AudienceNotesSection: React.FC<AudienceNotesSectionProps> = ({
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              onClick={() => {
-                if (!hasMovedRef.current && Math.abs(dragOffset) < 10) {
-                  handleMobileAdvance('left');
-                }
-              }}
             >
               {/* Card 3 (Bottom Layer) */}
               {totalCount > 2 && (
@@ -725,23 +792,26 @@ export const AudienceNotesSection: React.FC<AudienceNotesSectionProps> = ({
                 </div>
               )}
 
-              {/* Card 1 (Front Active Card, tracks finger drag in real time) */}
+              {/* Card 1 (Front Active Card, tracks finger drag with smooth spring physics) */}
               <div
                 className={`absolute inset-x-0 top-0 h-[195px] shadow-md rounded-2xl ${
-                  isDragging ? 'cursor-grabbing' : 'cursor-grab transition-transform duration-150'
+                  isDragging ? 'cursor-grabbing' : 'cursor-grab'
                 }`}
                 style={{
                   zIndex: 30,
                   transform: isDragging
-                    ? `translate3d(${dragOffset}px, 0, 0) rotate(${dragOffset * 0.05}deg)`
+                    ? `translate3d(${dragOffset}px, 0, 0) rotate(${dragOffset * 0.04}deg)`
                     : 'translate3d(0, 0, 0) rotate(0deg)',
                   opacity: 1,
+                  transition: isDragging
+                    ? 'none'
+                    : 'transform 320ms cubic-bezier(0.2, 0.9, 0.3, 1)',
                 }}
               >
                 {renderTicketCard(sortedNotes[mobileIndex])}
               </div>
 
-              {/* Exiting Card Overlay: animates away seamlessly without jumping or reversing */}
+              {/* Exiting Card Overlay: smoothly glides away from finger position without jumping */}
               {exitingCard && (
                 <div
                   className="absolute inset-x-0 top-0 h-[195px] shadow-md rounded-2xl pointer-events-none"
@@ -749,11 +819,13 @@ export const AudienceNotesSection: React.FC<AudienceNotesSectionProps> = ({
                     zIndex: 40,
                     transform: exitingCard.animating
                       ? exitingCard.direction === 'left'
-                        ? 'translate3d(-130%, 0, 0) rotate(-16deg)'
-                        : 'translate3d(130%, 0, 0) rotate(16deg)'
-                      : 'translate3d(0, 0, 0) rotate(0deg)',
+                        ? 'translate3d(-130%, 0, 0) rotate(-14deg)'
+                        : 'translate3d(130%, 0, 0) rotate(14deg)'
+                      : `translate3d(${exitingCard.fromOffset || 0}px, 0, 0) rotate(${(exitingCard.fromOffset || 0) * 0.04}deg)`,
                     opacity: exitingCard.animating ? 0 : 1,
-                    transition: 'transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 300ms ease-out',
+                    transition: exitingCard.animating
+                      ? 'transform 340ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease-out'
+                      : 'none',
                   }}
                 >
                   {renderTicketCard(exitingCard.review)}

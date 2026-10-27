@@ -98,7 +98,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({
     { label: 'Küratörlü Listeler', path: '/listeler' },
     { label: 'Bulmacalar', path: '/bulmacalar', badge: 'YENİ' },
     { label: 'Sahne Liderleri', path: '/liderler' },
-    { label: 'Yeni Oyun Öner / Ekle', path: '/oyun-ekle' },
+    { label: 'Oyun Ekle', path: '/oyun-ekle' },
   ];
 
   if (user?.role === 'admin') {

@@ -19,6 +19,9 @@ import OyuncuDedektifiModal from '../components/OyuncuDedektifiModal';
 import TriviaModal from '../components/TriviaModal';
 import WordPuzzleModal from '../components/WordPuzzleModal';
 import SocialShareModal from '../components/SocialShareModal';
+import { getCachedFeaturedPlays } from '../data/featuredPlays';
+import { useAuthSafe } from '../context/AuthContext';
+import { getDailyPuzzlesStatus } from '../utils/puzzleStatus';
 
 interface HomePageProps {
   onOpenLogModal?: (play?: Play | null) => void;
@@ -32,12 +35,14 @@ export const HomePage: React.FC<HomePageProps> = ({
   const navigate = useNavigate();
 
   // Data states
+  // Highlighted plays: initialized immediately from synchronous cache so 0ms delay on first frame!
+  const [highlightedPlays, setHighlightedPlays] = useState<Play[]>(getCachedFeaturedPlays);
   const [plays, setPlays] = useState<Play[]>([]);
   const [reviews, setReviews] = useState<ReviewEntry[]>([]);
   const [curatedLists, setCuratedLists] = useState<CuratedList[]>([]);
   const [topUsers, setTopUsers] = useState<UserProfile[]>([]);
   const [featuredPlayIds, setFeaturedPlayIds] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Search input on home forwards to catalog
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,37 +52,63 @@ export const HomePage: React.FC<HomePageProps> = ({
   const [isActorDetectiveOpen, setIsActorDetectiveOpen] = useState(false);
   const [isTriviaOpen, setIsTriviaOpen] = useState(false);
   const [isWordPuzzleOpen, setIsWordPuzzleOpen] = useState(false);
+  const [puzzleStatuses, setPuzzleStatuses] = useState(getDailyPuzzlesStatus);
   const [shareReview, setShareReview] = useState<ReviewEntry | null>(null);
 
-  // Initial load
+  // Highlighted plays (1 featured hero + 3 secondary split cards = 4 highlighted plays)
+  // Available immediately on frame 0 without any network wait!
+  const featuredPlay = highlightedPlays[0] || null;
+  const splitCardPlays = highlightedPlays.slice(1, 4);
+  // Listen for puzzle completion updates
+  useEffect(() => {
+    const handlePuzzleUpdate = () => {
+      setPuzzleStatuses(getDailyPuzzlesStatus());
+    };
+    window.addEventListener('tiyatronot_puzzle_updated', handlePuzzleUpdate);
+    return () => {
+      window.removeEventListener('tiyatronot_puzzle_updated', handlePuzzleUpdate);
+    };
+  }, []);
+
+
+  // Fast background sync: fetch latest featured plays & general data independently without blocking
   useEffect(() => {
     let isMounted = true;
-    const fetchData = async () => {
-      try {
-        const [loadedPlays, loadedReviews, loadedLists, loadedUsers, loadedFeaturedIds] = await Promise.all([
-          storageService.getPlays(),
-          storageService.getReviews(),
-          storageService.getCuratedLists().catch(() => []),
-          storageService.getAllUsers().catch(() => []),
-          storageService.getHomepageFeaturedPlayIds().catch(() => []),
-        ]);
 
-        if (isMounted) {
-          setPlays(loadedPlays || []);
-          setReviews(loadedReviews || []);
-          setCuratedLists(loadedLists && loadedLists.length > 0 ? loadedLists : CURATED_LISTS);
-          const sortedUsers = (loadedUsers || []).sort((a, b) => (b.xp || 0) - (a.xp || 0));
-          setTopUsers(sortedUsers);
-          setFeaturedPlayIds(loadedFeaturedIds || []);
-        }
-      } catch (err) {
-        console.error('[HomePage] Failed to fetch data:', err);
-      } finally {
-        if (isMounted) setIsLoading(false);
+    // 1. Fast targeted fetch for featured plays (resolves only the 4 plays in milliseconds)
+    storageService.getHomepageFeaturedPlays().then((loadedFeatured) => {
+      if (isMounted && loadedFeatured && loadedFeatured.length >= 4) {
+        setHighlightedPlays(loadedFeatured);
       }
-    };
+    }).catch((err) => {
+      console.warn('[HomePage] Fast featured fetch error:', err);
+    });
 
-    fetchData();
+    // 2. Fetch reviews independently
+    storageService.getReviews().then((loadedReviews) => {
+      if (isMounted && loadedReviews) setReviews(loadedReviews);
+    }).catch(() => {});
+
+    // 3. Fetch curated lists independently
+    storageService.getCuratedLists().then((loadedLists) => {
+      if (isMounted && loadedLists && loadedLists.length > 0) setCuratedLists(loadedLists);
+    }).catch(() => {});
+
+    // 4. Fetch users independently
+    storageService.getAllUsers().then((loadedUsers) => {
+      if (isMounted && loadedUsers) {
+        const sortedUsers = [...loadedUsers].sort((a, b) => (b.xp || 0) - (a.xp || 0));
+        setTopUsers(sortedUsers);
+      }
+    }).catch(() => {});
+
+    // 5. Fetch all plays in background for catalog count / search
+    storageService.getPlays().then((loadedPlays) => {
+      if (isMounted && loadedPlays) {
+        setPlays(loadedPlays);
+      }
+    }).catch(() => {});
+
     return () => {
       isMounted = false;
     };
@@ -86,43 +117,35 @@ export const HomePage: React.FC<HomePageProps> = ({
   // Listen for admin changes to highlighted plays
   useEffect(() => {
     const handleUpdate = (e: Event) => {
-      const customEvent = e as CustomEvent<string[]>;
-      if (customEvent.detail) setFeaturedPlayIds(customEvent.detail);
+      const customEvent = e as CustomEvent<any>;
+      if (customEvent.detail) {
+        if (Array.isArray(customEvent.detail.plays) && customEvent.detail.plays.length >= 4) {
+          setHighlightedPlays(customEvent.detail.plays);
+        } else if (Array.isArray(customEvent.detail)) {
+          setFeaturedPlayIds(customEvent.detail);
+        } else if (Array.isArray(customEvent.detail.ids)) {
+          setFeaturedPlayIds(customEvent.detail.ids);
+        }
+      }
     };
     window.addEventListener('tiyatronot:homepage-featured-updated', handleUpdate);
     return () => window.removeEventListener('tiyatronot:homepage-featured-updated', handleUpdate);
   }, []);
 
-  // Highlighted plays (1 featured hero + 3 secondary split cards = 4 highlighted plays)
-  const { featuredPlay, splitCardPlays } = useMemo(() => {
-    if (plays.length === 0) return { featuredPlay: null, splitCardPlays: [] };
-
-    // If custom IDs are configured, resolve them in order
-    if (featuredPlayIds.length > 0) {
+  // If admin sets custom IDs without full objects, resolve them when plays load
+  useEffect(() => {
+    if (featuredPlayIds.length > 0 && plays.length > 0) {
       const playMap = new Map(plays.map(p => [p.id, p]));
       const resolved = featuredPlayIds.map(id => playMap.get(id)).filter(Boolean) as Play[];
-      if (resolved.length > 0) {
-        const hero = resolved[0];
-        const secondary = resolved.slice(1, 4);
-        if (secondary.length < 3) {
-          const used = new Set([hero.id, ...secondary.map(p => p.id)]);
-          const remaining = plays.filter(p => !used.has(p.id) && p.posterUrl);
-          secondary.push(...remaining.slice(0, 3 - secondary.length));
-        }
-        return { featuredPlay: hero, splitCardPlays: secondary };
+      if (resolved.length >= 4) {
+        setHighlightedPlays(resolved);
       }
     }
-
-    // Default fallback
-    const hero = plays.find((p) => p.rating === 5 && p.posterUrl) || plays[0];
-    const secondary = plays
-      .filter((p) => p.id !== hero?.id && p.posterUrl)
-      .slice(0, 3);
-    return { featuredPlay: hero, splitCardPlays: secondary };
-  }, [plays, featuredPlayIds]);
+  }, [featuredPlayIds, plays]);
 
   const recentReviews = useMemo(() => {
-    const playMap = new Map(plays.map((p) => [p.id, p]));
+    const effectivePlays = plays.length > 0 ? plays : highlightedPlays;
+    const playMap = new Map(effectivePlays.map((p) => [p.id, p]));
     const saticininOlumuPlay = plays.find(
       (p) => p.title.toLowerCase().includes('satıcı') || p.title.toLowerCase().includes('ölümü')
     );
@@ -279,7 +302,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 to="/bulmacalar"
                 className="m-0 font-display font-extrabold text-[22px] sm:text-[28px] lg:text-[34px] leading-normal text-[#1C1A1B] dark:text-white tracking-[-0.03em] hover:text-tn-red transition-colors no-underline block"
               >
-                Günün <span className="font-accent italic font-normal">bulmacaları</span>
+                Haftanın <span className="font-accent italic font-normal">bulmacaları</span>
               </Link>
               {/* Desktop Header Pills */}
               <div className="flex items-center gap-2">
@@ -296,12 +319,12 @@ export const HomePage: React.FC<HomePageProps> = ({
 
             {/* Segmented Progress */}
             <div className="flex items-center gap-1.5 mt-2.5">
-              <span className="w-7 h-1.5 rounded-full bg-[#1C1A1B] dark:bg-white" />
-              <span className="w-7 h-1.5 rounded-full bg-[#1C1A1B]/15 dark:bg-white/20" />
-              <span className="w-7 h-1.5 rounded-full bg-[#1C1A1B]/15 dark:bg-white/20" />
-              <span className="w-7 h-1.5 rounded-full bg-[#1C1A1B]/15 dark:bg-white/20" />
+              <span className={`w-7 h-1.5 rounded-full ${puzzleStatuses.quote.completed ? 'bg-[#1C1A1B] dark:bg-white' : 'bg-[#1C1A1B]/15 dark:bg-white/20'}`} />
+              <span className={`w-7 h-1.5 rounded-full ${puzzleStatuses.actor.completed ? 'bg-[#1C1A1B] dark:bg-white' : 'bg-[#1C1A1B]/15 dark:bg-white/20'}`} />
+              <span className={`w-7 h-1.5 rounded-full ${puzzleStatuses.trivia.completed ? 'bg-[#1C1A1B] dark:bg-white' : 'bg-[#1C1A1B]/15 dark:bg-white/20'}`} />
+              <span className={`w-7 h-1.5 rounded-full ${puzzleStatuses.word.completed ? 'bg-[#1C1A1B] dark:bg-white' : 'bg-[#1C1A1B]/15 dark:bg-white/20'}`} />
               <span className="font-sans font-medium text-xs sm:text-[13px] text-[#1C1A1B]/70 dark:text-white/70 ml-2">
-                1 / 4 tamamlandı
+                {puzzleStatuses.completedCount} / 4 tamamlandı
               </span>
             </div>
           </div>
@@ -312,26 +335,32 @@ export const HomePage: React.FC<HomePageProps> = ({
               title={<>Günün<br />Repliği</>}
               colorVariant="red"
               xpReward={30}
-              isCompleted={true}
-              statusText="Tamamlandı"
+              isCompleted={puzzleStatuses.quote.completed}
+              isWon={puzzleStatuses.quote.won}
               onClick={() => setIsDailyQuoteOpen(true)}
             />
             <PuzzleCard
               title={<>Oyuncu<br />Dedektifi</>}
               colorVariant="dark"
               xpReward={30}
+              isCompleted={puzzleStatuses.actor.completed}
+              isWon={puzzleStatuses.actor.won}
               onClick={() => setIsActorDetectiveOpen(true)}
             />
             <PuzzleCard
               title={<>Sahne<br />Trivia</>}
               colorVariant="lilac"
               xpReward={25}
+              isCompleted={puzzleStatuses.trivia.completed}
+              isWon={puzzleStatuses.trivia.won}
               onClick={() => setIsTriviaOpen(true)}
             />
             <PuzzleCard
               title={<>Perde<br />Arkası</>}
               colorVariant="sage"
               xpReward={25}
+              isCompleted={puzzleStatuses.word.completed}
+              isWon={puzzleStatuses.word.won}
               onClick={() => setIsWordPuzzleOpen(true)}
             />
           </div>
@@ -346,45 +375,49 @@ export const HomePage: React.FC<HomePageProps> = ({
       <div className="md:hidden flex flex-col gap-2.5 mt-1">
         {/* Mobile Featured Card */}
         {featuredPlay && (
-          <div className="w-full h-[200px] sm:h-[250px]">
+          <div className="w-full h-[clamp(180px,24vh,220px)] sm:h-[250px]">
             <SplitCard play={featuredPlay} variant="hero" colorVariant="red" />
           </div>
         )}
 
-        {/* Mobile Split Cards Carousel */}
-        <div className="flex gap-2.5 overflow-x-auto -mx-2 px-2 no-scrollbar snap-x snap-mandatory pt-1 pb-1">
+        {/* Mobile Split Cards Carousel: Dynamic responsive sizing, not fixed */}
+        <div className="flex gap-2.5 overflow-x-auto -mx-2 px-2 no-scrollbar snap-x snap-mandatory pt-0.5 pb-1">
           {splitCardPlays.map((p, idx) => {
             const colors: Array<'ink' | 'lilac' | 'sage'> = ['ink', 'lilac', 'sage'];
             return (
-              <div key={p.id} className="flex-shrink-0 w-[285px] sm:w-[330px] h-[195px] sm:h-[240px] snap-center">
+              <div
+                key={p.id}
+                className="flex-shrink-0 w-[clamp(220px,68vw,285px)] h-[clamp(130px,18vh,155px)] snap-center transition-all"
+              >
                 <SplitCard play={p} colorVariant={colors[idx % colors.length]} />
               </div>
             );
           })}
 
-          {/* 4th Card: Go to Catalog */}
-          <div className="flex-shrink-0 w-[240px] sm:w-[280px] h-[195px] sm:h-[240px] snap-center">
+          {/* 4th Card: Go to Catalog - matches dynamic secondary card sizing */}
+          <div className="flex-shrink-0 w-[clamp(185px,54vw,230px)] h-[clamp(130px,18vh,155px)] snap-center">
             <Link
               to="/katalog"
-              className="w-full h-full rounded-[20px] bg-[#1C1A1B] text-white p-5 flex flex-col justify-between no-underline shadow-sm transition-all hover:scale-[1.01] hover:shadow-md border border-white/10 group"
+              onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}
+              className="w-full h-full rounded-2xl bg-[#1C1A1B] text-white p-3.5 sm:p-4 flex flex-col justify-between no-underline shadow-sm transition-all hover:scale-[1.01] hover:shadow-md border border-white/10 group"
             >
               <div className="flex justify-between items-start">
-                <div className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center shrink-0 group-hover:bg-tn-red group-hover:text-white transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                <div className="w-8 h-8 rounded-lg bg-white/10 text-white flex items-center justify-center shrink-0 group-hover:bg-tn-red group-hover:text-white transition-colors">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0l-7-7m7 7l-7 7" />
                   </svg>
                 </div>
-                <span className="px-2.5 py-1 rounded-full bg-white/10 text-[#E2DCD4] text-[11px] font-sans font-semibold">
+                <span className="px-2 py-0.5 rounded-full bg-white/10 text-[#E2DCD4] text-[10px] font-sans font-semibold">
                   {plays.length}+ Oyun
                 </span>
               </div>
 
               <div>
-                <div className="font-display font-extrabold text-[20px] sm:text-[22px] leading-tight text-white tracking-[-0.02em]">
+                <div className="font-display font-extrabold text-[15px] sm:text-[18px] leading-tight text-white tracking-[-0.02em]">
                   Tüm Kataloğu<br />
                   <span className="font-accent italic font-normal text-[#E2DCD4]">Keşfet</span>
                 </div>
-                <div className="font-sans text-xs text-white/70 mt-1.5 flex items-center gap-1 group-hover:text-tn-red transition-colors font-medium">
+                <div className="font-sans text-[11px] text-white/70 mt-1 flex items-center gap-1 group-hover:text-tn-red transition-colors font-medium">
                   <span>Kataloğa git</span>
                   <span className="transition-transform group-hover:translate-x-1">→</span>
                 </div>
@@ -424,7 +457,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   to="/bulmacalar"
                   className="m-0 font-display font-extrabold text-[20px] sm:text-[26px] lg:text-[32px] leading-normal text-[#1C1A1B] dark:text-white tracking-[-0.03em] hover:text-tn-red transition-colors no-underline block"
                 >
-                  Günün <span className="font-accent italic font-normal">bulmacaları</span>
+                  Haftanın <span className="font-accent italic font-normal">bulmacaları</span>
                 </Link>
               </div>
               {/* Mobile Header Pills */}
@@ -460,26 +493,32 @@ export const HomePage: React.FC<HomePageProps> = ({
               title={<>Günün<br />Repliği</>}
               colorVariant="red"
               xpReward={30}
-              isCompleted={true}
-              statusText="Tamamlandı"
+              isCompleted={puzzleStatuses.quote.completed}
+              isWon={puzzleStatuses.quote.won}
               onClick={() => setIsDailyQuoteOpen(true)}
             />
             <PuzzleCard
               title={<>Oyuncu<br />Dedektifi</>}
               colorVariant="dark"
               xpReward={30}
+              isCompleted={puzzleStatuses.actor.completed}
+              isWon={puzzleStatuses.actor.won}
               onClick={() => setIsActorDetectiveOpen(true)}
             />
             <PuzzleCard
               title={<>Sahne<br />Trivia</>}
               colorVariant="lilac"
               xpReward={25}
+              isCompleted={puzzleStatuses.trivia.completed}
+              isWon={puzzleStatuses.trivia.won}
               onClick={() => setIsTriviaOpen(true)}
             />
             <PuzzleCard
               title={<>Perde<br />Arkası</>}
               colorVariant="sage"
               xpReward={25}
+              isCompleted={puzzleStatuses.word.completed}
+              isWon={puzzleStatuses.word.won}
               onClick={() => setIsWordPuzzleOpen(true)}
             />
           </div>
@@ -511,7 +550,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 key={list.id}
                 id={list.id}
                 category={list.category || 'SEÇKİ'}
-                playCount={list.playIds?.length || 4}
+                playCount={plays.length > 0 ? (plays.filter((p) => list.playIds?.includes(p.id)).length || list.playIds?.length || 4) : (list.playIds?.length || 4)}
                 title={list.title}
                 description={list.description}
                 curator={list.curator || 'Tiyatronot'}
@@ -530,7 +569,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 key={list.id}
                 id={list.id}
                 category={list.category || 'SEÇKİ'}
-                playCount={list.playIds?.length || 4}
+                playCount={plays.length > 0 ? (plays.filter((p) => list.playIds?.includes(p.id)).length || list.playIds?.length || 4) : (list.playIds?.length || 4)}
                 title={list.title}
                 description={list.description}
                 curator={list.curator || 'Tiyatronot'}
@@ -553,6 +592,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         </div>
         <Link
           to="/katalog"
+          onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}
           className="h-12 px-7 rounded-xl bg-tn-ink text-white font-sans font-semibold text-base inline-flex items-center justify-center hover:bg-black/90 transition-all no-underline shadow-sm flex-shrink-0"
         >
           Kataloğa Git
@@ -560,10 +600,10 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* Modals */}
-      <DailyQuoteModal isOpen={isDailyQuoteOpen} onClose={() => setIsDailyQuoteOpen(false)} />
-      <OyuncuDedektifiModal isOpen={isActorDetectiveOpen} onClose={() => setIsActorDetectiveOpen(false)} />
-      <TriviaModal isOpen={isTriviaOpen} onClose={() => setIsTriviaOpen(false)} />
-      <WordPuzzleModal isOpen={isWordPuzzleOpen} onClose={() => setIsWordPuzzleOpen(false)} />
+      <DailyQuoteModal isOpen={isDailyQuoteOpen} onClose={() => { setIsDailyQuoteOpen(false); setPuzzleStatuses(getDailyPuzzlesStatus()); }} />
+      <OyuncuDedektifiModal isOpen={isActorDetectiveOpen} onClose={() => { setIsActorDetectiveOpen(false); setPuzzleStatuses(getDailyPuzzlesStatus()); }} />
+      <TriviaModal isOpen={isTriviaOpen} onClose={() => { setIsTriviaOpen(false); setPuzzleStatuses(getDailyPuzzlesStatus()); }} />
+      <WordPuzzleModal isOpen={isWordPuzzleOpen} onClose={() => { setIsWordPuzzleOpen(false); setPuzzleStatuses(getDailyPuzzlesStatus()); }} />
       {shareReview && sharePlay && (
         <SocialShareModal
           isOpen={Boolean(shareReview)}

@@ -63,6 +63,13 @@ export const CatalogPage: React.FC<CatalogPageProps> = () => {
   const [mobileVisibleCount, setMobileVisibleCount] = useState(10);
   const pageSize = 30;
 
+  // Ensure the page always starts from the top on mount or route transition
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, []);
+
   // Clear autoFocus state after consumption
   useEffect(() => {
     if (shouldAutoFocus) {

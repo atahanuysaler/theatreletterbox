@@ -67,19 +67,16 @@ export const ListsPage: React.FC<ListsPageProps> = () => {
     <div className="w-full flex flex-col gap-6 py-4 font-sans text-tn-text">
       {/* Header */}
       <div className="border-b border-tn-line pb-4">
-        <span className="text-[11px] font-bold tracking-[0.07em] text-tn-red uppercase">
-          KÜRATÖRLÜ SEÇKİLER
-        </span>
-        <h1 className="m-0 mt-1 font-display font-extrabold text-3xl sm:text-5xl leading-[0.95] tracking-[-0.035em]">
-          Tiyatro <span className="font-accent italic font-normal">listeleri</span>
+        <h1 className="m-0 font-display font-extrabold text-3xl sm:text-5xl leading-[0.95] tracking-[-0.035em]">
+          Küratörlü <span className="font-accent italic font-normal">seçkiler</span>
         </h1>
         <p className="m-0 mt-1 text-base sm:text-lg text-tn-muted max-w-2xl">
-          Tiyatronot editörleri ve topluluk tarafından hazırlanan tematik seçkiler. İster tek kişilik oyunların peşine düşün, ister Kadıköy sahnelerinin nabzını tutun.
+          Tiyatronot editörleri ve topluluk tarafından hazırlanan tematik seçkiler.
         </p>
       </div>
 
-      {/* List Selector Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+      {/* List Selector Grid - all 4 cards on a single line on mobile */}
+      <div className="flex overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory gap-2 pb-1 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible sm:pb-0">
         {curatedLists.map((list, idx) => {
           const isSelected = list.id === selectedList?.id;
           const bgColors = [
@@ -98,7 +95,7 @@ export const ListsPage: React.FC<ListsPageProps> = () => {
                 setSelectedListId(list.id);
                 window.history.replaceState(null, '', `#${list.id}`);
               }}
-              className={`min-h-[160px] p-5 rounded-2xl flex flex-col justify-between text-left cursor-pointer transition-all border font-sans ${colorClass} ${
+              className={`shrink-0 snap-start w-[clamp(190px,58vw,230px)] sm:w-auto min-h-[130px] sm:min-h-[160px] p-3.5 sm:p-5 rounded-2xl flex flex-col justify-between text-left cursor-pointer transition-all border font-sans ${colorClass} ${
                 isSelected
                   ? 'ring-3 ring-tn-red scale-[1.02] shadow-md'
                   : 'opacity-85 hover:opacity-100 hover:scale-[1.01]'
@@ -108,7 +105,12 @@ export const ListsPage: React.FC<ListsPageProps> = () => {
                 <span className="text-[11px] font-bold tracking-[0.07em] uppercase opacity-85">
                   {list.category || 'SEÇKİ'}
                 </span>
-                <span className="text-xs font-accent italic">{list.playIds.length} oyun</span>
+                <span className="text-xs font-accent italic">
+                  {plays.length > 0
+                    ? plays.filter((p) => list.playIds?.includes(p.id)).length
+                    : (list.playIds?.length || 0)}{' '}
+                  oyun
+                </span>
               </div>
               <div>
                 <h3 className="m-0 font-display font-extrabold text-xl sm:text-2xl leading-[1.05] tracking-[-0.02em] text-inherit">
@@ -127,22 +129,16 @@ export const ListsPage: React.FC<ListsPageProps> = () => {
       {selectedList && (
         <section className="rounded-2xl bg-tn-surface p-5 sm:p-6 flex flex-col gap-4 border border-tn-line">
           <div>
-            <span className="text-[11px] font-bold tracking-[0.07em] uppercase text-tn-red">
-              SEÇİLİ LİSTE · {selectedList.category || 'ÖZEL SEÇKİ'}
-            </span>
-            <h2 className="m-0 mt-1 font-display font-extrabold text-3xl sm:text-4xl tracking-[-0.03em] leading-tight">
+            <h2 className="m-0 font-display font-extrabold text-2xl sm:text-4xl tracking-[-0.03em] leading-tight">
               {selectedList.title}
             </h2>
-            <p className="m-0 mt-2 text-base sm:text-lg text-tn-muted max-w-3xl leading-relaxed">
+            <p className="m-0 mt-2 text-base sm:text-lg text-tn-muted w-full leading-relaxed">
               {selectedList.description}
             </p>
           </div>
 
           {/* Plays in list */}
           <div className="pt-2">
-            <h3 className="m-0 font-display font-extrabold text-xl mb-3 tracking-[-0.02em]">
-              Listede Yer Alan Oyunlar ({listPlays.length})
-            </h3>
             {listPlays.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                 {listPlays.map((play) => (

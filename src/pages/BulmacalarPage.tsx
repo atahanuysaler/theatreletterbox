@@ -7,6 +7,7 @@ import { TriviaModal } from '../components/TriviaModal';
 import { WordPuzzleModal } from '../components/WordPuzzleModal';
 import { DailyQuoteModal } from '../components/DailyQuoteModal';
 import PuzzleCard from '../components/redesign/PuzzleCard';
+import { getDailyPuzzlesStatus } from '../utils/puzzleStatus';
 
 interface BulmacalarPageProps {
   onOpenDailyQuote?: () => void;
@@ -17,6 +18,7 @@ export const BulmacalarPage: React.FC<BulmacalarPageProps> = ({ onOpenDailyQuote
   const user = authContext?.user;
   const [, setPuzzleGames] = useState<PuzzleGameConfig[]>(PUZZLE_GAMES);
 
+  const [puzzleStatuses, setPuzzleStatuses] = useState(getDailyPuzzlesStatus);
   const [isDailyQuoteOpen, setIsDailyQuoteOpen] = useState(false);
   const [isActorModalOpen, setIsActorModalOpen] = useState(false);
   const [isTriviaModalOpen, setIsTriviaModalOpen] = useState(false);
@@ -29,8 +31,15 @@ export const BulmacalarPage: React.FC<BulmacalarPageProps> = ({ onOpenDailyQuote
         setPuzzleGames(games);
       }
     });
+
+    const handleUpdate = () => {
+      setPuzzleStatuses(getDailyPuzzlesStatus());
+    };
+
+    window.addEventListener('tiyatronot_puzzle_updated', handleUpdate);
     return () => {
       isMounted = false;
+      window.removeEventListener('tiyatronot_puzzle_updated', handleUpdate);
     };
   }, []);
 
@@ -81,46 +90,42 @@ export const BulmacalarPage: React.FC<BulmacalarPageProps> = ({ onOpenDailyQuote
           </div>
         </div>
 
-        {/* 2x2 Daily Puzzles Grid */}
+        {/* 2x2 Daily Puzzles Grid with identical homepage colors */}
         <div className="grid grid-cols-2 gap-2 sm:gap-3.5">
           <PuzzleCard
-            title="Günün Repliği"
+            title={<>Günün<br />Repliği</>}
             subtitle="Replik Tahmin Bulmacası"
-            description="Kült oyunlardan unutulmaz repliği en az tahminle ve ipuçlarıyla bul."
-            badge="HER GÜN YENİ"
+            colorVariant="red"
             xpReward={30}
-            estimatedTime="~2 dk"
-            bgVariant="cream"
+            isCompleted={puzzleStatuses.quote.completed}
+            isWon={puzzleStatuses.quote.won}
             onClick={() => handlePlayGame('gunun-repligi')}
           />
           <PuzzleCard
-            title="Oyuncu Dedektifi"
+            title={<>Oyuncu<br />Dedektifi</>}
             subtitle="Usta Oyuncu Tahmini"
-            description="Usta oyuncuları rolleri, efsane tiradları ve kariyer ipuçlarıyla keşfet."
-            badge="YENİ"
+            colorVariant="dark"
             xpReward={30}
-            estimatedTime="2 dk"
-            bgVariant="sand"
+            isCompleted={puzzleStatuses.actor.completed}
+            isWon={puzzleStatuses.actor.won}
             onClick={() => handlePlayGame('oyuncu-dedektifi')}
           />
           <PuzzleCard
-            title="Sahne Trivia"
+            title={<>Sahne<br />Trivia</>}
             subtitle="Günlük Tiyatro Bilgi Testi"
-            description="Tiyatro tarihi, yazarlar, prömiyerler ve sahne arkası üzerine 5 soru."
-            badge="BİLGİ YARIŞI"
+            colorVariant="lilac"
             xpReward={25}
-            estimatedTime="2 dk"
-            bgVariant="sand"
+            isCompleted={puzzleStatuses.trivia.completed}
+            isWon={puzzleStatuses.trivia.won}
             onClick={() => handlePlayGame('sahne-trivia')}
           />
           <PuzzleCard
-            title="Perde Arkası: Kelime"
+            title={<>Perde<br />Arkası</>}
             subtitle="Tiyatro Jargonu & Terimler"
-            description="Tirad, fuaye, sufle, kulis… sahne jargonunu harf ve anlam ipuçlarıyla çöz."
-            badge="KELİME OYUNU"
+            colorVariant="sage"
             xpReward={25}
-            estimatedTime="2 dk"
-            bgVariant="cream"
+            isCompleted={puzzleStatuses.word.completed}
+            isWon={puzzleStatuses.word.won}
             onClick={() => handlePlayGame('tiyatro-sozlugu')}
           />
         </div>
@@ -132,10 +137,34 @@ export const BulmacalarPage: React.FC<BulmacalarPageProps> = ({ onOpenDailyQuote
       </div>
 
       {/* Modals */}
-      <DailyQuoteModal isOpen={isDailyQuoteOpen} onClose={() => setIsDailyQuoteOpen(false)} />
-      <OyuncuDedektifiModal isOpen={isActorModalOpen} onClose={() => setIsActorModalOpen(false)} />
-      <TriviaModal isOpen={isTriviaModalOpen} onClose={() => setIsTriviaModalOpen(false)} />
-      <WordPuzzleModal isOpen={isWordModalOpen} onClose={() => setIsWordModalOpen(false)} />
+      <DailyQuoteModal
+        isOpen={isDailyQuoteOpen}
+        onClose={() => {
+          setIsDailyQuoteOpen(false);
+          setPuzzleStatuses(getDailyPuzzlesStatus());
+        }}
+      />
+      <OyuncuDedektifiModal
+        isOpen={isActorModalOpen}
+        onClose={() => {
+          setIsActorModalOpen(false);
+          setPuzzleStatuses(getDailyPuzzlesStatus());
+        }}
+      />
+      <TriviaModal
+        isOpen={isTriviaModalOpen}
+        onClose={() => {
+          setIsTriviaModalOpen(false);
+          setPuzzleStatuses(getDailyPuzzlesStatus());
+        }}
+      />
+      <WordPuzzleModal
+        isOpen={isWordModalOpen}
+        onClose={() => {
+          setIsWordModalOpen(false);
+          setPuzzleStatuses(getDailyPuzzlesStatus());
+        }}
+      />
     </div>
   );
 };

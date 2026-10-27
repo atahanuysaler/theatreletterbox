@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useId, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
-import { Eye, Bookmark, Share2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Eye, Bookmark, Share2, ArrowLeft } from 'lucide-react';
 import type { Play, ReviewEntry } from '../types';
 import { storageService } from '../services/storage';
 import { useAuthSafe } from '../context/AuthContext';
@@ -11,7 +11,6 @@ import SiteHeader from '../components/redesign/SiteHeader';
 import AudienceNotesSection from '../components/redesign/AudienceNotesSection';
 import CastChip from '../components/redesign/CastChip';
 import CatalogCard from '../components/redesign/CatalogCard';
-import StickyActionBar from '../components/redesign/StickyActionBar';
 import Footer from '../components/redesign/Footer';
 import SocialShareModal from '../components/SocialShareModal';
 import LogModal from '../components/LogModal';
@@ -324,8 +323,8 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
         </div>
       )}
 
-      {/* Back Link (Matching Reference Mockup) */}
-      <div className="py-1">
+      {/* Back Link (Hidden on mobile per user request) */}
+      <div className="hidden sm:block py-1">
         <Link
           to="/katalog"
           className="inline-flex items-center gap-2.5 h-9 sm:h-10 pl-1 pr-4 sm:pr-5 rounded-full bg-[#1C1A1B] text-white hover:bg-black transition-all shadow-xs no-underline group select-none shrink-0"
@@ -342,7 +341,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
       {/* 2. Hero Section: Col 1 Poster + 3 Action Buttons, Col 2 Editorial Card with 3 Details & Rating, Col 3 Description */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-1.5 items-stretch">
         {/* Col 1: Poster Card (Poster only, no title/details, 3 buttons at bottom) */}
-        <div className="relative rounded-2xl overflow-hidden bg-tn-surface border border-tn-line/60 flex flex-col justify-end p-4 h-[480px] sm:h-[520px] lg:h-[560px] shadow-sm group">
+        <div className="relative rounded-2xl overflow-hidden bg-tn-surface border border-tn-line/60 flex flex-col justify-end p-4 h-[380px] sm:h-[460px] lg:h-[560px] shadow-sm group">
           {play.posterUrl ? (
             <img
               src={play.posterUrl}
@@ -408,7 +407,7 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
         </div>
 
         {/* Col 2: Red Editorial Card (Details: Yazar, Yönetmen, Topluluk + Rating on bottom, No Not Ekle) */}
-        <article className="rounded-2xl bg-tn-red text-white p-6 sm:p-7 flex flex-col justify-between shadow-sm h-[480px] sm:h-[520px] lg:h-[560px] font-sans box-border overflow-hidden">
+        <article className="rounded-2xl bg-tn-red text-white p-5 sm:p-6 lg:p-7 flex flex-col shadow-sm h-auto lg:h-[560px] font-sans box-border overflow-hidden gap-4 sm:gap-5 lg:gap-0 lg:justify-between">
           <div className="flex flex-col gap-4 sm:gap-5">
             <div className="flex justify-between items-center">
               <span className="h-6.5 px-3 flex items-center border border-white/75 rounded-full text-[11px] font-sans font-bold tracking-[0.07em] uppercase">
@@ -568,18 +567,14 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
           )}
         </section>
       </section>
-{/* 3. Cast & Team Section */}
-      <section className="w-full my-1">
+      {/* 3. Cast & Team Section */}
+      <section className="w-full flex flex-col gap-2 my-2">
+        <div className="px-1 sm:px-1.5 pb-0.5">
+          <h2 className="m-0 font-display font-extrabold text-2xl sm:text-[34px] leading-tight text-tn-text dark:text-white">
+            Oyuncu <span className="font-accent italic font-normal">Kadrosu</span>
+          </h2>
+        </div>
         <article className="rounded-2xl bg-tn-ink text-white p-5 sm:p-6 flex flex-col gap-3.5 shadow-sm">
-          <div className="flex justify-between items-baseline">
-            <h2 className="m-0 font-display font-extrabold text-2xl sm:text-[34px] leading-tight text-white">
-              Oyuncu <span className="font-accent italic font-normal">Kadrosu</span>{' '}
-              <span className="font-sans italic text-base text-[#B8B0A8] font-normal">({castList.length})</span>
-            </h2>
-            <span className="text-sm italic text-[#B8B0A8]">
-              #{play.genre} · #{play.company || 'Tiyatro'}
-            </span>
-          </div>
 
           {/* Top 3 Featured Actors */}
           {topCast.length > 0 && (
@@ -626,23 +621,6 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
       {/* 5. Similar Plays Section */}
       {similarPlays.length > 0 && (
         <section className="flex flex-col gap-1.5 mt-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 px-1.5 pb-2">
-            <h2 className="m-0 font-display font-extrabold text-2xl sm:text-[34px] leading-tight text-tn-text dark:text-white">
-              Aynı türden, <span className="font-accent italic font-normal">en yüksek puanlılar</span>
-            </h2>
-            <Link
-              to="/katalog"
-              className="inline-flex items-center gap-2.5 h-9 sm:h-10 pl-4 sm:pl-5 pr-1 rounded-full bg-[#1C1A1B] text-white hover:bg-black transition-all shadow-xs no-underline group select-none shrink-0"
-            >
-              <span className="font-sans font-bold text-xs sm:text-sm text-white tracking-tight whitespace-nowrap">
-                Kataloğa dön
-              </span>
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#BA1B23] flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
-                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
-              </div>
-            </Link>
-          </div>
-
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
             {similarPlays.map((sp) => (
               <CatalogCard key={sp.id} play={sp} />
@@ -650,14 +628,6 @@ export const PlayDetailPage: React.FC<PlayDetailPageProps> = ({ onOpenLogModal }
           </div>
         </section>
       )}
-
-      {/* 7. Mobile Sticky Action Bar */}
-      <StickyActionBar
-        playTitle={play.title}
-        rating={play.rating}
-        reviewCount={reviews.length || play.reviewCount || 1}
-        onOpenLogModal={handleOpenModal}
-      />
 
       {/* Share Modal */}
       {shareReview && (

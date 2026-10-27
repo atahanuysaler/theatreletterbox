@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import SiteHeader from './components/redesign/SiteHeader';
 import Footer from './components/redesign/Footer';
@@ -23,7 +23,7 @@ import LogModal from './components/LogModal';
 import DailyQuoteModal from './components/DailyQuoteModal';
 import { AuthProvider, useAuthSafe } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import type { Play } from './types';
+import type { Play, ReviewEntry } from './types';
 
 const AppContent: React.FC = () => {
   const location = useLocation();
@@ -33,13 +33,15 @@ const AppContent: React.FC = () => {
 
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [logModalPlay, setLogModalPlay] = useState<Play | null>(null);
+  const [logModalReviewToEdit, setLogModalReviewToEdit] = useState<ReviewEntry | null>(null);
   const [isDailyQuoteOpen, setIsDailyQuoteOpen] = useState(false);
 
-  const handleOpenLogModal = async (play?: Play | null) => {
+  const handleOpenLogModal = async (play?: Play | null, reviewToEdit?: ReviewEntry | null) => {
     if (!user) {
       try {
         await loginWithGoogle?.();
         setLogModalPlay(play || null);
+        setLogModalReviewToEdit(reviewToEdit || null);
         setIsLogModalOpen(true);
       } catch (err) {
         console.log('[App] Google sign-in cancelled or failed:', err);
@@ -47,12 +49,19 @@ const AppContent: React.FC = () => {
       return;
     }
     setLogModalPlay(play || null);
+    setLogModalReviewToEdit(reviewToEdit || null);
     setIsLogModalOpen(true);
   };
 
   const handleOpenDailyQuote = () => setIsDailyQuoteOpen(true);
 
-  const isPlayDetailPage = location.pathname.startsWith('/oyun/');
+  // Always scroll to top on page navigation
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [location.pathname]);
+
   const isKesfetPage = location.pathname === '/kesfet';
 
   return (
@@ -133,10 +142,8 @@ const AppContent: React.FC = () => {
         )}
       </div>
 
-      {/* Mobile Tab Bar (Bottom Nav - visible on Kesfet for seamless tab switching, hidden on PlayDetail) */}
-      {!isPlayDetailPage && (
-        <MobileTabBar onOpenLogModal={() => handleOpenLogModal()} />
-      )}
+      {/* Mobile Tab Bar (Bottom Nav - visible on all pages including PlayDetail, matching HomePage) */}
+      <MobileTabBar onOpenLogModal={() => handleOpenLogModal()} />
 
       {/* Global Modals */}
       <LogModal
@@ -144,8 +151,10 @@ const AppContent: React.FC = () => {
         onClose={() => {
           setIsLogModalOpen(false);
           setLogModalPlay(null);
+          setLogModalReviewToEdit(null);
         }}
         preselectedPlay={logModalPlay}
+        reviewToEdit={logModalReviewToEdit}
       />
       <DailyQuoteModal isOpen={isDailyQuoteOpen} onClose={() => setIsDailyQuoteOpen(false)} />
     </div>

@@ -74,7 +74,39 @@ export const LogModal: React.FC<LogModalProps> = ({
   const [copiedShare, setCopiedShare] = useState(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const isEditing = Boolean(reviewToEdit);
+  const [detectedExistingReview, setDetectedExistingReview] = useState<ReviewEntry | null>(null);
+  const effectiveReviewToEdit = reviewToEdit || detectedExistingReview;
+  const isEditing = Boolean(effectiveReviewToEdit);
+
+  // Detect existing user review for the selected play to enforce 1 note per play
+  useEffect(() => {
+    if (!isOpen || reviewToEdit || !selectedPlay || !user?.uid) {
+      if (!reviewToEdit) setDetectedExistingReview(null);
+      return;
+    }
+
+    let isMounted = true;
+    storageService.getReviews(selectedPlay.id).then((playReviews) => {
+      if (!isMounted) return;
+      const existing = playReviews.find((r) => r.userId === user.uid);
+      if (existing) {
+        setDetectedExistingReview(existing);
+        setRating(existing.rating || 5);
+        setPerformanceRating(existing.performanceRating || 0);
+        setTechnicalRating(existing.technicalRating || 0);
+        setPerformanceDate(existing.performanceDate || new Date().toISOString().slice(0, 10));
+        setReviewText(existing.reviewText || '');
+        setHasSpoilers(Boolean(existing.hasSpoilers));
+      } else {
+        setDetectedExistingReview(null);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, selectedPlay, user?.uid, reviewToEdit]);
+
 
   // Lock body scroll when open
   useEffect(() => {
@@ -251,7 +283,7 @@ export const LogModal: React.FC<LogModalProps> = ({
     setError(null);
 
     try {
-      if (isEditing && reviewToEdit) {
+      if (isEditing && effectiveReviewToEdit) {
         const updatePayload: Partial<ReviewEntry> = {
           rating,
           technicalRating: technicalRating > 0 ? technicalRating : undefined,
@@ -260,7 +292,7 @@ export const LogModal: React.FC<LogModalProps> = ({
           performanceDate,
           hasSpoilers,
         };
-        const saved = await storageService.updateReview(reviewToEdit.id, updatePayload);
+        const saved = await storageService.updateReview(effectiveReviewToEdit.id, updatePayload);
         onReviewSaved?.(saved);
         window.dispatchEvent(new CustomEvent('tiyatronot:review-updated', { detail: saved }));
         setStep(4);
@@ -270,12 +302,27 @@ export const LogModal: React.FC<LogModalProps> = ({
           origin: { y: 0.6 },
         });
       } else {
-        // Check 1 review per play per user constraint
+        // Enforce 1 note per play per user: update if already exists
         const existingReviews = await storageService.getReviews(selectedPlay.id);
-        const alreadyReviewed = existingReviews.some(r => r.userId === user.uid);
-        if (alreadyReviewed) {
-          setError('Bu oyun için zaten bir biletiniz kesilmiş.');
-          setSubmitting(false);
+        const existingEntry = existingReviews.find((r) => r.userId === user.uid);
+        if (existingEntry) {
+          const updatePayload: Partial<ReviewEntry> = {
+            rating,
+            technicalRating: technicalRating > 0 ? technicalRating : undefined,
+            performanceRating: performanceRating > 0 ? performanceRating : undefined,
+            reviewText: reviewText.trim(),
+            performanceDate,
+            hasSpoilers,
+          };
+          const saved = await storageService.updateReview(existingEntry.id, updatePayload);
+          onReviewSaved?.(saved);
+          window.dispatchEvent(new CustomEvent('tiyatronot:review-updated', { detail: saved }));
+          setStep(4);
+          confetti({
+            particleCount: 80,
+            spread: 70,
+            origin: { y: 0.6 },
+          });
           return;
         }
 
@@ -699,6 +746,11 @@ export const LogModal: React.FC<LogModalProps> = ({
           {/* STEP 1: PERDE I - OYUN & TARİH */}
           {step === 1 && (
             <div className="space-y-4 py-3 my-auto font-sans">
+              {detectedExistingReview && (
+                <div className="text-xs text-[#BA1B23] dark:text-[#E4B33A] bg-[#BA1B23]/10 dark:bg-[#E4B33A]/10 p-2.5 rounded-xl border border-[#BA1B23]/20 dark:border-[#E4B33A]/30 flex items-center gap-2">
+                  <span>Bu oyun için daha önce bilet kestiniz. Mevcut notunuzu güncelliyorsunuz.</span>
+                </div>
+              )}
               {/* Play Selection Card */}
               {selectedPlay && !isChangingPlay ? (
                 <div className="bg-[#FBF9F5] dark:bg-[#232022] border border-[#EADBCA] dark:border-[#383235] rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-2xs">

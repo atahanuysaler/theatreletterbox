@@ -7,6 +7,7 @@ interface SplitCardProps {
   variant?: 'hero' | 'standard';
   colorVariant?: 'red' | 'ink' | 'lilac' | 'sage' | 'ochre' | string;
   className?: string;
+  priority?: boolean;
 }
 
 const COLOR_CONFIGS: Record<string, { bg: string; text: string; muted: string }> = {
@@ -42,6 +43,7 @@ export const SplitCard: React.FC<SplitCardProps> = ({
   variant = 'standard',
   colorVariant = 'red',
   className = '',
+  priority = true,
 }) => {
   const gradientId = useId();
   const isHero = variant === 'hero';
@@ -65,13 +67,13 @@ export const SplitCard: React.FC<SplitCardProps> = ({
     else if (titleLength <= 38) titleSizeClass = 'text-[24px] sm:text-3xl md:text-4xl lg:text-[44px] leading-[0.96] tracking-[-0.03em]';
     else titleSizeClass = 'text-[20px] sm:text-2xl md:text-3xl lg:text-[34px] leading-tight tracking-[-0.025em]';
   } else {
-    if (titleLength <= 14) titleSizeClass = 'text-[24px] sm:text-[28px] lg:text-[34px] leading-[1.05] tracking-[-0.03em]';
-    else if (titleLength <= 26) titleSizeClass = 'text-[20px] sm:text-[24px] lg:text-[28px] leading-[1.05] tracking-[-0.025em]';
-    else if (titleLength <= 40) titleSizeClass = 'text-[17px] sm:text-[20px] lg:text-[22px] leading-[1.1] tracking-[-0.02em]';
-    else titleSizeClass = 'text-[15px] sm:text-[17px] lg:text-[18px] leading-tight tracking-[-0.02em]';
+    if (titleLength <= 14) titleSizeClass = 'text-[17px] sm:text-[22px] lg:text-[28px] leading-[1.05] tracking-[-0.03em]';
+    else if (titleLength <= 26) titleSizeClass = 'text-[15px] sm:text-[18px] lg:text-[22px] leading-[1.05] tracking-[-0.025em]';
+    else if (titleLength <= 40) titleSizeClass = 'text-[13px] sm:text-[16px] lg:text-[19px] leading-[1.1] tracking-[-0.02em]';
+    else titleSizeClass = 'text-[12px] sm:text-[14px] lg:text-[16px] leading-tight tracking-[-0.02em]';
   }
 
-  const starSize = isHero ? 24 : 16;
+  const starSize = isHero ? 22 : 13;
 
   return (
     <Link
@@ -82,7 +84,7 @@ export const SplitCard: React.FC<SplitCardProps> = ({
       {/* Left half: Colored Block */}
       <div
         className={`w-1/2 ${colorConfig.bg} ${colorConfig.text} flex flex-col justify-between box-border overflow-hidden select-none ${
-          isHero ? 'p-6 sm:p-7 lg:p-9' : 'p-3.5 sm:p-4'
+          isHero ? 'p-5 sm:p-7 lg:p-9' : 'p-2.5 sm:p-3.5'
         }`}
       >
         {/* Top: 5 Stars + Rating & Review count */}
@@ -156,7 +158,7 @@ export const SplitCard: React.FC<SplitCardProps> = ({
             })}
           </div>
 
-          <div className={`text-[11px] sm:text-xs ${colorConfig.muted} font-sans font-medium mt-1 tracking-tight`}>
+          <div className={`text-[10px] sm:text-xs ${colorConfig.muted} font-sans font-medium mt-1 tracking-tight`}>
             {rawRating.toFixed(1)} · {reviewCount} not
           </div>
         </div>
@@ -164,7 +166,7 @@ export const SplitCard: React.FC<SplitCardProps> = ({
         {/* Middle: Title with adaptive sizing */}
         <div className="my-auto py-1.5 overflow-hidden">
           <h3
-            className={`m-0 font-display font-extrabold ${colorConfig.text} break-words line-clamp-5 ${titleSizeClass}`}
+            className={`m-0 font-display font-extrabold ${colorConfig.text} break-words line-clamp-2 sm:line-clamp-3 ${titleSizeClass}`}
           >
             {play.title}
           </h3>
@@ -172,7 +174,7 @@ export const SplitCard: React.FC<SplitCardProps> = ({
 
         {/* Bottom: Playwright (without forward button) */}
         <div className="flex items-center mt-auto pt-1">
-          <span className={`font-accent italic font-normal ${colorConfig.muted} truncate ${isHero ? 'text-lg sm:text-2xl lg:text-[30px]' : 'text-xs sm:text-base lg:text-[20px]'}`}>
+          <span className={`font-accent italic font-normal ${colorConfig.muted} truncate ${isHero ? 'text-base sm:text-2xl lg:text-[28px]' : 'text-[10px] sm:text-sm lg:text-[17px]'}`}>
             {author}
           </span>
         </div>
@@ -185,7 +187,9 @@ export const SplitCard: React.FC<SplitCardProps> = ({
             src={play.posterUrl}
             alt={play.title}
             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
+            loading={priority ? 'eager' : 'lazy'}
+            decoding="async"
+            {...(isHero ? { fetchPriority: 'high' } : {})}
           />
         ) : (
           <div className="w-full h-full bg-[#2B2927] flex flex-col items-center justify-center p-3 text-center text-white/60">

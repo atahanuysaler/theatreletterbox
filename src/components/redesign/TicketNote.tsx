@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Share2 } from 'lucide-react';
+import { Share2, Pencil } from 'lucide-react';
 import type { ReviewEntry } from '../../types';
 
 interface TicketNoteProps {
@@ -120,13 +120,10 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
           </div>
         </div>
 
-        {/* Middle: Quotation & Review snippet */}
-        <div className="my-1.5 sm:my-2.5 flex items-start gap-1.5">
-          <span className="text-[#E5A93C] font-serif font-black text-xl sm:text-2xl leading-none shrink-0 select-none">
-            “
-          </span>
+        {/* Middle: Review snippet without quotation marks or italics */}
+        <div className="my-1.5 sm:my-2.5">
           <p
-            className={`m-0 font-accent italic font-normal text-[13px] sm:text-[14.5px] leading-snug text-[#1C1A1B] dark:text-white/90 line-clamp-2 ${
+            className={`m-0 font-sans not-italic font-normal text-[13px] sm:text-[14.5px] leading-snug text-[#1C1A1B] dark:text-white/90 line-clamp-2 ${
               isSpoilerHidden ? 'filter blur-sm select-none' : ''
             }`}
           >
@@ -148,17 +145,34 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onShare?.(review);
-            }}
-            className="w-6.5 h-6.5 sm:w-7.5 sm:h-7.5 rounded-full bg-[#F3EFEA] dark:bg-white/10 hover:bg-[#EAE5DF] dark:hover:bg-white/20 text-[#1C1A1B] dark:text-white flex items-center justify-center transition-colors shrink-0 ml-auto cursor-pointer border-none"
-            aria-label="Bileti Paylaş"
-          >
-            <Share2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#1C1A1B] dark:text-white" />
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+            {onEdit && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(review);
+                }}
+                className="w-6.5 h-6.5 sm:w-7.5 sm:h-7.5 rounded-full bg-[#F3EFEA] dark:bg-white/10 hover:bg-[#EAE5DF] dark:hover:bg-white/20 text-[#1C1A1B] dark:text-white flex items-center justify-center transition-colors cursor-pointer border-none"
+                aria-label="Bileti Düzenle"
+                title="Notunu Düzenle"
+              >
+                <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#1C1A1B] dark:text-white" />
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onShare?.(review);
+              }}
+              className="w-6.5 h-6.5 sm:w-7.5 sm:h-7.5 rounded-full bg-[#F3EFEA] dark:bg-white/10 hover:bg-[#EAE5DF] dark:hover:bg-white/20 text-[#1C1A1B] dark:text-white flex items-center justify-center transition-colors shrink-0 cursor-pointer border-none"
+              aria-label="Bileti Paylaş"
+            >
+              <Share2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#1C1A1B] dark:text-white" />
+            </button>
+          </div>
         </div>
       </article>
     );
@@ -247,11 +261,11 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
             {/* Review Text with Spoiler handling */}
             <div className="relative">
               <p
-                className={`m-0 font-accent italic font-normal text-xl sm:text-2xl leading-snug text-tn-text transition-all ${
+                className={`m-0 font-sans not-italic font-normal text-base sm:text-lg leading-snug text-tn-text transition-all ${
                   isSpoilerHidden ? 'filter blur-sm select-none' : ''
                 }`}
               >
-                "{review.reviewText}"
+                {review.reviewText}
               </p>
               {review.hasSpoilers && (
                 <button
@@ -350,11 +364,11 @@ export const TicketNote: React.FC<TicketNoteProps> = ({
 
         <div className="relative">
           <p
-            className={`m-0 font-accent italic font-normal text-base sm:text-[19px] leading-snug line-clamp-2 text-tn-text ${
+            className={`m-0 font-sans not-italic font-normal text-sm sm:text-base leading-snug line-clamp-2 text-tn-text ${
               isSpoilerHidden ? 'filter blur-sm select-none' : ''
             }`}
           >
-            "{review.reviewText}"
+            {review.reviewText}
           </p>
           {review.hasSpoilers && (
             <button

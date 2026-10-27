@@ -122,6 +122,7 @@ export interface IStorageService {
 
   // Homepage Highlighted / Featured Plays Configuration
   getHomepageFeaturedPlayIds(): Promise<string[]>;
+  getHomepageFeaturedPlays(): Promise<Play[]>;
   setHomepageFeaturedPlayIds(playIds: string[]): Promise<void>;
 
   // Reset & Re-seed
